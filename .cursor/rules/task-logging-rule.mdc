@@ -1,0 +1,74 @@
+---
+description: Everytime the user talks about any to do, track the progress
+alwaysApply: true
+---
+
+# Task Logging Rule
+
+## Trigger
+Every time the user talks about "something that should be done" (a task, a todo, a ticket, an idea to implement), you must create a separate new file or update an existing one.
+
+## File Naming Format
+`Year_Month_Day_Time_identifier.md`
+- **Year**: YYYY
+- **Month**: MM
+- **Day**: DD
+- **Time**: HHmm (24-hour format)
+- **identifier**: A short, snake_case string identifying the task.
+
+## File Location
+Store these files in the `to_dos/` directory.
+
+## File Structure
+The file content must be structured exactly as follows:
+
+```markdown
+<Description as a short sentence>
+<Identifier>
+<Summary of current state>
+
+Summary
+State: <Not more than 5 words describing the current state>
+Focus: <Not more than 5 words describing what to focus on>
+
+Log Book
+```
+
+## Protocol
+
+### Creating a New Task
+1. Generate the filename based on the current date and time.
+2. Fill in the "Description as a short sentence".
+3. Fill in the "Identifier".
+4. Write an initial "Summary of current state".
+5. Add a "Summary" section with:
+   - "State": Not more than 5 words describing the current state
+   - "Focus": Not more than 5 words describing what to focus on
+6. In the "Log Book", add the first entry containing the details of the discussion.
+7. **MANDATORY**: Immediately update the `overview.md` file by:
+   - Reading ALL `.md` files in the `to_dos/` directory (including the new one)
+   - Extracting Identifier (line 2), Description (line 1), State, and Focus from each
+   - Updating the entire overview table with current information
+   - Updating the "Last updated" date
+   - **This must be done in the SAME tool call batch as creating the task file**
+
+### Updating an Existing Task
+If the user talks about an existing task/identifier:
+1. Find the corresponding file.
+2. Add a new entry to the "Log Book" with the current discussion points.
+3. Update the "Summary of current state" if the status or understanding of the task has changed.
+4. Update the "Summary" section (State and Focus) if the status or focus has changed.
+5. **MANDATORY**: Immediately update the `overview.md` file by:
+   - Reading ALL `.md` files in the `to_dos/` directory
+   - Extracting Identifier (line 2), Description (line 1), State, and Focus from each
+   - Updating the entire overview table with current information
+   - Updating the "Last updated" date
+   - **This must be done in the SAME tool call batch as the task file modification**
+
+### Critical Workflow Rule
+**NEVER modify a task file without immediately updating `overview.md` in the same operation.** This is a non-negotiable requirement. When you modify ANY task file, you MUST:
+1. Make the task file change
+2. Immediately read all task files
+3. Update `overview.md` with current data
+4. Do steps 1-3 in the same tool call batch whenever possible
+

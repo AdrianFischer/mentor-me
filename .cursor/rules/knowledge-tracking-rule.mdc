@@ -1,0 +1,53 @@
+---
+alwaysApply: true
+---
+# Knowledge Tracking Rule
+
+## Purpose
+Track and preserve all knowledge shared by the user during conversations to maintain context and build a knowledge base.
+
+## Protocol
+
+### When Knowledge is Shared
+Whenever the user shares information about:
+- Project details, architecture, or design decisions
+- Business context, customers, or stakeholders
+- Technical constraints, requirements, or preferences
+- Domain knowledge, terminology, or concepts
+- Workflows, processes, or methodologies
+- Any other contextual information
+
+### Action Required
+1. **Immediate Documentation**: Add the knowledge to a knowledge base file
+2. **Structured Format**: Use clear, searchable format with relevant tags/categories
+3. **Context Preservation**: Include when/why the knowledge was shared if relevant
+4. **Reference in Conversations**: When relevant, reference stored knowledge to maintain consistency
+
+### Knowledge Base Location
+Store knowledge in: `knowledge_base/` directory
+
+### File Organization
+- Use descriptive filenames: `YYYY_MM_DD_topic.md` or `category_topic.md`
+- Group related knowledge together
+- Use markdown format for readability
+- Include metadata: date, context, related topics
+
+### Example Structure
+```markdown
+# Topic: [Title]
+
+**Date**: YYYY-MM-DD
+**Context**: [Brief context of when/why this was shared]
+
+## Information
+[Knowledge content]
+
+## Related Topics
+- [Links to related knowledge entries]
+```
+
+## Implementation
+- Create knowledge entries proactively when user shares information
+- Update existing entries when information evolves
+- Reference knowledge base when making decisions or suggestions
+- Maintain consistency with previously shared knowledge

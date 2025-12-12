@@ -1,0 +1,59 @@
+---
+description: Always update overview.md when task files are modified
+alwaysApply: true
+---
+
+# Overview Sync Rule
+
+## Purpose
+Ensure that `overview.md` stays synchronized with all task files in the `to_dos/` directory whenever any task file is modified.
+
+## Trigger
+**EVERY TIME** you modify any file in the `to_dos/` directory (create, update, or change any task file), you MUST update the `overview.md` file **IN THE SAME TOOL CALL BATCH**.
+
+This rule applies to:
+- Creating a new task file
+- Adding a log entry to an existing task
+- Changing State or Focus
+- Modifying description or summary
+- ANY other change to a task file
+
+## Protocol
+
+### When Modifying Task Files
+After making ANY change to a task file (including but not limited to):
+- Adding log entries
+- Updating State or Focus
+- Modifying the description or summary
+- Creating a new task file
+- Any other modification
+
+You MUST:
+1. **Immediately update `overview.md`** by:
+   - Reading all `.md` files in the `to_dos/` directory
+   - Extracting from each file:
+     - **Identifier**: Line 2 of the task file
+     - **Description**: Line 1 of the task file
+     - **State**: From "Summary" section, line starting with "State:"
+     - **Focus**: From "Summary" section, line starting with "Focus:"
+   - Updating the table in `overview.md` with current information
+   - Updating the "Last updated" date to today (YYYY-MM-DD format)
+
+2. **Do this in the SAME tool call batch** - when you call a tool to modify a task file, you MUST also call tools to read all task files and update the overview in that same batch. Do NOT make separate tool calls - combine them.
+
+### Format
+The overview table should have this format:
+```markdown
+| **identifier**<br>Description | State | Focus |
+```
+
+### Critical Rule
+**NEVER modify a task file without updating the overview in the same tool call batch.** This is a mandatory step, not optional.
+
+### Implementation Checklist
+When modifying a task file, your tool calls should look like this:
+1. ✅ Tool: Modify the task file (search_replace, write, etc.)
+2. ✅ Tool: Read all task files in `to_dos/` directory (glob_file_search + read_file for each)
+3. ✅ Tool: Update `overview.md` with current data (search_replace)
+
+All three steps should be in the SAME batch of parallel tool calls whenever possible.
