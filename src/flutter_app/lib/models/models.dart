@@ -1,93 +1,39 @@
-import 'package:uuid/uuid.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-const uuid = Uuid();
+part 'models.freezed.dart';
+part 'models.g.dart';
 
-class Subtask {
-  final String id;
-  String title;
-  bool isCompleted;
+@freezed
+class Subtask with _$Subtask {
+  const factory Subtask({
+    required String id,
+    required String title,
+    @Default(false) bool isCompleted,
+  }) = _Subtask;
 
-  Subtask({
-    String? id,
-    required this.title,
-    this.isCompleted = false,
-  }) : id = id ?? uuid.v4();
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'isCompleted': isCompleted,
-      };
-
-  factory Subtask.fromJson(Map<String, dynamic> json) {
-    return Subtask(
-      id: json['id'],
-      title: json['title'],
-      isCompleted: json['isCompleted'] ?? false,
-    );
-  }
+  factory Subtask.fromJson(Map<String, dynamic> json) => _$SubtaskFromJson(json);
 }
 
-class Task {
-  final String id;
-  String title;
-  bool isCompleted;
-  List<Subtask> subtasks;
+@freezed
+class Task with _$Task {
+  const factory Task({
+    required String id,
+    required String title,
+    @Default(false) bool isCompleted,
+    String? projectId,
+    @Default([]) List<Subtask> subtasks,
+  }) = _Task;
 
-  Task({
-    String? id,
-    required this.title,
-    this.isCompleted = false,
-    List<Subtask>? subtasks,
-  })  : id = id ?? uuid.v4(),
-        subtasks = subtasks ?? [];
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'isCompleted': isCompleted,
-        'subtasks': subtasks.map((s) => s.toJson()).toList(),
-      };
-
-  factory Task.fromJson(Map<String, dynamic> json) {
-    return Task(
-      id: json['id'],
-      title: json['title'],
-      isCompleted: json['isCompleted'] ?? false,
-      subtasks: (json['subtasks'] as List<dynamic>?)
-              ?.map((e) => Subtask.fromJson(e))
-              .toList() ??
-          [],
-    );
-  }
+  factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
 }
 
-class Project {
-  final String id;
-  String title;
-  List<Task> tasks;
+@freezed
+class Project with _$Project {
+  const factory Project({
+    required String id,
+    required String title,
+    @Default([]) List<Task> tasks,
+  }) = _Project;
 
-  Project({
-    String? id,
-    required this.title,
-    List<Task>? tasks,
-  })  : id = id ?? uuid.v4(),
-        tasks = tasks ?? [];
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'tasks': tasks.map((t) => t.toJson()).toList(),
-      };
-
-  factory Project.fromJson(Map<String, dynamic> json) {
-    return Project(
-      id: json['id'],
-      title: json['title'],
-      tasks: (json['tasks'] as List<dynamic>?)
-              ?.map((e) => Task.fromJson(e))
-              .toList() ??
-          [],
-    );
-  }
+  factory Project.fromJson(Map<String, dynamic> json) => _$ProjectFromJson(json);
 }

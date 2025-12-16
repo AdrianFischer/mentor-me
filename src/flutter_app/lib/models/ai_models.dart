@@ -22,7 +22,25 @@ class ChatMessage {
   ChatMessage({
     required this.text,
     required this.isUser,
-  }) : id = const Uuid().v4(), timestamp = DateTime.now();
+    String? id,
+    DateTime? timestamp,
+  }) : id = id ?? const Uuid().v4(), timestamp = timestamp ?? DateTime.now();
+}
+
+class Knowledge {
+  final String id;
+  final String content;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  Knowledge({
+    required this.content,
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) : id = id ?? const Uuid().v4(), 
+       createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 }
 
 

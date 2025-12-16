@@ -2,7 +2,8 @@
 
 | **identifier**<br>Description | State | Focus |
 |:---|:---|:---|
-| **implement_robust_persistence**<br>Implement robust data persistence with debouncing, atomic writes, and subtask support. | In Progress | Verification |
+| **fix_project_persistence**<br>Fix project persistence in Flutter App | Completed | Verification |
+| **implement_robust_persistence**<br>Implement robust data persistence with debouncing, atomic writes, and subtask support. | Completed | Done |
 | **migrate_to_ai_kb**<br>Migrate Flutter app to AI-First Knowledge Base. | Completed | Done |
 | **verify_add_project_tool**<br>Try out and test adding new projects in the Ai assistant | Completed | None |
 | **debug_crash**<br>Debug crash when opening Assisted AI project | Completed | Monitoring |

@@ -33,6 +33,8 @@ class Config {
       return null;
     }
   }
+
+  static const String mentorModelName = 'gemini-3-pro-preview';
   
   static bool get hasGeminiKey => geminiApiKey.isNotEmpty;
 }

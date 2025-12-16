@@ -18,6 +18,26 @@ import 'package:flutter_app/config.dart';
 import 'package:flutter_app/services/assistant_service.dart';
 import 'package:flutter_app/services/data_service.dart';
 import 'package:flutter_app/ai_tools/tool_registry.dart';
+import 'package:flutter_app/data/repository/storage_repository.dart';
+import 'package:flutter_app/models/models.dart';
+import 'dart:async';
+
+class FakeStorageRepository implements StorageRepository {
+  @override
+  Future<void> init() async {}
+  @override
+  Future<List<Project>> getAllProjects() async => [];
+  @override
+  Future<void> saveProject(Project project) async {}
+  @override
+  Future<void> deleteProject(String projectId) async {}
+  @override
+  Future<void> saveTask(Task task) async {}
+  @override
+  Future<void> deleteTask(String taskId) async {}
+  @override
+  Stream<void> get onDataChanged => const Stream.empty();
+}
 
 void main() {
   group('Gemini API Integration Tests', () {
@@ -36,7 +56,7 @@ void main() {
     });
 
     setUp(() {
-      dataService = DataService();
+      dataService = DataService(FakeStorageRepository());
       toolRegistry = ToolRegistry(dataService);
       assistantService = AssistantService(dataService, toolRegistry);
     });
