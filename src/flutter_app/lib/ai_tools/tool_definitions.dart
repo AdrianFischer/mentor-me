@@ -81,6 +81,20 @@ class ToolDefinitions {
         },
         "required": ["item_id"]
       }
+    },
+    {
+      'name': 'save_memory',
+    'description': 'Save a specific fact, preference, or insight about the user to long-term memory. Use this when the user states something important that should be remembered for future conversations.',
+    'parameters': {
+      'type': 'object',
+      'properties': {
+        'fact': {
+          'type': 'string',
+          'description': 'The clear, concise fact or insight to remember.'
+        }
+      },
+      'required': ['fact']
     }
-  ];
+  }
+];
 }

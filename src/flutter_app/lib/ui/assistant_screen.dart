@@ -62,7 +62,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
             color: Colors.white,
             child: Column(
               children: [
-                _buildHeader("Conversation"),
+                _buildConversationHeader(assistant),
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
@@ -91,8 +91,25 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
             color: const Color(0xFFF5F5F7), // Light grey background
             child: Column(
               children: [
+                // Pending Actions Section
+                if (assistant.pendingActions.isNotEmpty) ...[
+                  _buildHeader("Review Actions (${assistant.pendingActions.length})"),
+                  Flexible(
+                    flex: 1,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: assistant.pendingActions.length,
+                      itemBuilder: (context, index) {
+                        return _buildActionCard(context, assistant, assistant.pendingActions[index]);
+                      },
+                    ),
+                  ),
+                ],
+
+                // Executed Actions Section
                 _buildHeader("Action Log"),
                 Expanded(
+                  flex: 2,
                   child: assistant.executedActions.isEmpty
                       ? const Center(
                           child: Text(
@@ -119,6 +136,87 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildConversationHeader(AssistantService assistant) {
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.grey, width: 0.2)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+               Icon(
+                 assistant.isMentorMode ? Icons.school : Icons.assistant,
+                 color: assistant.isMentorMode ? Colors.deepPurple : Colors.blue,
+               ),
+               const SizedBox(width: 8),
+               Text(
+                assistant.isMentorMode ? "Mentor Mode" : "Assistant Mode",
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 16,
+                    color: assistant.isMentorMode ? Colors.deepPurple : Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+                const Text("Assistant", style: TextStyle(fontSize: 12)),
+                Switch(
+                  value: assistant.isMentorMode,
+                  onChanged: (val) => assistant.toggleMode(),
+                  activeColor: Colors.deepPurple,
+                  activeTrackColor: Colors.deepPurple.shade100,
+                  inactiveThumbColor: Colors.blue,
+                  inactiveTrackColor: Colors.blue.shade100,
+                ),
+                const Text("Mentor", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                const SizedBox(width: 8),
+                if (assistant.isMentorMode) 
+                  IconButton(
+                    icon: Icon(
+                      assistant.isVoiceEnabled ? Icons.volume_up : Icons.volume_off, 
+                      size: 20, 
+                      color: assistant.isVoiceEnabled ? Colors.deepPurple : Colors.grey
+                    ),
+                    tooltip: 'Toggle Voice Response',
+                    onPressed: () => assistant.toggleVoice(),
+                  ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 20, color: Colors.grey),
+                  tooltip: 'Clear History',
+                  onPressed: () {
+                    showDialog(
+                      context: context, 
+                      builder: (ctx) => AlertDialog(
+                        title: Text("Clear ${assistant.isMentorMode ? 'Mentor' : 'Assistant'} History?"),
+                        content: const Text("This action cannot be undone."),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
+                          TextButton(
+                            onPressed: () {
+                              assistant.clearHistory();
+                              Navigator.pop(ctx);
+                            }, 
+                            child: const Text("Clear", style: TextStyle(color: Colors.red))
+                          ),
+                        ],
+                      )
+                    );
+                  },
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -237,68 +335,67 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
     );
   }
 
-  // Legacy method kept if needed for reference, but unused in new UI
-  // Widget _buildActionCard(BuildContext context, AssistantService assistant, ProposedAction action) {
-  //   return Card(
-  //     elevation: 0,
-  //     margin: const EdgeInsets.only(bottom: 12),
-  //     shape: RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.circular(12),
-  //       side: BorderSide(color: Colors.grey.shade300),
-  //     ),
-  //     child: Padding(
-  //       padding: const EdgeInsets.all(16),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           Row(
-  //             children: [
-  //               const Icon(Icons.auto_fix_high, size: 16, color: Colors.blue),
-  //               const SizedBox(width: 8),
-  //               Text(
-  //                 action.toolName.replaceAll('_', ' ').toUpperCase(),
-  //                 style: const TextStyle(
-  //                   fontSize: 10, 
-  //                   fontWeight: FontWeight.bold, 
-  //                   color: Colors.blue
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //           const SizedBox(height: 8),
-  //           Text(
-  //             action.description,
-  //             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-  //           ),
-  //           const SizedBox(height: 16),
-  //           Row(
-  //             mainAxisAlignment: MainAxisAlignment.end,
-  //             children: [
-  //               TextButton(
-  //                 onPressed: () => assistant.declineAction(action),
-  //                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-  //                 child: const Text("Decline"),
-  //               ),
-  //               const SizedBox(width: 8),
-  //               ElevatedButton.icon(
-  //                 onPressed: () {
-  //                   print("[VERIFY_FLOW] UI Interaction: User accepted action ${action.toolName}");
-  //                   assistant.acceptAction(action);
-  //                 },
-  //                 icon: const Icon(Icons.check, size: 16),
-  //                 label: const Text("Accept"),
-  //                 style: ElevatedButton.styleFrom(
-  //                   backgroundColor: Colors.black,
-  //                   foregroundColor: Colors.white,
-  //                   elevation: 0,
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
+  Widget _buildActionCard(BuildContext context, AssistantService assistant, ProposedAction action) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.blue.shade300, width: 1.5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.pending_actions, size: 16, color: Colors.orange),
+                const SizedBox(width: 8),
+                Text(
+                  "REVIEW: ${action.toolName.replaceAll('_', ' ').toUpperCase()}",
+                  style: const TextStyle(
+                    fontSize: 10, 
+                    fontWeight: FontWeight.bold, 
+                    color: Colors.orange
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              action.description,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => assistant.declineAction(action),
+                  style: TextButton.styleFrom(foregroundColor: Colors.red),
+                  child: const Text("Decline"),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    print("[VERIFY_FLOW] UI Interaction: User accepted action ${action.toolName}");
+                    assistant.acceptAction(action);
+                  },
+                  icon: const Icon(Icons.check, size: 16),
+                  label: const Text("Accept"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
