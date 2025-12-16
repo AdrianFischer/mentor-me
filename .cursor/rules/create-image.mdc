@@ -1,0 +1,106 @@
+---
+alwaysApply: false
+---
+# Create Image Rule
+
+## Purpose
+Enable the agent to automatically use the image generation script located at `src/scripts/nano_banana.py` whenever there is a need to design, visualize, or generate an image as part of any workflow or user instruction.
+
+## Trigger
+When the user requests to "design", "create", "visualize", "draw", "diagram", or "generate" an image/picture/diagram/graphic, the agent MUST trigger the image generation script.
+
+**Activation Keywords:**
+- "create image", "generate image", "visualize", "draw", "sketch", "design"
+- "diagram", "picture", "graphic", "illustration", "chart", "visual"
+
+## Protocol
+
+### When Image Generation is Requested
+1. **Extract the prompt**: Build a detailed prompt from the user's request and conversation context
+2. **Determine output path**: Choose an appropriate location based on context (e.g., `docs/`, `assets/`, or default `output.png`)
+3. **Execute the script**: Run the image generation script with the prompt
+4. **Reference the image**: Include the generated image in the response or workflow
+
+### Usage Methods
+
+#### Command-Line Usage (Recommended)
+Run the script as a command with the prompt as an argument:
+```bash
+python3 src/scripts/nano_banana.py "your detailed prompt here" --output path/to/output.png
+```
+
+#### Python Module Usage
+If you need to integrate it into Python code:
+```python
+from src.scripts.nano_banana import generate_image
+image_path = generate_image("prompt", output_path="custom_name.png")
+```
+
+### Prompt Best Practices
+- **Be specific and descriptive**: "a modern, minimalist logo for a tech startup called 'Nexus' with blue and white colors"
+- **Include style preferences**: "in the style of a technical diagram", "hand-drawn sketch", "photorealistic"
+- **For diagrams**: "a flowchart showing the user authentication process with boxes and arrows"
+- **For visualizations**: "a bar chart showing sales data for Q1-Q4 2024"
+- **Combine context**: If user mentions "the system we discussed", include relevant details from the conversation
+
+### Output Management
+- **Default output**: `output.png` (in current working directory)
+- **Custom path**: Use `--output` flag to specify custom path: `--output diagrams/system_arch.png`
+- **For documentation**: Save to appropriate location (e.g., `docs/images/`, `assets/`)
+- **Naming**: Use descriptive filenames based on the image content
+
+### Error Handling
+- Check if `GEMINI_API_KEY` environment variable is set
+- Handle cases where image generation fails gracefully
+- Inform user if API key is missing or invalid
+- Provide helpful error messages
+
+### Integration with Workflows
+- After generating, reference the image in markdown: `![Description](path/to/image.png)`
+- For documentation: Update relevant `.md` files with image references
+- For knowledge base: Include images in knowledge entries when appropriate
+- For reports: Embed or link to generated images
+
+## Prerequisites
+- `GEMINI_API_KEY` environment variable must be set
+- Required packages: `google-genai`, `Pillow`
+- Install with: `pip install google-genai pillow`
+
+## Examples
+
+### Example 1: Visualize Workflow
+**User**: "Visualize the workflow we discussed"
+
+**Agent Actions**:
+1. Extract workflow details from conversation context
+2. Run: `python3 src/scripts/nano_banana.py "a flowchart showing [workflow details]" --output docs/workflow.png`
+3. Reference: `![Workflow Diagram](docs/workflow.png)`
+
+### Example 2: System Architecture Diagram
+**User**: "Create a diagram of the system architecture"
+
+**Agent Actions**:
+1. Gather architecture details from codebase/conversation
+2. Run: `python3 src/scripts/nano_banana.py "a technical architecture diagram showing [components]" --output docs/architecture.png`
+3. Update relevant documentation with the image
+
+### Example 3: Logo Design
+**User**: "Design a logo for my project"
+
+**Agent Actions**:
+1. Ask for or infer project details (name, style, colors)
+2. Run: `python3 src/scripts/nano_banana.py "a logo design for [project] with [style/colors]" --output assets/logo.png`
+3. Show the result and offer to refine
+
+## Safety
+- Only use for appropriate, ethical visualization/design
+- Respect copyright and intellectual property
+- Do not generate inappropriate, harmful, or offensive content
+
+## Implementation
+- When image generation is requested, extract prompt from user request and conversation context
+- Determine appropriate output path based on context and project structure
+- Execute script with proper error handling
+- Reference generated image in response
+- Update documentation if image is for documentation purposes
+

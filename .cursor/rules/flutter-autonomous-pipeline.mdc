@@ -1,0 +1,53 @@
+---
+description: How to use the autonomous Flutter pipeline for rapid design iteration and verification.
+globs: ["knowledge_base/design_specs_2025_12_13/flutter_app/**", "src/scripts/autonomous_flutter.dart"]
+---
+# Flutter Autonomous Pipeline
+
+## Purpose
+Enables rapid "Edit -> Hot Reload -> Verify" iteration cycles for Flutter development without manual interaction. The pipeline automatically:
+1.  **Visual Verification**: Captures a screenshot of the app state.
+2.  **Functional Verification**: Runs unit/widget tests and reports status.
+
+## Usage
+
+### 1. Start the Pipeline
+Run the following command from the project root:
+```bash
+dart run src/scripts/autonomous_flutter.dart
+```
+*Note: Run this in the background or a separate terminal.*
+
+### 2. Iterate on Design & Logic
+1.  Make changes to any file in `knowledge_base/design_specs_2025_12_13/flutter_app/lib/`.
+2.  Save the file.
+3.  The pipeline will:
+    - Detect the change.
+    - Trigger a Hot Reload.
+    - **Capture a screenshot** to `knowledge_base/design_specs_2025_12_13/current_state.png`.
+    - **Run Tests** and write report to `knowledge_base/design_specs_2025_12_13/test_report.md`.
+
+### 3. Verify
+- **Visual**: Open `knowledge_base/design_specs_2025_12_13/current_state.png`.
+- **Functional**: Read `knowledge_base/design_specs_2025_12_13/test_report.md`.
+
+## Technical Implementation Details
+
+### Architecture
+- **Controller**: `src/scripts/autonomous_flutter.dart` watches files and manages the `flutter run` process.
+- **Visual Capture**: In-App capture using `screenshot` package (configured via `--dart-define=SCREENSHOT_DIR=...`).
+- **Test Runner**: Spawns `flutter test --no-pub` in parallel with hot reload.
+
+### Critical Configuration
+For the pipeline to work, the Flutter app must be configured to allow file writing on macOS:
+1.  **Entitlements**: `macos/Runner/DebugProfile.entitlements` must have:
+    ```xml
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+    ```
+2.  **Main Entry**: `lib/main.dart` must implement the `ScreenshotController` and listen for `reassemble()` (Hot Reload) events.
+
+## Troubleshooting
+- **No Screenshot**: Check terminal logs for `⚠️ PIPELINE: SCREENSHOT_DIR environment variable not set`.
+- **Build Failed**: If you see "Entitlements file ... was modified", run `flutter clean` in the app directory and restart the pipeline.
+- **Tests Failing**: Check `test_report.md` for specific assertion errors.

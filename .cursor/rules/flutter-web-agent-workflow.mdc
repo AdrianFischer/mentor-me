@@ -1,0 +1,81 @@
+---
+description: Comprehensive workflow for autonomous agents to develop, iterate, and verify Flutter Web features using the web_dev_server pipeline.
+globs: ["knowledge_base/design_specs_2025_12_13/flutter_app/**", "src/scripts/web_dev_server.dart"]
+---
+# Flutter Web Agent Workflow
+
+## Purpose
+This workflow enables you (the Agent) to autonomously develop, debug, and verify features in the Flutter Web application. It leverages a custom dev server that handles Hot Restarts automatically, allowing you to interact with the running app via browser tools.
+
+## Prerequisites
+- The Flutter app is located in `knowledge_base/design_specs_2025_12_13/flutter_app`.
+- The execution script is `src/scripts/web_dev_server.dart`.
+
+## Workflow Cycle
+
+### 1. Start the Development Environment
+Always start the web server in the background before making changes.
+
+```bash
+cd knowledge_base/design_specs_2025_12_13/flutter_app && dart run src/scripts/web_dev_server.dart
+```
+**CRITICAL**: Set `is_background: true`. Note the path of the terminal output file (e.g., `terminals/35.txt`) returned by the tool. You will need to read this file to check logs.
+
+### 2. Implement Features
+Edit the code in `lib/`. The server watches for changes and triggers a Hot Restart automatically.
+
+### 3. Verify Hot Restart
+Before testing, confirm the app has reloaded.
+1. Read the terminal output file (e.g., `read_file(target_file: "terminals/35.txt")`).
+2. Look for the log line: `Performing hot restart...` followed by `Restarted application in Xms`.
+3. If you see syntax errors in the log, fix them immediately.
+
+### 4. Interactive Verification (The "Browser Loop")
+Use the browser tools to verify your feature works as expected.
+
+**Recommended Flow:**
+1.  **Navigate & Seed**: Use query parameters to skip manual setup.
+    *   `browser_navigate(url: "http://localhost:3000/?seed=complex_tree")`
+2.  **Wait for UI**: Never assume the page is ready.
+    *   `browser_wait_for(text: "Project Alpha")` (or any expected text).
+3.  **Interact**:
+    *   `browser_click` and `browser_type`.
+    *   **Pro Tip**: Use `browser_snapshot` to inspect the accessibility tree if you can't find an element. Look for `ValueKey`s or unique text.
+4.  **Verify Result**:
+    *   Check for visual confirmation (e.g., new item in list).
+    *   Check the terminal log for backend errors or exceptions.
+
+## Best Practices for Agents
+
+### 1. State Seeding is King
+Do not waste tool calls manually creating Projects and Tasks just to test a "Delete Button".
+*   Use `?seed=complex_tree` to load a pre-populated data tree.
+*   If you need a specific state, add a new seed case in `DebugDataService.dart` and `MyApp.initState` *before* trying to test.
+
+### 2. Deterministic Locators
+If you cannot find a button, look at the code.
+*   Bad: Clicking based on generic text like "Delete" (there might be 5 delete buttons).
+*   Good: Ensure the widget has a unique `Key`. If not, add one: `key: ValueKey('task_delete_${item.id}')`. Then use that reference if possible, or context-aware clicks.
+*   **Pro Tip**: If a widget is hard to target in `browser_snapshot`, **modify the source code** to add a `ValueKey` (e.g., `ValueKey('assistant_input')`). It is faster to edit the code to be testable than to guess selectors.
+
+### 3. Simplify Interaction Logic (Autofocus)
+If navigating to a new screen or mode requires clicking a specific text field to type, **modify the code to autofocus** that field.
+*   Use `FocusNode.requestFocus()` in `initState`.
+*   This reduces the "click" step and makes the workflow robust (`Navigate` -> `Type` -> `Enter`).
+
+### 4. Debug Visibility
+*   **The Debug Overlay**: The app has a built-in Debug Overlay (Red Bug Icon in bottom-right).
+    *   **Toggle it**: Click the bug icon (`browser_click(element: "bug_report")`) to see internal state.
+    *   **Use it**: It shows the current `FocusNode` and the last `KeyEvent`. Use this to debug why keyboard shortcuts aren't working (e.g., checking if focus is "lost" or on the wrong widget).
+*   **Logs**: If interaction fails (e.g., Enter key doesn't work), checking logs is your first step.
+*   The `web_dev_server.dart` streams all `print()` output to the terminal file.
+
+### 5. Mocking External Services
+*   Do not get stuck on API keys.
+*   If a feature requires an external service (AI, DB), check `AssistantService` or `DataService` for a "Mock Mode".
+*   If one doesn't exist, **create it**. It is faster to write a mock than to debug authentication as an agent.
+
+## Troubleshooting
+*   **"Port 3000 in use"**: Run `ps aux | grep web-server` and kill the old process.
+*   **White Screen**: Check the terminal log. You likely have a widget build error.
+*   **Interaction Ignored**: Check `MyApp`'s `KeyboardListener`. Global shortcuts often conflict with text inputs.
