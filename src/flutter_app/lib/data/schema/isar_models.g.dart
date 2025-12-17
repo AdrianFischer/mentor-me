@@ -17,13 +17,18 @@ const IsarProjectSchema = CollectionSchema(
   name: r'IsarProject',
   id: 8174210821231210712,
   properties: {
-    r'originalId': PropertySchema(
+    r'order': PropertySchema(
       id: 0,
+      name: r'order',
+      type: IsarType.double,
+    ),
+    r'originalId': PropertySchema(
+      id: 1,
       name: r'originalId',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'title',
       type: IsarType.string,
     )
@@ -80,8 +85,9 @@ void _isarProjectSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.originalId);
-  writer.writeString(offsets[1], object.title);
+  writer.writeDouble(offsets[0], object.order);
+  writer.writeString(offsets[1], object.originalId);
+  writer.writeString(offsets[2], object.title);
 }
 
 IsarProject _isarProjectDeserialize(
@@ -92,8 +98,9 @@ IsarProject _isarProjectDeserialize(
 ) {
   final object = IsarProject();
   object.id = id;
-  object.originalId = reader.readString(offsets[0]);
-  object.title = reader.readString(offsets[1]);
+  object.order = reader.readDouble(offsets[0]);
+  object.originalId = reader.readString(offsets[1]);
+  object.title = reader.readString(offsets[2]);
   return object;
 }
 
@@ -105,8 +112,10 @@ P _isarProjectDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -356,6 +365,69 @@ extension IsarProjectQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarProject, IsarProject, QAfterFilterCondition> orderEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'order',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarProject, IsarProject, QAfterFilterCondition>
+      orderGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'order',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarProject, IsarProject, QAfterFilterCondition> orderLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'order',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarProject, IsarProject, QAfterFilterCondition> orderBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'order',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -697,6 +769,18 @@ extension IsarProjectQueryLinks
 
 extension IsarProjectQuerySortBy
     on QueryBuilder<IsarProject, IsarProject, QSortBy> {
+  QueryBuilder<IsarProject, IsarProject, QAfterSortBy> sortByOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarProject, IsarProject, QAfterSortBy> sortByOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.desc);
+    });
+  }
+
   QueryBuilder<IsarProject, IsarProject, QAfterSortBy> sortByOriginalId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'originalId', Sort.asc);
@@ -736,6 +820,18 @@ extension IsarProjectQuerySortThenBy
     });
   }
 
+  QueryBuilder<IsarProject, IsarProject, QAfterSortBy> thenByOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarProject, IsarProject, QAfterSortBy> thenByOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.desc);
+    });
+  }
+
   QueryBuilder<IsarProject, IsarProject, QAfterSortBy> thenByOriginalId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'originalId', Sort.asc);
@@ -763,6 +859,12 @@ extension IsarProjectQuerySortThenBy
 
 extension IsarProjectQueryWhereDistinct
     on QueryBuilder<IsarProject, IsarProject, QDistinct> {
+  QueryBuilder<IsarProject, IsarProject, QDistinct> distinctByOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'order');
+    });
+  }
+
   QueryBuilder<IsarProject, IsarProject, QDistinct> distinctByOriginalId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -783,6 +885,12 @@ extension IsarProjectQueryProperty
   QueryBuilder<IsarProject, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<IsarProject, double, QQueryOperations> orderProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'order');
     });
   }
 
@@ -815,24 +923,29 @@ const IsarTaskSchema = CollectionSchema(
       name: r'isCompleted',
       type: IsarType.bool,
     ),
-    r'originalId': PropertySchema(
+    r'order': PropertySchema(
       id: 1,
+      name: r'order',
+      type: IsarType.double,
+    ),
+    r'originalId': PropertySchema(
+      id: 2,
       name: r'originalId',
       type: IsarType.string,
     ),
     r'projectId': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'projectId',
       type: IsarType.string,
     ),
     r'subtasks': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'subtasks',
       type: IsarType.objectList,
       target: r'IsarSubtask',
     ),
     r'title': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'title',
       type: IsarType.string,
     )
@@ -897,15 +1010,16 @@ void _isarTaskSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeBool(offsets[0], object.isCompleted);
-  writer.writeString(offsets[1], object.originalId);
-  writer.writeString(offsets[2], object.projectId);
+  writer.writeDouble(offsets[1], object.order);
+  writer.writeString(offsets[2], object.originalId);
+  writer.writeString(offsets[3], object.projectId);
   writer.writeObjectList<IsarSubtask>(
-    offsets[3],
+    offsets[4],
     allOffsets,
     IsarSubtaskSchema.serialize,
     object.subtasks,
   );
-  writer.writeString(offsets[4], object.title);
+  writer.writeString(offsets[5], object.title);
 }
 
 IsarTask _isarTaskDeserialize(
@@ -917,16 +1031,17 @@ IsarTask _isarTaskDeserialize(
   final object = IsarTask();
   object.id = id;
   object.isCompleted = reader.readBool(offsets[0]);
-  object.originalId = reader.readString(offsets[1]);
-  object.projectId = reader.readStringOrNull(offsets[2]);
+  object.order = reader.readDouble(offsets[1]);
+  object.originalId = reader.readString(offsets[2]);
+  object.projectId = reader.readStringOrNull(offsets[3]);
   object.subtasks = reader.readObjectList<IsarSubtask>(
-        offsets[3],
+        offsets[4],
         IsarSubtaskSchema.deserialize,
         allOffsets,
         IsarSubtask(),
       ) ??
       [];
-  object.title = reader.readString(offsets[4]);
+  object.title = reader.readString(offsets[5]);
   return object;
 }
 
@@ -940,10 +1055,12 @@ P _isarTaskDeserializeProp<P>(
     case 0:
       return (reader.readBool(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
       return (reader.readObjectList<IsarSubtask>(
             offset,
             IsarSubtaskSchema.deserialize,
@@ -951,7 +1068,7 @@ P _isarTaskDeserializeProp<P>(
             IsarSubtask(),
           ) ??
           []) as P;
-    case 4:
+    case 5:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1205,6 +1322,68 @@ extension IsarTaskQueryFilter
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isCompleted',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> orderEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'order',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> orderGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'order',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> orderLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'order',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> orderBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'order',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -1730,6 +1909,18 @@ extension IsarTaskQuerySortBy on QueryBuilder<IsarTask, IsarTask, QSortBy> {
     });
   }
 
+  QueryBuilder<IsarTask, IsarTask, QAfterSortBy> sortByOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterSortBy> sortByOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.desc);
+    });
+  }
+
   QueryBuilder<IsarTask, IsarTask, QAfterSortBy> sortByOriginalId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'originalId', Sort.asc);
@@ -1793,6 +1984,18 @@ extension IsarTaskQuerySortThenBy
     });
   }
 
+  QueryBuilder<IsarTask, IsarTask, QAfterSortBy> thenByOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterSortBy> thenByOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'order', Sort.desc);
+    });
+  }
+
   QueryBuilder<IsarTask, IsarTask, QAfterSortBy> thenByOriginalId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'originalId', Sort.asc);
@@ -1838,6 +2041,12 @@ extension IsarTaskQueryWhereDistinct
     });
   }
 
+  QueryBuilder<IsarTask, IsarTask, QDistinct> distinctByOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'order');
+    });
+  }
+
   QueryBuilder<IsarTask, IsarTask, QDistinct> distinctByOriginalId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1871,6 +2080,12 @@ extension IsarTaskQueryProperty
   QueryBuilder<IsarTask, bool, QQueryOperations> isCompletedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isCompleted');
+    });
+  }
+
+  QueryBuilder<IsarTask, double, QQueryOperations> orderProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'order');
     });
   }
 
@@ -4006,13 +4221,18 @@ const IsarSubtaskSchema = Schema(
       name: r'isCompleted',
       type: IsarType.bool,
     ),
-    r'originalId': PropertySchema(
+    r'order': PropertySchema(
       id: 1,
+      name: r'order',
+      type: IsarType.double,
+    ),
+    r'originalId': PropertySchema(
+      id: 2,
       name: r'originalId',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'title',
       type: IsarType.string,
     )
@@ -4041,8 +4261,9 @@ void _isarSubtaskSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeBool(offsets[0], object.isCompleted);
-  writer.writeString(offsets[1], object.originalId);
-  writer.writeString(offsets[2], object.title);
+  writer.writeDouble(offsets[1], object.order);
+  writer.writeString(offsets[2], object.originalId);
+  writer.writeString(offsets[3], object.title);
 }
 
 IsarSubtask _isarSubtaskDeserialize(
@@ -4053,8 +4274,9 @@ IsarSubtask _isarSubtaskDeserialize(
 ) {
   final object = IsarSubtask();
   object.isCompleted = reader.readBool(offsets[0]);
-  object.originalId = reader.readString(offsets[1]);
-  object.title = reader.readString(offsets[2]);
+  object.order = reader.readDouble(offsets[1]);
+  object.originalId = reader.readString(offsets[2]);
+  object.title = reader.readString(offsets[3]);
   return object;
 }
 
@@ -4068,8 +4290,10 @@ P _isarSubtaskDeserializeProp<P>(
     case 0:
       return (reader.readBool(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -4084,6 +4308,69 @@ extension IsarSubtaskQueryFilter
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isCompleted',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition> orderEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'order',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition>
+      orderGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'order',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition> orderLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'order',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition> orderBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'order',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }

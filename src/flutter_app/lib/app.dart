@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'ui/widgets/editable_column.dart';
+import 'ui/widgets/editable_item_widget.dart';
 import 'ui/widgets/debug_overlay.dart';
 import 'ui/assistant_screen.dart';
 import 'models/models.dart';
@@ -60,10 +61,6 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   void _handleKeyEvent(KeyEvent event) {
     if (event is KeyDownEvent) {
-      print('Key event: ${event.logicalKey}, AssistantActive: $_isAssistantActive');
-    }
-    
-    if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
         _moveSelection(1);
       } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
@@ -95,7 +92,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       if (taskIndex == -1) taskIndex = null;
     }
 
-    _cleanupEmptyItemsExcludingSelected(projects, projectIndex, taskIndex); // Pass indices/data?
+    _cleanupEmptyItemsExcludingSelected(projects, projectIndex, taskIndex); 
 
     setState(() {
       if (_focusedColumnIndex == 0) {
@@ -143,19 +140,6 @@ class _MyAppState extends ConsumerState<MyApp> {
   }
 
   void _cleanupEmptyItemsExcludingSelected(List<Project> projects, int? curPIndex, int? curTIndex) {
-    // This logic is tricky with IDs. For now, we'll skip rigorous cleanup to simplify migration.
-    // The "AI-First" approach tolerates empty items more than strict UI rules.
-    // If strict cleanup is needed, it should be a service method: dataService.cleanupEmpty(...)
-    // Let's implement a simple version that removes empty items that are NOT selected.
-    
-    // Note: modifying the list while iterating is handled by index management usually.
-    // Since we are using IDs for selection, we can iterate and delete safely, 
-    // as long as we don't delete the ID that matches _selectedProjectId.
-    
-    // We need to defer this or be careful because we are reading `projects` from provider.
-    // We shouldn't modify `projects` list directly. We MUST use `dataService.deleteItem`.
-    
-    // Iterate copies to avoid concurrent modification
     for (var p in List.of(projects)) {
        // Clean tasks
        for (var t in List.of(p.tasks)) {
@@ -184,44 +168,47 @@ class _MyAppState extends ConsumerState<MyApp> {
 
     setState(() {
       if (_focusedColumnIndex == 0) {
-        // Special handling for Assistant item at index 0
-        int currentIndex = _isAssistantActive ? 0 : (pIndex != null ? pIndex + 1 : -1);
+        // Special handling for Assistant item at index 0 (conceptually)
+        // pIndex is index in `projects`. 
+        // If _isAssistantActive, conceptual index is 0.
+        // If not, conceptual index is pIndex + 1.
         
-        // Remove current if empty (Navigation cleanup) - Only for actual projects
+        int conceptualIndex = _isAssistantActive ? 0 : (pIndex != null ? pIndex + 1 : -1);
+        
+        // Remove current if empty
         if (!_isAssistantActive && pIndex != null && projects[pIndex].title.isEmpty && projects[pIndex].tasks.isEmpty) {
            dataService.deleteItem(projects[pIndex].id);
            
            if (projects.isEmpty) {
              _selectedProjectId = null;
-             // Only assistant remains
              _isAssistantActive = true;
              return;
            }
            
+           // If we delete, selection logic is handled by re-render usually, but here we manually adjust
+           // Assuming deleteItem removes it instantly.
+           // Safe fallback to assistant or nearest.
            if (delta > 0) {
-             // Stay at pIndex (which is now next item).
-             // pIndex is already verified not null by the if condition
-             int safePIndex = pIndex;
-             if (safePIndex >= projects.length) safePIndex = projects.length - 1;
-             _selectedProjectId = projects[safePIndex].id;
+              // try select next (which is now at pIndex)
+              if (pIndex < projects.length) {
+                 _selectedProjectId = projects[pIndex].id;
+              } else {
+                 _selectedProjectId = projects.last.id;
+              }
            } else {
-             // Move up.
-             int newIndex = pIndex - 1;
-             if (newIndex < 0) {
-               // Move to assistant
-               _selectedProjectId = null;
-               _isAssistantActive = true;
-             } else {
-               _selectedProjectId = projects[newIndex].id;
-             }
+              // move up
+              if (pIndex > 0) {
+                 _selectedProjectId = projects[pIndex - 1].id;
+              } else {
+                 _selectedProjectId = null;
+                 _isAssistantActive = true;
+              }
            }
-           _selectedTaskId = null;
-           _selectedSubtaskId = null;
            return;
         }
 
-        int nextIndex = currentIndex + delta;
-        int maxIndex = projects.length; // 0 for Assistant + length projects
+        int nextIndex = conceptualIndex + delta;
+        int maxIndex = projects.length; // 0..length
 
         if (nextIndex < 0) nextIndex = 0;
         if (nextIndex > maxIndex) nextIndex = maxIndex;
@@ -240,7 +227,6 @@ class _MyAppState extends ConsumerState<MyApp> {
          if (pIndex == null) return;
          var tasks = projects[pIndex].tasks;
          
-         // Cleanup current task if empty
          if (tIndex != null && tasks[tIndex].title.isEmpty && tasks[tIndex].subtasks.isEmpty) {
             dataService.deleteItem(tasks[tIndex].id);
             if (tasks.isEmpty) {
@@ -248,7 +234,6 @@ class _MyAppState extends ConsumerState<MyApp> {
               return;
             }
             if (delta > 0) {
-               // tIndex is verified not null
                int safeTIndex = tIndex;
                if (safeTIndex >= tasks.length) safeTIndex = tasks.length - 1;
                _selectedTaskId = tasks[safeTIndex].id;
@@ -274,7 +259,6 @@ class _MyAppState extends ConsumerState<MyApp> {
         if (pIndex == null || tIndex == null) return;
         var subtasks = projects[pIndex].tasks[tIndex].subtasks;
         
-        // Cleanup subtask
         if (sIndex != null && subtasks[sIndex].title.isEmpty) {
            dataService.deleteItem(subtasks[sIndex].id);
            if (subtasks.isEmpty) {
@@ -305,18 +289,14 @@ class _MyAppState extends ConsumerState<MyApp> {
   }
 
   void _changeColumn(int delta) {
-    if (_isAssistantActive) {
-      return; 
-    }
+    if (_isAssistantActive) return;
 
-    // 1. Cleanup before calculating anything
     final dataService = ref.read(dataServiceProvider);
-    final projects = dataService.projects; // Reference to live list
+    final projects = dataService.projects;
     
     var (pIndex, tIndex, _) = _getSelectionIndices(projects);
     _cleanupEmptyItemsExcludingSelected(projects, pIndex, tIndex);
     
-    // 2. Re-fetch fresh indices because cleanup might have shifted things
     var (freshPIndex, freshTIndex, _) = _getSelectionIndices(projects);
 
     setState(() {
@@ -328,7 +308,6 @@ class _MyAppState extends ConsumerState<MyApp> {
       if (nextColumn >= 0 && nextColumn <= 2) {
         _focusedColumnIndex = nextColumn;
         
-        // Auto-create item logic
         if (nextColumn == 1 && freshPIndex != null) {
            if (projects[freshPIndex].tasks.isEmpty) {
               String? newId = dataService.addTask(_selectedProjectId!, "");
@@ -359,14 +338,42 @@ class _MyAppState extends ConsumerState<MyApp> {
     final dataService = ref.watch(dataServiceProvider);
     final projects = dataService.projects;
     
-    // Resolve Indices for Widget Binding
+    // Resolve Indices
     var (pIndex, tIndex, sIndex) = _getSelectionIndices(projects);
 
-    // Projects list with Assistant injected at top
-    final projectDisplayItems = ['✨ AI Assistant', ...projects.map((p) => p.title)];
-    final projectSelectedIndex = _isAssistantActive 
-        ? 0 
-        : (pIndex != null ? pIndex + 1 : null);
+    // 1. Projects Setup
+    final projectItems = projects.map((p) => EditableItem(id: p.id, text: p.title)).toList();
+    
+    // Header for Assistant
+    final aiAssistantWidget = GestureDetector(
+       key: const ValueKey('ai_assistant_header'),
+       onTap: () {
+          setState(() {
+            _isAssistantActive = true;
+            _selectedProjectId = null;
+            _focusedColumnIndex = 0;
+            _selectedTaskId = null;
+            _selectedSubtaskId = null;
+          });
+       },
+       child: Container(
+         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+         decoration: BoxDecoration(
+           color: _isAssistantActive ? Colors.white : Colors.transparent,
+           borderRadius: BorderRadius.circular(10),
+           boxShadow: _isAssistantActive 
+              ? [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))] 
+              : [],
+         ),
+         child: Row(
+            children: [
+               const Icon(Icons.auto_awesome, size: 16, color: Colors.purple),
+               const SizedBox(width: 8),
+               const Text("AI Assistant", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.purple)),
+            ]
+         )
+       )
+    );
 
     return MaterialApp(
       title: 'Design Specs App',
@@ -387,25 +394,20 @@ class _MyAppState extends ConsumerState<MyApp> {
                   key: const ValueKey('projects'),
                   title: 'Projects',
                   backgroundColor: const Color(0xFFF5F5F7),
-                  selectedIndex: projectSelectedIndex,
+                  selectedIndex: _isAssistantActive ? null : pIndex,
                   isActiveColumn: _focusedColumnIndex == 0,
-                  items: projectDisplayItems,
+                  header: aiAssistantWidget,
+                  items: projectItems,
                   onItemSelected: (index) {
                     setState(() {
-                      if (index == 0) {
-                        _isAssistantActive = true;
-                        _selectedProjectId = null;
-                      } else {
-                        _isAssistantActive = false;
-                        _selectedProjectId = projects[index - 1].id;
-                      }
+                      _isAssistantActive = false;
+                      _selectedProjectId = projects[index].id; // Direct index now
                       _focusedColumnIndex = 0;
                       _selectedTaskId = null;
                       _selectedSubtaskId = null;
                     });
                   },
                   onAdd: (val) {
-                    // This callback is usually from UI "+" button.
                     String newId = dataService.addProject(val);
                     setState(() {
                       _isAssistantActive = false;
@@ -416,26 +418,39 @@ class _MyAppState extends ConsumerState<MyApp> {
                     });
                   },
                   onUpdate: (index, val) {
-                    if (index == 0) return; // Can't rename Assistant
-                    dataService.updateTitle(projects[index - 1].id, val);
+                    dataService.updateTitle(projects[index].id, val);
                   },
                   onDelete: (index) {
-                    if (index == 0) return; // Can't delete Assistant
+                    final idToDelete = projects[index].id;
+                    String? nextFocusId;
+                    if (index > 0) {
+                        nextFocusId = projects[index - 1].id;
+                    } else if (projects.length > 1) {
+                        nextFocusId = projects[1].id;
+                    }
                     
-                    // Logic to adjust selection if we delete selected
-                    String idToDelete = projects[index - 1].id;
+                    bool willBeEmpty = projects.length == 1;
                     bool isSelected = (_selectedProjectId == idToDelete);
                     
                     dataService.deleteItem(idToDelete);
                     
                     if (isSelected) {
                        setState(() {
-                         _selectedProjectId = null; 
-                         _isAssistantActive = true; // Fallback to assistant?
+                         if (willBeEmpty) {
+                            _selectedProjectId = null;
+                            _isAssistantActive = true;
+                         } else {
+                            _selectedProjectId = nextFocusId;
+                            // If we fell back to null (unexpected), activate assistant
+                            if (_selectedProjectId == null) _isAssistantActive = true;
+                         }
                          _selectedTaskId = null;
                          _selectedSubtaskId = null;
                        });
                     }
+                  },
+                  onReorder: (oldIndex, newIndex) {
+                     dataService.reorderProjects(oldIndex, newIndex);
                   },
                 ),
               ),
@@ -455,8 +470,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                       backgroundColor: Colors.white,
                       selectedIndex: tIndex,
                       isActiveColumn: _focusedColumnIndex == 1,
-                      items: projects[pIndex].tasks.map((t) => t.title).toList(),
-                      itemCheckedState: projects[pIndex].tasks.map((t) => t.isCompleted).toList(),
+                      items: projects[pIndex].tasks.map((t) => EditableItem(id: t.id, text: t.title, isCompleted: t.isCompleted)).toList(),
                       onCheckChanged: (index, isChecked) {
                          dataService.setItemStatus(projects[pIndex].tasks[index].id, isChecked);
                       },
@@ -481,7 +495,30 @@ class _MyAppState extends ConsumerState<MyApp> {
                         dataService.updateTitle(projects[pIndex].tasks[index].id, val);
                       },
                       onDelete: (index) {
-                         dataService.deleteItem(projects[pIndex].tasks[index].id);
+                         final tasks = projects[pIndex].tasks;
+                         String? nextFocusId;
+                         if (index > 0) {
+                            nextFocusId = tasks[index - 1].id;
+                         } else if (tasks.length > 1) {
+                            nextFocusId = tasks[1].id;
+                         }
+                         
+                         bool willBeEmpty = tasks.length == 1;
+                         dataService.deleteItem(tasks[index].id);
+                         
+                         if (willBeEmpty) {
+                            setState(() {
+                              _selectedTaskId = null;
+                              _focusedColumnIndex = 0; // Jump to Project
+                            });
+                         } else if (nextFocusId != null) {
+                            setState(() {
+                              _selectedTaskId = nextFocusId;
+                            });
+                         }
+                      },
+                      onReorder: (oldIndex, newIndex) {
+                         dataService.reorderTasks(projects[pIndex].id, oldIndex, newIndex);
                       },
                     ),
                   )
@@ -504,8 +541,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                       backgroundColor: const Color(0xFFFAFAFA),
                       selectedIndex: sIndex,
                       isActiveColumn: _focusedColumnIndex == 2,
-                      items: projects[pIndex].tasks[tIndex].subtasks.map((s) => s.title).toList(),
-                      itemCheckedState: projects[pIndex].tasks[tIndex].subtasks.map((s) => s.isCompleted).toList(),
+                      items: projects[pIndex].tasks[tIndex].subtasks.map((s) => EditableItem(id: s.id, text: s.title, isCompleted: s.isCompleted)).toList(),
                       onCheckChanged: (index, isChecked) {
                          dataService.setItemStatus(projects[pIndex].tasks[tIndex].subtasks[index].id, isChecked);
                       },
@@ -527,8 +563,30 @@ class _MyAppState extends ConsumerState<MyApp> {
                       onUpdate: (index, val) {
                          dataService.updateTitle(projects[pIndex].tasks[tIndex].subtasks[index].id, val);
                       },
-                      onDelete: (index) {
-                        dataService.deleteItem(projects[pIndex].tasks[tIndex].subtasks[index].id);
+                                                                  onDelete: (index) {
+                                                                     final subtasks = projects[pIndex].tasks[tIndex].subtasks;
+                                                                     String? nextFocusId;
+                                                                     if (index > 0) {
+                                                                        nextFocusId = subtasks[index - 1].id;
+                                                                     } else if (subtasks.length > 1) {
+                                                                        nextFocusId = subtasks[1].id;
+                                                                     }
+                                            
+                                                                     bool willBeEmpty = subtasks.length == 1;
+                                                                     dataService.deleteItem(subtasks[index].id);
+                                                                     
+                                                                     if (willBeEmpty) {
+                                                                        setState(() {
+                                                                          _selectedSubtaskId = null;
+                                                                          _focusedColumnIndex = 1; // Jump to Task
+                                                                        });
+                                                                     } else if (nextFocusId != null) {
+                                                                        setState(() {
+                                                                          _selectedSubtaskId = nextFocusId;
+                                                                        });
+                                                                     }
+                                                                  },                      onReorder: (oldIndex, newIndex) {
+                         dataService.reorderSubtasks(projects[pIndex].tasks[tIndex].id, oldIndex, newIndex);
                       },
                     ),
                   )

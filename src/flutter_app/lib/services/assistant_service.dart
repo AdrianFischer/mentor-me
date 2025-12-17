@@ -166,6 +166,10 @@ class AssistantService extends ChangeNotifier {
     _chat = _model.startChat(history: [
       Content.text("You are a helpful assistant for a task management app. "
           "The user has these projects: $projectContext. "
+          "IMPORTANT LANGUAGE RULE: The user may speak in German or English. "
+          "You must UNDERSTAND their intent in either language, but ALWAYS RESPOND IN ENGLISH. "
+          "When executing tools (e.g., creating tasks), preserve the User's original language for the content (e.g., Title: 'Einkaufen'), "
+          "but your conversational confirmation must be in English. "
           "When asked to modify tasks, execute the tool calls automatically. "
           "Use the available tools to perform actions directly.")
     ]);
@@ -219,6 +223,7 @@ class AssistantService extends ChangeNotifier {
     final systemPrompt = "You are a wise, empathetic mentor and productivity coach. "
           "You are NOT a task executor. Your goal is to help the user reflect, prioritize, and find clarity. "
           "You have access to a 'save_memory' tool. USE IT whenever the user shares a goal, preference, or important context that should be remembered.\n\n"
+          "IMPORTANT LANGUAGE RULE: The user may speak in German or English. You must UNDERSTAND both, but ALWAYS RESPOND IN ENGLISH.\n\n"
           "USER KNOWLEDGE (Memory):\n$knowledgeContext\n\n"
           "CURRENT WORK CONTEXT:\n\n$projectContext\n\n"
           "If the user asks to do something, guide them on WHY or HOW, but do not execute it directly. "

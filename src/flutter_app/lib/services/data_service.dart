@@ -4,15 +4,17 @@ import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 import '../models/ai_models.dart';
 import '../data/repository/storage_repository.dart';
+import 'markdown_persistence_service.dart';
 
 const uuid = Uuid();
 
 class DataService extends ChangeNotifier {
   final StorageRepository _repository;
+  final MarkdownPersistenceService _markdownPersistence;
   final List<Project> _projects = [];
   final Map<String, Timer> _debounceTimers = {};
 
-  DataService(this._repository);
+  DataService(this._repository, this._markdownPersistence);
 
   List<Project> get projects => _projects;
 
@@ -20,7 +22,14 @@ class DataService extends ChangeNotifier {
 
   String addProject(String title) {
     print("[VERIFY_FLOW] Data Update: addProject($title)");
-    final project = Project(id: uuid.v4(), title: title);
+    // Determine order: Last + 1.0
+    double newOrder = 0.0;
+    if (_projects.isNotEmpty) {
+      // Assuming _projects is sorted by order
+      newOrder = _projects.last.order + 1.0;
+    }
+    
+    final project = Project(id: uuid.v4(), title: title, order: newOrder);
     _projects.add(project);
     notifyListeners();
     _repository.saveProject(project);
@@ -34,7 +43,13 @@ class DataService extends ChangeNotifier {
       if (index == -1) return null;
 
       final project = _projects[index];
-      final task = Task(id: uuid.v4(), title: title, projectId: projectId);
+      
+      double newOrder = 0.0;
+      if (project.tasks.isNotEmpty) {
+        newOrder = project.tasks.last.order + 1.0;
+      }
+      
+      final task = Task(id: uuid.v4(), title: title, projectId: projectId, order: newOrder);
       
       final newTasks = List<Task>.from(project.tasks)..add(task);
       final newProject = project.copyWith(tasks: newTasks);
@@ -43,6 +58,7 @@ class DataService extends ChangeNotifier {
       notifyListeners();
       
       _repository.saveTask(task);
+      _markdownPersistence.saveTask(task, newProject);
 
       return task.id;
     } catch (e) {
@@ -58,7 +74,13 @@ class DataService extends ChangeNotifier {
       
       if (taskIndex != -1) {
         final task = project.tasks[taskIndex];
-        final subtask = Subtask(id: uuid.v4(), title: title);
+        
+        double newOrder = 0.0;
+        if (task.subtasks.isNotEmpty) {
+          newOrder = task.subtasks.last.order + 1.0;
+        }
+
+        final subtask = Subtask(id: uuid.v4(), title: title, order: newOrder);
         
         final newSubtasks = List<Subtask>.from(task.subtasks)..add(subtask);
         final newTask = task.copyWith(subtasks: newSubtasks);
@@ -259,8 +281,14 @@ class DataService extends ChangeNotifier {
     }
     final item = _projects.removeAt(oldIndex);
     _projects.insert(newIndex, item);
+    
+    // Recalculate order
+    for (int i = 0; i < _projects.length; i++) {
+        _projects[i] = _projects[i].copyWith(order: i.toDouble());
+        _repository.saveProject(_projects[i]);
+    }
+
     notifyListeners();
-    // Note: Project order persistence depends on repository implementation.
   }
 
   void reorderTasks(String projectId, int oldIndex, int newIndex) {
@@ -276,10 +304,15 @@ class DataService extends ChangeNotifier {
     final item = newTasks.removeAt(oldIndex);
     newTasks.insert(newIndex, item);
 
+    // Recalculate order
+    for (int i = 0; i < newTasks.length; i++) {
+        newTasks[i] = newTasks[i].copyWith(order: i.toDouble());
+        _repository.saveTask(newTasks[i]);
+    }
+
     final newProject = project.copyWith(tasks: newTasks);
     _projects[pIndex] = newProject;
     notifyListeners();
-    _repository.saveProject(newProject);
   }
 
   void reorderSubtasks(String taskId, int oldIndex, int newIndex) {
@@ -297,6 +330,11 @@ class DataService extends ChangeNotifier {
         final item = newSubtasks.removeAt(oldIndex);
         newSubtasks.insert(newIndex, item);
         
+        // Recalculate order
+        for (int j = 0; j < newSubtasks.length; j++) {
+            newSubtasks[j] = newSubtasks[j].copyWith(order: j.toDouble());
+        }
+
         final newTask = task.copyWith(subtasks: newSubtasks);
         final newTasks = List<Task>.from(project.tasks);
         newTasks[tIndex] = newTask;

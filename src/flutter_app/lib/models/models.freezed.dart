@@ -23,6 +23,7 @@ mixin _$Subtask {
   String get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   bool get isCompleted => throw _privateConstructorUsedError;
+  double get order => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -34,7 +35,7 @@ abstract class $SubtaskCopyWith<$Res> {
   factory $SubtaskCopyWith(Subtask value, $Res Function(Subtask) then) =
       _$SubtaskCopyWithImpl<$Res, Subtask>;
   @useResult
-  $Res call({String id, String title, bool isCompleted});
+  $Res call({String id, String title, bool isCompleted, double order});
 }
 
 /// @nodoc
@@ -53,6 +54,7 @@ class _$SubtaskCopyWithImpl<$Res, $Val extends Subtask>
     Object? id = null,
     Object? title = null,
     Object? isCompleted = null,
+    Object? order = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -67,6 +69,10 @@ class _$SubtaskCopyWithImpl<$Res, $Val extends Subtask>
           ? _value.isCompleted
           : isCompleted // ignore: cast_nullable_to_non_nullable
               as bool,
+      order: null == order
+          ? _value.order
+          : order // ignore: cast_nullable_to_non_nullable
+              as double,
     ) as $Val);
   }
 }
@@ -78,7 +84,7 @@ abstract class _$$SubtaskImplCopyWith<$Res> implements $SubtaskCopyWith<$Res> {
       __$$SubtaskImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String id, String title, bool isCompleted});
+  $Res call({String id, String title, bool isCompleted, double order});
 }
 
 /// @nodoc
@@ -95,6 +101,7 @@ class __$$SubtaskImplCopyWithImpl<$Res>
     Object? id = null,
     Object? title = null,
     Object? isCompleted = null,
+    Object? order = null,
   }) {
     return _then(_$SubtaskImpl(
       id: null == id
@@ -109,6 +116,10 @@ class __$$SubtaskImplCopyWithImpl<$Res>
           ? _value.isCompleted
           : isCompleted // ignore: cast_nullable_to_non_nullable
               as bool,
+      order: null == order
+          ? _value.order
+          : order // ignore: cast_nullable_to_non_nullable
+              as double,
     ));
   }
 }
@@ -117,7 +128,10 @@ class __$$SubtaskImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$SubtaskImpl implements _Subtask {
   const _$SubtaskImpl(
-      {required this.id, required this.title, this.isCompleted = false});
+      {required this.id,
+      required this.title,
+      this.isCompleted = false,
+      this.order = 0.0});
 
   factory _$SubtaskImpl.fromJson(Map<String, dynamic> json) =>
       _$$SubtaskImplFromJson(json);
@@ -129,10 +143,13 @@ class _$SubtaskImpl implements _Subtask {
   @override
   @JsonKey()
   final bool isCompleted;
+  @override
+  @JsonKey()
+  final double order;
 
   @override
   String toString() {
-    return 'Subtask(id: $id, title: $title, isCompleted: $isCompleted)';
+    return 'Subtask(id: $id, title: $title, isCompleted: $isCompleted, order: $order)';
   }
 
   @override
@@ -143,12 +160,13 @@ class _$SubtaskImpl implements _Subtask {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.isCompleted, isCompleted) ||
-                other.isCompleted == isCompleted));
+                other.isCompleted == isCompleted) &&
+            (identical(other.order, order) || other.order == order));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, title, isCompleted);
+  int get hashCode => Object.hash(runtimeType, id, title, isCompleted, order);
 
   @JsonKey(ignore: true)
   @override
@@ -168,7 +186,8 @@ abstract class _Subtask implements Subtask {
   const factory _Subtask(
       {required final String id,
       required final String title,
-      final bool isCompleted}) = _$SubtaskImpl;
+      final bool isCompleted,
+      final double order}) = _$SubtaskImpl;
 
   factory _Subtask.fromJson(Map<String, dynamic> json) = _$SubtaskImpl.fromJson;
 
@@ -178,6 +197,8 @@ abstract class _Subtask implements Subtask {
   String get title;
   @override
   bool get isCompleted;
+  @override
+  double get order;
   @override
   @JsonKey(ignore: true)
   _$$SubtaskImplCopyWith<_$SubtaskImpl> get copyWith =>
@@ -195,6 +216,7 @@ mixin _$Task {
   bool get isCompleted => throw _privateConstructorUsedError;
   String? get projectId => throw _privateConstructorUsedError;
   List<Subtask> get subtasks => throw _privateConstructorUsedError;
+  double get order => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -211,7 +233,8 @@ abstract class $TaskCopyWith<$Res> {
       String title,
       bool isCompleted,
       String? projectId,
-      List<Subtask> subtasks});
+      List<Subtask> subtasks,
+      double order});
 }
 
 /// @nodoc
@@ -232,6 +255,7 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
     Object? isCompleted = null,
     Object? projectId = freezed,
     Object? subtasks = null,
+    Object? order = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -254,6 +278,10 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
           ? _value.subtasks
           : subtasks // ignore: cast_nullable_to_non_nullable
               as List<Subtask>,
+      order: null == order
+          ? _value.order
+          : order // ignore: cast_nullable_to_non_nullable
+              as double,
     ) as $Val);
   }
 }
@@ -270,7 +298,8 @@ abstract class _$$TaskImplCopyWith<$Res> implements $TaskCopyWith<$Res> {
       String title,
       bool isCompleted,
       String? projectId,
-      List<Subtask> subtasks});
+      List<Subtask> subtasks,
+      double order});
 }
 
 /// @nodoc
@@ -288,6 +317,7 @@ class __$$TaskImplCopyWithImpl<$Res>
     Object? isCompleted = null,
     Object? projectId = freezed,
     Object? subtasks = null,
+    Object? order = null,
   }) {
     return _then(_$TaskImpl(
       id: null == id
@@ -310,6 +340,10 @@ class __$$TaskImplCopyWithImpl<$Res>
           ? _value._subtasks
           : subtasks // ignore: cast_nullable_to_non_nullable
               as List<Subtask>,
+      order: null == order
+          ? _value.order
+          : order // ignore: cast_nullable_to_non_nullable
+              as double,
     ));
   }
 }
@@ -322,7 +356,8 @@ class _$TaskImpl implements _Task {
       required this.title,
       this.isCompleted = false,
       this.projectId,
-      final List<Subtask> subtasks = const []})
+      final List<Subtask> subtasks = const [],
+      this.order = 0.0})
       : _subtasks = subtasks;
 
   factory _$TaskImpl.fromJson(Map<String, dynamic> json) =>
@@ -347,8 +382,12 @@ class _$TaskImpl implements _Task {
   }
 
   @override
+  @JsonKey()
+  final double order;
+
+  @override
   String toString() {
-    return 'Task(id: $id, title: $title, isCompleted: $isCompleted, projectId: $projectId, subtasks: $subtasks)';
+    return 'Task(id: $id, title: $title, isCompleted: $isCompleted, projectId: $projectId, subtasks: $subtasks, order: $order)';
   }
 
   @override
@@ -362,13 +401,14 @@ class _$TaskImpl implements _Task {
                 other.isCompleted == isCompleted) &&
             (identical(other.projectId, projectId) ||
                 other.projectId == projectId) &&
-            const DeepCollectionEquality().equals(other._subtasks, _subtasks));
+            const DeepCollectionEquality().equals(other._subtasks, _subtasks) &&
+            (identical(other.order, order) || other.order == order));
   }
 
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, title, isCompleted,
-      projectId, const DeepCollectionEquality().hash(_subtasks));
+      projectId, const DeepCollectionEquality().hash(_subtasks), order);
 
   @JsonKey(ignore: true)
   @override
@@ -390,7 +430,8 @@ abstract class _Task implements Task {
       required final String title,
       final bool isCompleted,
       final String? projectId,
-      final List<Subtask> subtasks}) = _$TaskImpl;
+      final List<Subtask> subtasks,
+      final double order}) = _$TaskImpl;
 
   factory _Task.fromJson(Map<String, dynamic> json) = _$TaskImpl.fromJson;
 
@@ -404,6 +445,8 @@ abstract class _Task implements Task {
   String? get projectId;
   @override
   List<Subtask> get subtasks;
+  @override
+  double get order;
   @override
   @JsonKey(ignore: true)
   _$$TaskImplCopyWith<_$TaskImpl> get copyWith =>
@@ -419,6 +462,7 @@ mixin _$Project {
   String get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   List<Task> get tasks => throw _privateConstructorUsedError;
+  double get order => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -430,7 +474,7 @@ abstract class $ProjectCopyWith<$Res> {
   factory $ProjectCopyWith(Project value, $Res Function(Project) then) =
       _$ProjectCopyWithImpl<$Res, Project>;
   @useResult
-  $Res call({String id, String title, List<Task> tasks});
+  $Res call({String id, String title, List<Task> tasks, double order});
 }
 
 /// @nodoc
@@ -449,6 +493,7 @@ class _$ProjectCopyWithImpl<$Res, $Val extends Project>
     Object? id = null,
     Object? title = null,
     Object? tasks = null,
+    Object? order = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -463,6 +508,10 @@ class _$ProjectCopyWithImpl<$Res, $Val extends Project>
           ? _value.tasks
           : tasks // ignore: cast_nullable_to_non_nullable
               as List<Task>,
+      order: null == order
+          ? _value.order
+          : order // ignore: cast_nullable_to_non_nullable
+              as double,
     ) as $Val);
   }
 }
@@ -474,7 +523,7 @@ abstract class _$$ProjectImplCopyWith<$Res> implements $ProjectCopyWith<$Res> {
       __$$ProjectImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String id, String title, List<Task> tasks});
+  $Res call({String id, String title, List<Task> tasks, double order});
 }
 
 /// @nodoc
@@ -491,6 +540,7 @@ class __$$ProjectImplCopyWithImpl<$Res>
     Object? id = null,
     Object? title = null,
     Object? tasks = null,
+    Object? order = null,
   }) {
     return _then(_$ProjectImpl(
       id: null == id
@@ -505,6 +555,10 @@ class __$$ProjectImplCopyWithImpl<$Res>
           ? _value._tasks
           : tasks // ignore: cast_nullable_to_non_nullable
               as List<Task>,
+      order: null == order
+          ? _value.order
+          : order // ignore: cast_nullable_to_non_nullable
+              as double,
     ));
   }
 }
@@ -515,7 +569,8 @@ class _$ProjectImpl implements _Project {
   const _$ProjectImpl(
       {required this.id,
       required this.title,
-      final List<Task> tasks = const []})
+      final List<Task> tasks = const [],
+      this.order = 0.0})
       : _tasks = tasks;
 
   factory _$ProjectImpl.fromJson(Map<String, dynamic> json) =>
@@ -535,8 +590,12 @@ class _$ProjectImpl implements _Project {
   }
 
   @override
+  @JsonKey()
+  final double order;
+
+  @override
   String toString() {
-    return 'Project(id: $id, title: $title, tasks: $tasks)';
+    return 'Project(id: $id, title: $title, tasks: $tasks, order: $order)';
   }
 
   @override
@@ -546,13 +605,14 @@ class _$ProjectImpl implements _Project {
             other is _$ProjectImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.title, title) || other.title == title) &&
-            const DeepCollectionEquality().equals(other._tasks, _tasks));
+            const DeepCollectionEquality().equals(other._tasks, _tasks) &&
+            (identical(other.order, order) || other.order == order));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, title, const DeepCollectionEquality().hash(_tasks));
+  int get hashCode => Object.hash(runtimeType, id, title,
+      const DeepCollectionEquality().hash(_tasks), order);
 
   @JsonKey(ignore: true)
   @override
@@ -572,7 +632,8 @@ abstract class _Project implements Project {
   const factory _Project(
       {required final String id,
       required final String title,
-      final List<Task> tasks}) = _$ProjectImpl;
+      final List<Task> tasks,
+      final double order}) = _$ProjectImpl;
 
   factory _Project.fromJson(Map<String, dynamic> json) = _$ProjectImpl.fromJson;
 
@@ -582,6 +643,8 @@ abstract class _Project implements Project {
   String get title;
   @override
   List<Task> get tasks;
+  @override
+  double get order;
   @override
   @JsonKey(ignore: true)
   _$$ProjectImplCopyWith<_$ProjectImpl> get copyWith =>
