@@ -11,6 +11,7 @@ _$SubtaskImpl _$$SubtaskImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       title: json['title'] as String,
       isCompleted: json['isCompleted'] as bool? ?? false,
+      order: (json['order'] as num?)?.toDouble() ?? 0.0,
     );
 
 Map<String, dynamic> _$$SubtaskImplToJson(_$SubtaskImpl instance) =>
@@ -18,6 +19,7 @@ Map<String, dynamic> _$$SubtaskImplToJson(_$SubtaskImpl instance) =>
       'id': instance.id,
       'title': instance.title,
       'isCompleted': instance.isCompleted,
+      'order': instance.order,
     };
 
 _$TaskImpl _$$TaskImplFromJson(Map<String, dynamic> json) => _$TaskImpl(
@@ -29,6 +31,7 @@ _$TaskImpl _$$TaskImplFromJson(Map<String, dynamic> json) => _$TaskImpl(
               ?.map((e) => Subtask.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      order: (json['order'] as num?)?.toDouble() ?? 0.0,
     );
 
 Map<String, dynamic> _$$TaskImplToJson(_$TaskImpl instance) =>
@@ -38,6 +41,7 @@ Map<String, dynamic> _$$TaskImplToJson(_$TaskImpl instance) =>
       'isCompleted': instance.isCompleted,
       'projectId': instance.projectId,
       'subtasks': instance.subtasks,
+      'order': instance.order,
     };
 
 _$ProjectImpl _$$ProjectImplFromJson(Map<String, dynamic> json) =>
@@ -48,6 +52,7 @@ _$ProjectImpl _$$ProjectImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Task.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      order: (json['order'] as num?)?.toDouble() ?? 0.0,
     );
 
 Map<String, dynamic> _$$ProjectImplToJson(_$ProjectImpl instance) =>
@@ -55,4 +60,5 @@ Map<String, dynamic> _$$ProjectImplToJson(_$ProjectImpl instance) =>
       'id': instance.id,
       'title': instance.title,
       'tasks': instance.tasks,
+      'order': instance.order,
     };

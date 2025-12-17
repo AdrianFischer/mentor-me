@@ -9,6 +9,7 @@ class Subtask with _$Subtask {
     required String id,
     required String title,
     @Default(false) bool isCompleted,
+    @Default(0.0) double order,
   }) = _Subtask;
 
   factory Subtask.fromJson(Map<String, dynamic> json) => _$SubtaskFromJson(json);
@@ -22,6 +23,7 @@ class Task with _$Task {
     @Default(false) bool isCompleted,
     String? projectId,
     @Default([]) List<Subtask> subtasks,
+    @Default(0.0) double order,
   }) = _Task;
 
   factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
@@ -33,6 +35,7 @@ class Project with _$Project {
     required String id,
     required String title,
     @Default([]) List<Task> tasks,
+    @Default(0.0) double order,
   }) = _Project;
 
   factory Project.fromJson(Map<String, dynamic> json) => _$ProjectFromJson(json);

@@ -29,57 +29,40 @@ class IsarStorageRepository implements StorageRepository {
 
   @override
   Future<List<Project>> getAllProjects() async {
-    final isarProjects = await _isar.isarProjects.where().findAll();
+    final isarProjects = await _isar.isarProjects.where().sortByOrder().findAll();
     final projects = <Project>[];
 
     for (final ip in isarProjects) {
       // Ensure tasks are loaded
       await ip.tasks.load();
       
-      final domainTasks = ip.tasks.map((it) => _taskToDomain(it)).toList();
-      
-      // Sort tasks? Or keep insertion order? Isar doesn't guarantee order unless sorted.
-      // Current app relies on list order? 
-      // The current JSON approach preserves array order.
-      // IsarLinks doesn't strictly preserve order.
-      // For now, we accept arbitrary order or sort by ID/title if needed.
+      // Sort tasks by order explicitly since IsarLinks don't guarantee order
+      final sortedTasks = ip.tasks.toList()..sort((a, b) => a.order.compareTo(b.order));
+      final domainTasks = sortedTasks.map((it) => _taskToDomain(it)).toList();
       
       projects.add(Project(
         id: ip.originalId,
         title: ip.title,
         tasks: domainTasks,
+        order: ip.order,
       ));
     }
 
     return projects;
   }
   
-  // Note: The current DataService logic handles "unassigned" tasks by checking for tasks 
-  // that didn't fit into projects. 
-  // With Isar, we can query them directly if we wanted, but getAllProjects() follows the interface.
-  // If we need unassigned tasks, we might need to expose them. 
-  // However, the current DataService.initData() reloads tasks and manually bins them.
-  // To support that exactly, we might want to just return ALL tasks and projects and let DataService assembly?
-  // But StorageRepository.getAllProjects() implies a tree.
-  // Let's stick to the tree. 
-  // But what about orphans?
-  // We can add a method `getOrphanTasks` or just include them in a special project here.
-  // The DataService does: `_reloadTasks` -> loads tasks, loads projects, matches them.
-  // If we return the tree, DataService doesn't need to match.
-  // Use `getAllProjects` to return the valid tree. 
-  // If there are orphans in DB (e.g. from bad sync), they might be lost if we don't query them.
-  // For now, let's assume `saveTask` correctly links them.
-
   Task _taskToDomain(IsarTask it) {
     return Task(
       id: it.originalId,
       title: it.title,
       isCompleted: it.isCompleted,
       projectId: it.projectId,
+      order: it.order,
       subtasks: it.subtasks.map((s) => Subtask(
         id: s.originalId,
         title: s.title,
         isCompleted: s.isCompleted,
+        order: s.order,
       )).toList(),
     );
   }
@@ -92,9 +75,10 @@ class IsarStorageRepository implements StorageRepository {
       final p = existing ?? IsarProject();
       p.originalId = project.id;
       p.title = project.title;
+      p.order = project.order;
       await _isar.isarProjects.put(p);
     });
-    _dataChangeController.add(null);
+    // _dataChangeController.add(null); // Prevent self-reload loop
   }
 
   @override
@@ -107,10 +91,12 @@ class IsarStorageRepository implements StorageRepository {
       t.title = task.title;
       t.isCompleted = task.isCompleted;
       t.projectId = task.projectId;
+      t.order = task.order;
       t.subtasks = task.subtasks.map((s) => IsarSubtask()
         ..originalId = s.id
         ..title = s.title
         ..isCompleted = s.isCompleted
+        ..order = s.order
       ).toList();
 
       await _isar.isarTasks.put(t);
@@ -124,7 +110,7 @@ class IsarStorageRepository implements StorageRepository {
         }
       }
     });
-    _dataChangeController.add(null);
+    // _dataChangeController.add(null);
   }
 
   @override
@@ -140,7 +126,7 @@ class IsarStorageRepository implements StorageRepository {
       final tasks = await _isar.isarTasks.filter().projectIdEqualTo(projectId).findAll();
       await _isar.isarTasks.deleteAll(tasks.map((e) => e.id).toList());
     });
-    _dataChangeController.add(null);
+    // _dataChangeController.add(null);
   }
 
   @override
@@ -148,7 +134,7 @@ class IsarStorageRepository implements StorageRepository {
     await _isar.writeTxn(() async {
       await _isar.isarTasks.filter().originalIdEqualTo(taskId).deleteAll();
     });
-    _dataChangeController.add(null);
+    // _dataChangeController.add(null);
   }
 
   @override

@@ -10,6 +10,8 @@ class IsarProject {
   late String originalId;
 
   late String title;
+  
+  double order = 0.0;
 
   final tasks = IsarLinks<IsarTask>();
 }
@@ -24,6 +26,8 @@ class IsarTask {
   late String title;
 
   bool isCompleted = false;
+  
+  double order = 0.0;
 
   String? projectId;
 
@@ -35,6 +39,7 @@ class IsarSubtask {
   late String originalId;
   late String title;
   bool isCompleted = false;
+  double order = 0.0;
 }
 
 @collection
