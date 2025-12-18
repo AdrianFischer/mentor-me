@@ -53,93 +53,128 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
   Widget build(BuildContext context) {
     final assistant = ref.watch(assistantServiceProvider);
 
-    return Row(
-      children: [
-        // Column 2: Conversation
-        Expanded(
-          flex: 1,
-          child: Container(
-            color: Colors.white,
-            child: Column(
-              children: [
-                _buildConversationHeader(assistant),
-                Expanded(
-                  child: ListView.builder(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 900;
+
+        if (isNarrow) {
+          return _buildNarrowLayout(assistant);
+        }
+
+        return Row(
+          children: [
+            // Column 2: Conversation
+            Expanded(
+              flex: 1,
+              child: _buildConversationColumn(assistant),
+            ),
+            
+            // Vertical Divider
+            const VerticalDivider(width: 1),
+
+            // Column 3: Action History
+            Expanded(
+              flex: 1,
+              child: _buildActionHistoryColumn(assistant),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildConversationColumn(AssistantService assistant, {bool isNarrow = false}) {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          _buildConversationHeader(assistant, isNarrow: isNarrow),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: assistant.messages.length,
+              itemBuilder: (context, index) {
+                final msg = assistant.messages[index];
+                return _buildMessageBubble(msg);
+              },
+            ),
+          ),
+          if (assistant.isLoading)
+            const LinearProgressIndicator(minHeight: 2),
+          _buildInputArea(assistant),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionHistoryColumn(AssistantService assistant) {
+    return Container(
+      color: const Color(0xFFF5F5F7), // Light grey background
+      child: Column(
+        children: [
+          // Pending Actions Section
+          if (assistant.pendingActions.isNotEmpty) ...[
+            _buildHeader("Review Actions (${assistant.pendingActions.length})"),
+            Flexible(
+              flex: 1,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: assistant.pendingActions.length,
+                itemBuilder: (context, index) {
+                  return _buildActionCard(context, assistant, assistant.pendingActions[index]);
+                },
+              ),
+            ),
+          ],
+
+          // Executed Actions Section
+          _buildHeader("Action Log"),
+          Expanded(
+            flex: 2,
+            child: assistant.executedActions.isEmpty
+                ? const Center(
+                    child: Text(
+                      "No actions performed yet",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  )
+                : ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: assistant.messages.length,
+                    reverse: false,
+                    itemCount: assistant.executedActions.length,
                     itemBuilder: (context, index) {
-                      final msg = assistant.messages[index];
-                      return _buildMessageBubble(msg);
+                      final reversedIndex = assistant.executedActions.length - 1 - index;
+                      return _buildLogCard(
+                        assistant.executedActions[reversedIndex]
+                      );
                     },
                   ),
-                ),
-                if (assistant.isLoading)
-                  const LinearProgressIndicator(minHeight: 2),
-                _buildInputArea(assistant),
-              ],
-            ),
           ),
-        ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNarrowLayout(AssistantService assistant) {
+    // In narrow mode, we only show the conversation.
+    // We will show pending actions as popups.
+    return Stack(
+      children: [
+        _buildConversationColumn(assistant, isNarrow: true),
         
-        // Vertical Divider
-        const VerticalDivider(width: 1),
-
-        // Column 3: Action History
-        Expanded(
-          flex: 1,
-          child: Container(
-            color: const Color(0xFFF5F5F7), // Light grey background
-            child: Column(
-              children: [
-                // Pending Actions Section
-                if (assistant.pendingActions.isNotEmpty) ...[
-                  _buildHeader("Review Actions (${assistant.pendingActions.length})"),
-                  Flexible(
-                    flex: 1,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: assistant.pendingActions.length,
-                      itemBuilder: (context, index) {
-                        return _buildActionCard(context, assistant, assistant.pendingActions[index]);
-                      },
-                    ),
-                  ),
-                ],
-
-                // Executed Actions Section
-                _buildHeader("Action Log"),
-                Expanded(
-                  flex: 2,
-                  child: assistant.executedActions.isEmpty
-                      ? const Center(
-                          child: Text(
-                            "No actions performed yet",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          reverse: true, // Show newest at bottom (or top? usually log is top-down, but chat is bottom-up. Let's do standard top-down for log)
-                          itemCount: assistant.executedActions.length,
-                          itemBuilder: (context, index) {
-                            // Reverse index to show newest at top if we want, or just standard.
-                            // Let's show newest at the top for visibility.
-                            final reversedIndex = assistant.executedActions.length - 1 - index;
-                            return _buildLogCard(
-                              assistant.executedActions[reversedIndex]
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
+        // Show pending actions as overlay cards if they exist
+        if (assistant.pendingActions.isNotEmpty)
+          Positioned(
+            bottom: 100, // Above input area
+            left: 16,
+            right: 16,
+            child: _buildActionCard(context, assistant, assistant.pendingActions.first),
           ),
-        ),
       ],
     );
   }
 
-  Widget _buildConversationHeader(AssistantService assistant) {
+  Widget _buildConversationHeader(AssistantService assistant, {bool isNarrow = false}) {
     return Container(
       height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -156,28 +191,39 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                  color: assistant.isMentorMode ? Colors.deepPurple : Colors.blue,
                ),
                const SizedBox(width: 8),
-               Text(
-                assistant.isMentorMode ? "Mentor Mode" : "Assistant Mode",
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, 
-                    fontSize: 16,
-                    color: assistant.isMentorMode ? Colors.deepPurple : Colors.blue,
+               if (!isNarrow)
+                 Text(
+                  assistant.isMentorMode ? "Mentor Mode" : "Assistant Mode",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 16,
+                      color: assistant.isMentorMode ? Colors.deepPurple : Colors.blue,
+                  ),
                 ),
-              ),
             ],
           ),
           Row(
             children: [
-                const Text("Assistant", style: TextStyle(fontSize: 12)),
-                Switch(
-                  value: assistant.isMentorMode,
-                  onChanged: (val) => assistant.toggleMode(),
-                  activeColor: Colors.deepPurple,
-                  activeTrackColor: Colors.deepPurple.shade100,
-                  inactiveThumbColor: Colors.blue,
-                  inactiveTrackColor: Colors.blue.shade100,
-                ),
-                const Text("Mentor", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                if (!isNarrow) ...[
+                  const Text("Assistant", style: TextStyle(fontSize: 12)),
+                  Switch(
+                    value: assistant.isMentorMode,
+                    onChanged: (val) => assistant.toggleMode(),
+                    activeColor: Colors.deepPurple,
+                    activeTrackColor: Colors.deepPurple.shade100,
+                    inactiveThumbColor: Colors.blue,
+                    inactiveTrackColor: Colors.blue.shade100,
+                  ),
+                  const Text("Mentor", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                ] else
+                  IconButton(
+                    icon: Icon(
+                      assistant.isMentorMode ? Icons.school : Icons.assistant,
+                      color: assistant.isMentorMode ? Colors.deepPurple : Colors.blue,
+                      size: 20,
+                    ),
+                    onPressed: () => assistant.toggleMode(),
+                  ),
                 const SizedBox(width: 8),
                 if (assistant.isMentorMode) 
                   IconButton(
@@ -190,6 +236,12 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                     onPressed: () => assistant.toggleVoice(),
                   ),
                 const SizedBox(width: 8),
+                if (isNarrow)
+                  IconButton(
+                    icon: const Icon(Icons.list_alt, size: 20, color: Colors.grey),
+                    tooltip: 'View Action Log',
+                    onPressed: () => _showActionLogBottomSheet(context, assistant),
+                  ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20, color: Colors.grey),
                   tooltip: 'Clear History',
@@ -216,6 +268,52 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showActionLogBottomSheet(BuildContext context, AssistantService assistant) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF5F5F7),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 40,
+                height: 5,
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              _buildHeader("Action Log"),
+              Expanded(
+                child: assistant.executedActions.isEmpty
+                    ? const Center(child: Text("No actions performed yet"))
+                    : ListView.builder(
+                        controller: scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: assistant.executedActions.length,
+                        itemBuilder: (context, index) {
+                          final reversedIndex = assistant.executedActions.length - 1 - index;
+                          return _buildLogCard(assistant.executedActions[reversedIndex]);
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
