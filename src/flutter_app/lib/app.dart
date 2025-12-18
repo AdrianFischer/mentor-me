@@ -570,7 +570,7 @@ class _MyAppState extends ConsumerState<MyApp> {
           onKeyEvent: _handleKeyEvent,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final isMobile = constraints.maxWidth < 700;
+              final isMobile = constraints.maxWidth < 1050;
               
               if (isMobile) {
                 if (_isAssistantActive) {
