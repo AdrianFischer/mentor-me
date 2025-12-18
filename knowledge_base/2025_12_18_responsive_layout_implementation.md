@@ -10,7 +10,7 @@ Instead of a device-based approach, a layout-based approach was implemented usin
 - **Breakpoint**: 1260px width for main app.
 - **Strict Layouts**: The app now strictly differentiates between two layout modes:
     - **One Column (Mobile)**: Used when width < 1260px. Shows a single column. In AI Assistant mode, this is the conversation column with actions as popups.
-    - **Three Columns (Desktop)**: Used when width >= 1260px. Shows three columns. In AI Assistant mode, this is [Projects] | [Chat] | [Action Log].
+    - **Three Columns (Desktop)**: Used when width >= 1260px. Shows three columns with a 1:2:2 ratio (Projects: 1/5, Tasks/Conversation: 2/5, Subtasks/Action Log: 2/5). This provides more space for the primary content columns. In AI Assistant mode, this is [Projects] | [Chat & Action Log (combined flex 4)].
 - **Navigation**:
     - Selecting an item in a column navigates to the next level (one column to the right).
     - A back button was added to the header of child columns (`Tasks`, `Subtasks`) to allow navigating back to the parent column.
