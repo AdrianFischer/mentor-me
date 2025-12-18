@@ -612,16 +612,24 @@ class _MyAppState extends ConsumerState<MyApp> {
               return Scaffold(
                 body: Row(
                   children: [
-                    Expanded(child: _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget)),
+                    Expanded(
+                      flex: 1,
+                      child: _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget),
+                    ),
                     if (_isAssistantActive)
-                      const Expanded(flex: 2, child: AssistantScreen(isMobile: false))
+                      const Expanded(
+                        flex: 4,
+                        child: AssistantScreen(isMobile: false),
+                      )
                     else ...[
                       Expanded(
+                        flex: 2,
                         child: pIndex != null 
                           ? _buildTaskColumn(dataService, projects, pIndex, tIndex)
                           : Container(color: Colors.white, child: const Center(child: Text('Select a Project'))),
                       ),
                       Expanded(
+                        flex: 2,
                         child: (pIndex != null && tIndex != null)
                           ? _buildSubtaskColumn(dataService, projects, pIndex, tIndex, sIndex)
                           : Container(color: const Color(0xFFFAFAFA), child: const Center(child: Text('Select a Task'))),
