@@ -582,7 +582,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                       ),
                       title: const Text("AI Assistant"),
                     ),
-                    body: const AssistantScreen(),
+                    body: const AssistantScreen(isMobile: true),
                   );
                 }
                 
@@ -614,7 +614,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                   children: [
                     Expanded(child: _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget)),
                     if (_isAssistantActive)
-                      const Expanded(flex: 2, child: AssistantScreen())
+                      const Expanded(flex: 2, child: AssistantScreen(isMobile: false))
                     else ...[
                       Expanded(
                         child: pIndex != null 

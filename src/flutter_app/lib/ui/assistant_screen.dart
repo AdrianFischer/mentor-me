@@ -13,7 +13,8 @@ final assistantServiceProvider = ChangeNotifierProvider<AssistantService>((ref) 
 });
 
 class AssistantScreen extends ConsumerStatefulWidget {
-  const AssistantScreen({super.key});
+  final bool isMobile;
+  const AssistantScreen({super.key, this.isMobile = false});
 
   @override
   ConsumerState<AssistantScreen> createState() => _AssistantScreenState();
@@ -53,33 +54,27 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
   Widget build(BuildContext context) {
     final assistant = ref.watch(assistantServiceProvider);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 900;
+    if (widget.isMobile) {
+      return _buildNarrowLayout(assistant);
+    }
 
-        if (isNarrow) {
-          return _buildNarrowLayout(assistant);
-        }
+    return Row(
+      children: [
+        // Column 2: Conversation
+        Expanded(
+          flex: 1,
+          child: _buildConversationColumn(assistant),
+        ),
+        
+        // Vertical Divider
+        const VerticalDivider(width: 1),
 
-        return Row(
-          children: [
-            // Column 2: Conversation
-            Expanded(
-              flex: 1,
-              child: _buildConversationColumn(assistant),
-            ),
-            
-            // Vertical Divider
-            const VerticalDivider(width: 1),
-
-            // Column 3: Action History
-            Expanded(
-              flex: 1,
-              child: _buildActionHistoryColumn(assistant),
-            ),
-          ],
-        );
-      },
+        // Column 3: Action History
+        Expanded(
+          flex: 1,
+          child: _buildActionHistoryColumn(assistant),
+        ),
+      ],
     );
   }
 
