@@ -15,6 +15,7 @@ class EditableColumn extends StatefulWidget {
   final Function(int, bool)? onCheckChanged;
   final Function(int, int)? onReorder;
   final Widget? header;
+  final VoidCallback? onBack;
 
   const EditableColumn({
     super.key,
@@ -30,6 +31,7 @@ class EditableColumn extends StatefulWidget {
     this.onCheckChanged,
     this.onReorder,
     this.header,
+    this.onBack,
   });
 
   @override
@@ -50,9 +52,17 @@ class _EditableColumnState extends State<EditableColumn> {
         children: [
           // Header (Title + Add)
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+            padding: const EdgeInsets.fromLTRB(12, 40, 20, 20),
             child: Row(
               children: [
+                if (widget.onBack != null)
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                    onPressed: widget.onBack,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                if (widget.onBack != null) const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     widget.title,

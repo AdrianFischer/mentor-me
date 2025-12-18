@@ -2,6 +2,15 @@
 
 | **identifier**<br>Description | State | Focus |
 |:---|:---|:---|
+| **implement_responsive_layout**<br>Implement layout-based responsive UI for mobile and desktop. | Completed | Implementation & Verification |
+| **f6a85b37-42ae-470e-98bf-91e93b0ac0b8**<br>test adding a task in the new project | In Progress | Initial Scope |
+| **a2e028aa-98ff-46eb-971a-186bf20cc0c5**<br>hahaha | In Progress | Initial Scope |
+| **bb8b0f96-0fc5-434e-b252-e95a9435d892**<br>with my second tasks | In Progress | Initial Scope |
+| **2b75436b-c12d-442d-8e28-b46503ce9e32**<br>Add a "Talk to Mentor" mode to this app | In Progress | Initial Scope |
+| **bc0829d5-b1d8-4a7f-8735-8b062a5df574**<br>Make the To do app as useful as possible for ME | In Progress | Initial Scope |
+| **610994aa-bb71-4c27-bc9f-7968aef8f20e**<br>Connect this to do list with your daily work flow | In Progress | Initial Scope |
+| **72839924-1c3c-4569-af6c-46a0f8c7b708**<br>Create a MVP of ANY product and release it to the market | In Progress | Initial Scope |
+| **27121644-1ec2-404b-8c54-884c9703e75a**<br>this is a big new task | In Progress | Initial Scope |
 | **fix_project_persistence**<br>Fix project persistence in Flutter App | Completed | Verification |
 | **implement_robust_persistence**<br>Implement robust data persistence with debouncing, atomic writes, and subtask support. | Completed | Done |
 | **migrate_to_ai_kb**<br>Migrate Flutter app to AI-First Knowledge Base. | Completed | Done |
@@ -17,7 +26,7 @@
 | **document_feature_list**<br>Document feature list from design specs 2025_12_13 | Completed | Documentation |
 | **implement_backspace_deletion**<br>Implement backspace deletion for list items. | Completed | Maintenance |
 | **implement_3_column_interaction**<br>Implement 3-column interaction and testing | Completed | Interaction Testing |
-| **web_dev_infra**<br>Set up web development infrastructure for the Flutter app. | In Progress | Infrastructure |
+| **web_dev_infra**<br>Set up web development infrastructure for the Flutter app. | Completed | Infrastructure |
 | **verify_and_fix_features**<br>Verify all features in FEATURES.md, add tests for failures, and fix them. | Completed | Integration |
 | **remove_empty_elements**<br>Automatically remove empty list elements unless they have children. | Completed | Testing verification |
 | **auto_create_on_nav**<br>Auto-create new item on right arrow navigation if column is empty. | Completed | Testing verification |
@@ -31,4 +40,4 @@
 | **marco_strategic_discussion**<br>Prepare strategic discussion points for conversation with Marco (Chris's boss) | Preparing | Podcast rehearsal |
 | **glt_release_preparation**<br>Prepare release for GLT | Optimization & Profiling | Snapshot implementation for caching |
 
-Last updated: 2025-12-16
+Last updated: 2025-12-18

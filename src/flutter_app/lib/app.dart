@@ -333,6 +333,192 @@ class _MyAppState extends ConsumerState<MyApp> {
     });
   }
 
+  Widget _buildProjectColumn(dynamic dataService, List<Project> projects, int? pIndex, Widget aiAssistantWidget, {VoidCallback? onBack}) {
+    return EditableColumn(
+      key: const ValueKey('projects'),
+      title: 'Projects',
+      backgroundColor: const Color(0xFFF5F5F7),
+      selectedIndex: _isAssistantActive ? null : pIndex,
+      isActiveColumn: _focusedColumnIndex == 0,
+      header: aiAssistantWidget,
+      items: projects.map((p) => EditableItem(id: p.id, text: p.title)).toList(),
+      onItemSelected: (index) {
+        setState(() {
+          _isAssistantActive = false;
+          _selectedProjectId = projects[index].id;
+          _focusedColumnIndex = 1; // Jump to tasks on mobile selection
+          _selectedTaskId = null;
+          _selectedSubtaskId = null;
+        });
+      },
+      onAdd: (val) {
+        String newId = dataService.addProject(val);
+        setState(() {
+          _isAssistantActive = false;
+          _selectedProjectId = newId;
+          _focusedColumnIndex = 0;
+          _selectedTaskId = null;
+          _selectedSubtaskId = null;
+        });
+      },
+      onUpdate: (index, val) {
+        dataService.updateTitle(projects[index].id, val);
+      },
+      onDelete: (index) {
+        final idToDelete = projects[index].id;
+        String? nextFocusId;
+        if (index > 0) {
+          nextFocusId = projects[index - 1].id;
+        } else if (projects.length > 1) {
+          nextFocusId = projects[1].id;
+        }
+        
+        bool willBeEmpty = projects.length == 1;
+        bool isSelected = (_selectedProjectId == idToDelete);
+        
+        dataService.deleteItem(idToDelete);
+        
+        if (isSelected) {
+          setState(() {
+            if (willBeEmpty) {
+              _selectedProjectId = null;
+              _isAssistantActive = true;
+            } else {
+              _selectedProjectId = nextFocusId;
+              if (_selectedProjectId == null) _isAssistantActive = true;
+            }
+            _selectedTaskId = null;
+            _selectedSubtaskId = null;
+          });
+        }
+      },
+      onReorder: (oldIndex, newIndex) {
+        dataService.reorderProjects(oldIndex, newIndex);
+      },
+      onBack: onBack,
+    );
+  }
+
+  Widget _buildTaskColumn(dynamic dataService, List<Project> projects, int pIndex, int? tIndex, {VoidCallback? onBack}) {
+    return EditableColumn(
+      key: ValueKey('tasks_$_selectedProjectId'),
+      title: 'Tasks',
+      backgroundColor: Colors.white,
+      selectedIndex: tIndex,
+      isActiveColumn: _focusedColumnIndex == 1,
+      items: projects[pIndex].tasks.map((t) => EditableItem(id: t.id, text: t.title, isCompleted: t.isCompleted)).toList(),
+      onCheckChanged: (index, isChecked) {
+        dataService.setItemStatus(projects[pIndex].tasks[index].id, isChecked);
+      },
+      onItemSelected: (index) {
+        setState(() {
+          _selectedTaskId = projects[pIndex].tasks[index].id;
+          _focusedColumnIndex = 2; // Jump to subtasks
+          _selectedSubtaskId = null;
+        });
+      },
+      onAdd: (val) {
+        String? newId = dataService.addTask(_selectedProjectId!, val);
+        if (newId != null) {
+          setState(() {
+            _selectedTaskId = newId;
+            _focusedColumnIndex = 1;
+            _selectedSubtaskId = null;
+          });
+        }
+      },
+      onUpdate: (index, val) {
+        dataService.updateTitle(projects[pIndex].tasks[index].id, val);
+      },
+      onDelete: (index) {
+        final tasks = projects[pIndex].tasks;
+        String? nextFocusId;
+        if (index > 0) {
+          nextFocusId = tasks[index - 1].id;
+        } else if (tasks.length > 1) {
+          nextFocusId = tasks[1].id;
+        }
+        
+        bool willBeEmpty = tasks.length == 1;
+        dataService.deleteItem(tasks[index].id);
+        
+        if (willBeEmpty) {
+          setState(() {
+            _selectedTaskId = null;
+            _focusedColumnIndex = 0;
+          });
+        } else if (nextFocusId != null) {
+          setState(() {
+            _selectedTaskId = nextFocusId;
+          });
+        }
+      },
+      onReorder: (oldIndex, newIndex) {
+        dataService.reorderTasks(projects[pIndex].id, oldIndex, newIndex);
+      },
+      onBack: onBack,
+    );
+  }
+
+  Widget _buildSubtaskColumn(dynamic dataService, List<Project> projects, int pIndex, int tIndex, int? sIndex, {VoidCallback? onBack}) {
+    return EditableColumn(
+      key: ValueKey('subtasks_${_selectedProjectId}_$_selectedTaskId'),
+      title: 'Subtasks',
+      backgroundColor: const Color(0xFFFAFAFA),
+      selectedIndex: sIndex,
+      isActiveColumn: _focusedColumnIndex == 2,
+      items: projects[pIndex].tasks[tIndex].subtasks.map((s) => EditableItem(id: s.id, text: s.title, isCompleted: s.isCompleted)).toList(),
+      onCheckChanged: (index, isChecked) {
+        dataService.setItemStatus(projects[pIndex].tasks[tIndex].subtasks[index].id, isChecked);
+      },
+      onItemSelected: (index) {
+        setState(() {
+          _selectedSubtaskId = projects[pIndex].tasks[tIndex].subtasks[index].id;
+          _focusedColumnIndex = 2;
+        });
+      },
+      onAdd: (val) {
+        String? newId = dataService.addSubtask(_selectedTaskId!, val);
+        if (newId != null) {
+          setState(() {
+            _selectedSubtaskId = newId;
+            _focusedColumnIndex = 2;
+          });
+        }
+      },
+      onUpdate: (index, val) {
+        dataService.updateTitle(projects[pIndex].tasks[tIndex].subtasks[index].id, val);
+      },
+      onDelete: (index) {
+        final subtasks = projects[pIndex].tasks[tIndex].subtasks;
+        String? nextFocusId;
+        if (index > 0) {
+          nextFocusId = subtasks[index - 1].id;
+        } else if (subtasks.length > 1) {
+          nextFocusId = subtasks[1].id;
+        }
+        
+        bool willBeEmpty = subtasks.length == 1;
+        dataService.deleteItem(subtasks[index].id);
+        
+        if (willBeEmpty) {
+          setState(() {
+            _selectedSubtaskId = null;
+            _focusedColumnIndex = 1;
+          });
+        } else if (nextFocusId != null) {
+          setState(() {
+            _selectedSubtaskId = nextFocusId;
+          });
+        }
+      },
+      onReorder: (oldIndex, newIndex) {
+        dataService.reorderSubtasks(projects[pIndex].tasks[tIndex].id, oldIndex, newIndex);
+      },
+      onBack: onBack,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final dataService = ref.watch(dataServiceProvider);
@@ -341,9 +527,6 @@ class _MyAppState extends ConsumerState<MyApp> {
     // Resolve Indices
     var (pIndex, tIndex, sIndex) = _getSelectionIndices(projects);
 
-    // 1. Projects Setup
-    final projectItems = projects.map((p) => EditableItem(id: p.id, text: p.title)).toList();
-    
     // Header for Assistant
     final aiAssistantWidget = GestureDetector(
        key: const ValueKey('ai_assistant_header'),
@@ -385,225 +568,71 @@ class _MyAppState extends ConsumerState<MyApp> {
         child: KeyboardListener(
           focusNode: _keyboardFocusNode,
           onKeyEvent: _handleKeyEvent,
-          child: Scaffold(
-            body: Row(
-            children: [
-              // Project Column
-              Expanded(
-                child: EditableColumn(
-                  key: const ValueKey('projects'),
-                  title: 'Projects',
-                  backgroundColor: const Color(0xFFF5F5F7),
-                  selectedIndex: _isAssistantActive ? null : pIndex,
-                  isActiveColumn: _focusedColumnIndex == 0,
-                  header: aiAssistantWidget,
-                  items: projectItems,
-                  onItemSelected: (index) {
-                    setState(() {
-                      _isAssistantActive = false;
-                      _selectedProjectId = projects[index].id; // Direct index now
-                      _focusedColumnIndex = 0;
-                      _selectedTaskId = null;
-                      _selectedSubtaskId = null;
-                    });
-                  },
-                  onAdd: (val) {
-                    String newId = dataService.addProject(val);
-                    setState(() {
-                      _isAssistantActive = false;
-                      _selectedProjectId = newId;
-                      _focusedColumnIndex = 0;
-                      _selectedTaskId = null;
-                      _selectedSubtaskId = null;
-                    });
-                  },
-                  onUpdate: (index, val) {
-                    dataService.updateTitle(projects[index].id, val);
-                  },
-                  onDelete: (index) {
-                    final idToDelete = projects[index].id;
-                    String? nextFocusId;
-                    if (index > 0) {
-                        nextFocusId = projects[index - 1].id;
-                    } else if (projects.length > 1) {
-                        nextFocusId = projects[1].id;
-                    }
-                    
-                    bool willBeEmpty = projects.length == 1;
-                    bool isSelected = (_selectedProjectId == idToDelete);
-                    
-                    dataService.deleteItem(idToDelete);
-                    
-                    if (isSelected) {
-                       setState(() {
-                         if (willBeEmpty) {
-                            _selectedProjectId = null;
-                            _isAssistantActive = true;
-                         } else {
-                            _selectedProjectId = nextFocusId;
-                            // If we fell back to null (unexpected), activate assistant
-                            if (_selectedProjectId == null) _isAssistantActive = true;
-                         }
-                         _selectedTaskId = null;
-                         _selectedSubtaskId = null;
-                       });
-                    }
-                  },
-                  onReorder: (oldIndex, newIndex) {
-                     dataService.reorderProjects(oldIndex, newIndex);
-                  },
-                ),
-              ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 700;
               
-              if (_isAssistantActive)
-                const Expanded(
-                  flex: 2,
-                  child: AssistantScreen(),
-                )
-              else ...[
-                // Task Column
-                if (pIndex != null)
-                  Expanded(
-                    child: EditableColumn(
-                      key: ValueKey('tasks_$_selectedProjectId'), 
-                      title: 'Tasks',
-                      backgroundColor: Colors.white,
-                      selectedIndex: tIndex,
-                      isActiveColumn: _focusedColumnIndex == 1,
-                      items: projects[pIndex].tasks.map((t) => EditableItem(id: t.id, text: t.title, isCompleted: t.isCompleted)).toList(),
-                      onCheckChanged: (index, isChecked) {
-                         dataService.setItemStatus(projects[pIndex].tasks[index].id, isChecked);
-                      },
-                      onItemSelected: (index) {
-                        setState(() {
-                          _selectedTaskId = projects[pIndex].tasks[index].id;
-                          _focusedColumnIndex = 1;
-                          _selectedSubtaskId = null;
-                        });
-                      },
-                      onAdd: (val) {
-                        String? newId = dataService.addTask(_selectedProjectId!, val);
-                        if (newId != null) {
-                          setState(() {
-                            _selectedTaskId = newId;
-                            _focusedColumnIndex = 1;
-                            _selectedSubtaskId = null;
-                          });
-                        }
-                      },
-                      onUpdate: (index, val) {
-                        dataService.updateTitle(projects[pIndex].tasks[index].id, val);
-                      },
-                      onDelete: (index) {
-                         final tasks = projects[pIndex].tasks;
-                         String? nextFocusId;
-                         if (index > 0) {
-                            nextFocusId = tasks[index - 1].id;
-                         } else if (tasks.length > 1) {
-                            nextFocusId = tasks[1].id;
-                         }
-                         
-                         bool willBeEmpty = tasks.length == 1;
-                         dataService.deleteItem(tasks[index].id);
-                         
-                         if (willBeEmpty) {
-                            setState(() {
-                              _selectedTaskId = null;
-                              _focusedColumnIndex = 0; // Jump to Project
-                            });
-                         } else if (nextFocusId != null) {
-                            setState(() {
-                              _selectedTaskId = nextFocusId;
-                            });
-                         }
-                      },
-                      onReorder: (oldIndex, newIndex) {
-                         dataService.reorderTasks(projects[pIndex].id, oldIndex, newIndex);
-                      },
-                    ),
-                  )
-                else
-                  Expanded(
-                    child: Container(
-                      color: Colors.white,
-                      child: const Center(
-                        child: Text('Select a Project', style: TextStyle(color: Colors.grey)),
+              if (isMobile) {
+                if (_isAssistantActive) {
+                  return Scaffold(
+                    appBar: AppBar(
+                      leading: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new),
+                        onPressed: () => setState(() => _isAssistantActive = false),
                       ),
+                      title: const Text("AI Assistant"),
                     ),
+                    body: const AssistantScreen(),
+                  );
+                }
+                
+                Widget mobileBody;
+                if (_focusedColumnIndex == 0) {
+                  mobileBody = _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget);
+                } else if (_focusedColumnIndex == 1) {
+                  mobileBody = pIndex != null 
+                    ? _buildTaskColumn(dataService, projects, pIndex, tIndex, onBack: () => setState(() => _focusedColumnIndex = 0))
+                    : const Center(child: Text('Select a Project'));
+                } else {
+                  mobileBody = (pIndex != null && tIndex != null)
+                    ? _buildSubtaskColumn(dataService, projects, pIndex, tIndex, sIndex, onBack: () => setState(() => _focusedColumnIndex = 1))
+                    : const Center(child: Text('Select a Task'));
+                }
+                
+                return Scaffold(
+                  body: mobileBody,
+                  floatingActionButton: FloatingActionButton(
+                    onPressed: _handleEnterKey,
+                    child: const Icon(Icons.add),
                   ),
+                );
+              }
 
-                // Subtask Column
-                if (pIndex != null && tIndex != null)
-                  Expanded(
-                    child: EditableColumn(
-                      key: ValueKey('subtasks_${_selectedProjectId}_$_selectedTaskId'),
-                      title: 'Subtasks',
-                      backgroundColor: const Color(0xFFFAFAFA),
-                      selectedIndex: sIndex,
-                      isActiveColumn: _focusedColumnIndex == 2,
-                      items: projects[pIndex].tasks[tIndex].subtasks.map((s) => EditableItem(id: s.id, text: s.title, isCompleted: s.isCompleted)).toList(),
-                      onCheckChanged: (index, isChecked) {
-                         dataService.setItemStatus(projects[pIndex].tasks[tIndex].subtasks[index].id, isChecked);
-                      },
-                      onItemSelected: (index) {
-                        setState(() {
-                          _selectedSubtaskId = projects[pIndex].tasks[tIndex].subtasks[index].id;
-                          _focusedColumnIndex = 2;
-                        });
-                      },
-                      onAdd: (val) {
-                         String? newId = dataService.addSubtask(_selectedTaskId!, val);
-                         if (newId != null) {
-                           setState(() {
-                             _selectedSubtaskId = newId;
-                             _focusedColumnIndex = 2;
-                           });
-                         }
-                      },
-                      onUpdate: (index, val) {
-                         dataService.updateTitle(projects[pIndex].tasks[tIndex].subtasks[index].id, val);
-                      },
-                                                                  onDelete: (index) {
-                                                                     final subtasks = projects[pIndex].tasks[tIndex].subtasks;
-                                                                     String? nextFocusId;
-                                                                     if (index > 0) {
-                                                                        nextFocusId = subtasks[index - 1].id;
-                                                                     } else if (subtasks.length > 1) {
-                                                                        nextFocusId = subtasks[1].id;
-                                                                     }
-                                            
-                                                                     bool willBeEmpty = subtasks.length == 1;
-                                                                     dataService.deleteItem(subtasks[index].id);
-                                                                     
-                                                                     if (willBeEmpty) {
-                                                                        setState(() {
-                                                                          _selectedSubtaskId = null;
-                                                                          _focusedColumnIndex = 1; // Jump to Task
-                                                                        });
-                                                                     } else if (nextFocusId != null) {
-                                                                        setState(() {
-                                                                          _selectedSubtaskId = nextFocusId;
-                                                                        });
-                                                                     }
-                                                                  },                      onReorder: (oldIndex, newIndex) {
-                         dataService.reorderSubtasks(projects[pIndex].tasks[tIndex].id, oldIndex, newIndex);
-                      },
-                    ),
-                  )
-                else
-                  Expanded(
-                    child: Container(
-                      color: const Color(0xFFFAFAFA),
-                      child: const Center(
-                        child: Text('Select a Task', style: TextStyle(color: Colors.grey)),
+              // Desktop Layout
+              return Scaffold(
+                body: Row(
+                  children: [
+                    Expanded(child: _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget)),
+                    if (_isAssistantActive)
+                      const Expanded(flex: 2, child: AssistantScreen())
+                    else ...[
+                      Expanded(
+                        child: pIndex != null 
+                          ? _buildTaskColumn(dataService, projects, pIndex, tIndex)
+                          : Container(color: Colors.white, child: const Center(child: Text('Select a Project'))),
                       ),
-                    ),
-                  ),
-              ],
-            ],
+                      Expanded(
+                        child: (pIndex != null && tIndex != null)
+                          ? _buildSubtaskColumn(dataService, projects, pIndex, tIndex, sIndex)
+                          : Container(color: const Color(0xFFFAFAFA), child: const Center(child: Text('Select a Task'))),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
           ),
         ),
-      ),
       ),
     );
   }

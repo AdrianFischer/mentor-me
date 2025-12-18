@@ -1,0 +1,105 @@
+import 'dart:async';
+import '../../models/models.dart';
+import '../../models/ai_models.dart';
+import 'storage_repository.dart';
+
+class MemoryStorageRepository implements StorageRepository {
+  final List<Project> _projects = [];
+  final Map<String, List<ChatMessage>> _chatHistories = {};
+  final List<Knowledge> _knowledgeBase = [];
+  final StreamController<void> _dataChangeController = StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get onDataChanged => _dataChangeController.stream;
+
+  @override
+  Future<void> init() async {
+    // Already initialized in memory
+  }
+
+  @override
+  Future<List<Project>> getAllProjects() async {
+    return List.unmodifiable(_projects);
+  }
+
+  @override
+  Future<void> saveProject(Project project) async {
+    final index = _projects.indexWhere((p) => p.id == project.id);
+    if (index >= 0) {
+      _projects[index] = project;
+    } else {
+      _projects.add(project);
+    }
+    _dataChangeController.add(null);
+  }
+
+  @override
+  Future<void> deleteProject(String projectId) async {
+    _projects.removeWhere((p) => p.id == projectId);
+    _dataChangeController.add(null);
+  }
+
+  @override
+  Future<void> saveTask(Task task) async {
+    // Find project
+    for (var i = 0; i < _projects.length; i++) {
+      if (_projects[i].id == task.projectId) {
+        final tasks = List<Task>.from(_projects[i].tasks);
+        final taskIndex = tasks.indexWhere((t) => t.id == task.id);
+        if (taskIndex >= 0) {
+          tasks[taskIndex] = task;
+        } else {
+          tasks.add(task);
+        }
+        _projects[i] = _projects[i].copyWith(tasks: tasks);
+        break;
+      }
+    }
+    _dataChangeController.add(null);
+  }
+
+  @override
+  Future<void> deleteTask(String taskId) async {
+    for (var i = 0; i < _projects.length; i++) {
+      final tasks = List<Task>.from(_projects[i].tasks);
+      final initialLength = tasks.length;
+      tasks.removeWhere((t) => t.id == taskId);
+      if (tasks.length != initialLength) {
+        _projects[i] = _projects[i].copyWith(tasks: tasks);
+        break;
+      }
+    }
+    _dataChangeController.add(null);
+  }
+
+  @override
+  Future<void> saveChatMessage(ChatMessage message, String mode) async {
+    _chatHistories.putIfAbsent(mode, () => []).add(message);
+  }
+
+  @override
+  Future<List<ChatMessage>> getChatHistory(String mode) async {
+    return List.unmodifiable(_chatHistories[mode] ?? []);
+  }
+
+  @override
+  Future<void> clearChatHistory(String mode) async {
+    _chatHistories[mode] = [];
+  }
+
+  @override
+  Future<void> saveKnowledge(Knowledge knowledge) async {
+    final index = _knowledgeBase.indexWhere((k) => k.id == knowledge.id);
+    if (index >= 0) {
+      _knowledgeBase[index] = knowledge;
+    } else {
+      _knowledgeBase.add(knowledge);
+    }
+  }
+
+  @override
+  Future<List<Knowledge>> getAllKnowledge() async {
+    return List.unmodifiable(_knowledgeBase);
+  }
+}
+
