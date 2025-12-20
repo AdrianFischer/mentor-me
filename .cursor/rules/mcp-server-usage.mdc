@@ -1,0 +1,59 @@
+---
+description: Guidelines for interacting with the embedded MCP Server (HTTP API) in the Flutter app.
+globs: src/flutter_app/lib/services/mcp_server.dart, src/flutter_app/lib/providers/mcp_provider.dart
+---
+
+# MCP Server Usage Guidelines
+
+This project includes an embedded HTTP server (MCP Server) running within the Flutter application to allow external tools (like CLI agents) to query and modify the application state live.
+
+## Core Principles
+
+-   **Port:** The server runs on port `8081` by default.
+-   **Availability:** The server is only available when the Flutter application is running (`flutter run -d macos`).
+-   **Data Source:** It interacts directly with the `StorageRepository` (Isar DB), ensuring consistency with the UI.
+
+## API Endpoints
+
+### 1. Discovery
+-   **Endpoint:** `GET /mcp/tools`
+-   **Purpose:** Returns a list of available tools/capabilities.
+-   **Response:** JSON list of tool definitions (name, description, parameters).
+
+### 2. Projects & Tasks
+-   **Endpoint:** `GET /projects`
+-   **Purpose:** Returns the full hierarchy of projects, tasks, and subtasks.
+-   **Response:** JSON array of `Project` objects.
+    -   *Note:* `order` fields are sanitized (NaN -> 0.0) during serialization.
+
+### 3. Add Task
+-   **Endpoint:** `POST /tasks`
+-   **Purpose:** Adds a new task to a specific project.
+-   **Body:**
+    ```json
+    {
+      "title": "Task Title",
+      "projectId": "target-project-id"
+    }
+    ```
+-   **Response:** JSON with status and the new task ID.
+
+### 4. Knowledge
+-   **Endpoint:** `GET /knowledge`
+-   **Purpose:** Returns stored AI knowledge items.
+
+## Development & Debugging
+
+-   **Location:** `src/flutter_app/lib/services/mcp_server.dart`
+-   **Testing:** Use `curl` to verify endpoints:
+    ```bash
+    curl http://localhost:8081/projects
+    ```
+-   **Serialization:** Be mindful of `jsonEncode` limitations (e.g., `NaN` values). Use manual mapping if `json_serializable` generated code is insufficient or problematic.
+-   **Hot Restart:** Changes to the server logic typically require a **Hot Restart** or full restart to detach/reattach the server port.
+
+## Integration Patterns
+
+When building agents or tools that interface with this app:
+1.  **Check Availability:** Try to ping `GET /mcp/tools` first.
+2.  **Read-Modify-Write:** To update complex state, fetch the current state (`GET /projects`), modify the necessary objects, and use specific endpoints to save changes (currently `POST /tasks` is supported for additions).
