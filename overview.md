@@ -2,6 +2,7 @@
 
 | **identifier**<br>Description | State | Focus |
 |:---|:---|:---|
+| **add_ai_footer**<br>Add 'Built with Assisted Intelligence' text to the app home screen. | Completed | Done |
 | **implement_responsive_layout**<br>Implement layout-based responsive UI for mobile and desktop. | Completed | Implementation & Verification |
 | **f6a85b37-42ae-470e-98bf-91e93b0ac0b8**<br>test adding a task in the new project | In Progress | Initial Scope |
 | **a2e028aa-98ff-46eb-971a-186bf20cc0c5**<br>hahaha | In Progress | Initial Scope |
@@ -40,4 +41,16 @@
 | **marco_strategic_discussion**<br>Prepare strategic discussion points for conversation with Marco (Chris's boss) | Preparing | Podcast rehearsal |
 | **glt_release_preparation**<br>Prepare release for GLT | Optimization & Profiling | Snapshot implementation for caching |
 
-Last updated: 2025-12-18
+## System Capabilities
+
+- **Data Persistence:**
+    - **Isar Database:** Local, high-performance NoSQL database for structured data (Projects, Tasks, Chat).
+    - **Markdown Sync:** Two-way synchronization with local Markdown files for portability.
+- **MCP Server (HTTP API):**
+    -   **Embedded Server:** Runs on port `8081` (default) within the Flutter app.
+    -   **Endpoints:** Provides RESTful access to Projects (`/projects`) and Tasks (`/tasks`), enabling external tools to query and modify app state.
+    -   **Discovery:** Exposes capabilities via `/mcp/tools`.
+- **State Management:** Riverpod for reactive, testable state.
+- **AI Integration:** Google Gemini API for generating task structures and chat responses.
+
+Last updated: 2025-12-20
