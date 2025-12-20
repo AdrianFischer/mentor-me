@@ -610,6 +610,14 @@ class _MyAppState extends ConsumerState<MyApp> {
 
               // Desktop Layout
               return Scaffold(
+                bottomNavigationBar: Container(
+                  height: 30,
+                  alignment: Alignment.center,
+                  child: const Text(
+                    "Built with Assisted Intelligence", 
+                    style: TextStyle(color: Colors.grey, fontSize: 10),
+                  ),
+                ),
                 body: Row(
                   children: [
                     Expanded(
