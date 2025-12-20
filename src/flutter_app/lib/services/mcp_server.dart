@@ -133,6 +133,23 @@ class McpServerService {
       }
     });
 
+    router.post('/items/<itemId>/status', (Request request, String itemId) async {
+      try {
+        final content = await request.readAsString();
+        final json = jsonDecode(content);
+        final isCompleted = json['isCompleted'];
+
+        if (isCompleted == null || !(isCompleted is bool)) {
+           return Response.badRequest(body: '"isCompleted" boolean field is required');
+        }
+
+        _dataService.setItemStatus(itemId, isCompleted);
+        return Response.ok(jsonEncode({'status': 'success', 'id': itemId, 'isCompleted': isCompleted}), headers: {'content-type': 'application/json'});
+      } catch (e) {
+        return Response.internalServerError(body: 'Error updating item status: $e');
+      }
+    });
+
     // --- Knowledge ---
     router.get('/knowledge', (Request request) async {
       try {
@@ -179,6 +196,18 @@ class McpServerService {
               'title': {'type': 'string', 'description': 'Title of the subtask'}
             },
             'required': ['taskId', 'title']
+          }
+        },
+        {
+          'name': 'update_item_status',
+          'description': 'Update the completion status of a project, task, or subtask.',
+          'parameters': {
+            'type': 'object',
+            'properties': {
+              'itemId': {'type': 'string', 'description': 'The ID of the item (project, task, or subtask) to update.'},
+              'isCompleted': {'type': 'boolean', 'description': 'The new completion status.'}
+            },
+            'required': ['itemId', 'isCompleted']
           }
         },
         {
