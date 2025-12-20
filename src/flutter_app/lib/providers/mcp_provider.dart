@@ -3,8 +3,8 @@ import '../services/mcp_server.dart';
 import 'data_provider.dart';
 
 final mcpServerProvider = Provider<McpServerService>((ref) {
-  final repository = ref.watch(storageRepositoryProvider);
-  final service = McpServerService(repository);
+  final dataService = ref.watch(dataServiceProvider);
+  final service = McpServerService(dataService);
   service.start(); 
   return service;
 });

@@ -6,18 +6,20 @@ import 'package:flutter_app/data/repository/storage_repository.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:flutter_app/models/ai_models.dart';
 import 'package:flutter_app/services/mcp_server.dart';
+import 'package:flutter_app/services/data_service.dart';
 
-class MockStorageRepository extends Mock implements StorageRepository {}
+class MockDataService extends Mock implements DataService {}
 
 void main() {
-  late MockStorageRepository mockRepository;
+  late MockDataService mockDataService;
   late McpServerService serverService;
   final int port = 8099; 
 
   setUp(() {
-    mockRepository = MockStorageRepository();
-    serverService = McpServerService(mockRepository);
+    mockDataService = MockDataService();
+    serverService = McpServerService(mockDataService);
     registerFallbackValue(const Task(id: 'fallback', title: 'fallback'));
+    registerFallbackValue(const Project(id: 'fallback', title: 'fallback'));
   });
 
   tearDown(() async {
@@ -27,7 +29,7 @@ void main() {
   test('GET /projects returns projects list', () async {
     // Arrange
     final project = Project(id: 'p1', title: 'Project 1', tasks: []);
-    when(() => mockRepository.getAllProjects()).thenAnswer((_) async => [project]);
+    when(() => mockDataService.projects).thenReturn([project]);
 
     // Act
     await serverService.start(port: port);
@@ -47,8 +49,8 @@ void main() {
 
   test('POST /tasks saves a task', () async {
     // Arrange
-    when(() => mockRepository.saveTask(any())).thenAnswer((_) async => {});
-
+    // upsertTask returns void
+    
     // Act
     await serverService.start(port: port);
     
@@ -64,13 +66,12 @@ void main() {
 
     // Assert
     expect(response.statusCode, 200);
-    verify(() => mockRepository.saveTask(any())).called(1);
+    verify(() => mockDataService.upsertTask(any())).called(1);
   });
   
   test('POST /tasks saves a task with simplified input (no ID)', () async {
     // Arrange
-    when(() => mockRepository.saveTask(any())).thenAnswer((_) async => {});
-
+    
     // Act
     await serverService.start(port: port);
     
@@ -89,16 +90,12 @@ void main() {
     expect(json['status'], 'success');
     expect(json['id'], isNotNull);
     
-    verify(() => mockRepository.saveTask(any(that: predicate<Task>((t) => t.title == 'Task 2' && t.projectId == 'p1')))).called(1);
+    verify(() => mockDataService.upsertTask(any(that: predicate<Task>((t) => t.title == 'Task 2' && t.projectId == 'p1')))).called(1);
   });
 
   test('POST /tasks/<taskId>/subtasks adds a subtask', () async {
     // Arrange
-    final existingTask = Task(id: 't1', title: 'Task 1', projectId: 'p1');
-    final project = Project(id: 'p1', title: 'Project 1', tasks: [existingTask]);
-    
-    when(() => mockRepository.getAllProjects()).thenAnswer((_) async => [project]);
-    when(() => mockRepository.saveTask(any())).thenAnswer((_) async => {});
+    when(() => mockDataService.addSubtask('t1', 'Subtask 1')).thenReturn('s1');
 
     // Act
     await serverService.start(port: port);
@@ -115,11 +112,9 @@ void main() {
     expect(response.statusCode, 200);
     final json = jsonDecode(content);
     expect(json['status'], 'success');
-    expect(json['id'], isNotNull);
+    expect(json['id'], 's1');
 
-    verify(() => mockRepository.saveTask(any(that: predicate<Task>((t) {
-      return t.id == 't1' && t.subtasks.length == 1 && t.subtasks.first.title == 'Subtask 1';
-    })))).called(1);
+    verify(() => mockDataService.addSubtask('t1', 'Subtask 1')).called(1);
   });
   
   test('GET /mcp/tools returns tools list', () async {
