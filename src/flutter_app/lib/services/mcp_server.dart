@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
+import 'package:uuid/uuid.dart';
 import '../data/repository/storage_repository.dart';
 import '../models/models.dart';
 import '../models/ai_models.dart';
@@ -75,11 +76,75 @@ class McpServerService {
       try {
         final content = await request.readAsString();
         final json = jsonDecode(content);
-        final task = Task.fromJson(json);
+        
+        // Handle simplified input (create ID if missing)
+        String id = json['id'] ?? const Uuid().v4();
+        String title = json['title'] ?? '';
+        String? projectId = json['projectId'];
+        bool isCompleted = json['isCompleted'] ?? false;
+        
+        // Check if we need to create a full Task object manually
+        // or if we can use Task.fromJson if the structure matches.
+        // For robustness, we construct it manually if simplified keys are present.
+        final task = Task(
+          id: id, 
+          title: title, 
+          projectId: projectId, 
+          isCompleted: isCompleted,
+          subtasks: [] // default empty for new task
+        );
+
         await _repository.saveTask(task);
         return Response.ok(jsonEncode({'status': 'success', 'id': task.id}), headers: {'content-type': 'application/json'});
       } catch (e) {
         return Response.internalServerError(body: 'Error saving task: $e');
+      }
+    });
+    
+    router.post('/tasks/<taskId>/subtasks', (Request request, String taskId) async {
+      try {
+        final content = await request.readAsString();
+        final json = jsonDecode(content);
+        final title = json['title'];
+        
+        if (title == null || title.isEmpty) {
+           return Response.badRequest(body: 'Title is required');
+        }
+
+        // 1. Find the parent task
+        final projects = await _repository.getAllProjects();
+        Task? parentTask;
+        
+        // Inefficient search but functional given current repo limitations (no direct getTaskById)
+        // Improvements: Add getTaskById to repository
+        for (final p in projects) {
+          final t = p.tasks.firstWhere((t) => t.id == taskId, orElse: () => const Task(id: 'not_found', title: ''));
+          if (t.id != 'not_found') {
+            parentTask = t;
+            break;
+          }
+        }
+        
+        if (parentTask == null) {
+           return Response.notFound('Task with ID $taskId not found');
+        }
+        
+        // 2. Add Subtask
+        final newSubtask = Subtask(
+          id: const Uuid().v4(),
+          title: title,
+        );
+        
+        final updatedSubtasks = List<Subtask>.from(parentTask.subtasks)..add(newSubtask);
+        final updatedTask = parentTask.copyWith(subtasks: updatedSubtasks);
+        
+        // 3. Save
+        await _repository.saveTask(updatedTask);
+        
+        return Response.ok(jsonEncode({'status': 'success', 'id': newSubtask.id}), headers: {'content-type': 'application/json'});
+
+      } catch (e) {
+        return Response.internalServerError(body: 'Error adding subtask: $e');
       }
     });
 
@@ -126,6 +191,18 @@ class McpServerService {
               'projectId': {'type': 'string', 'description': 'Optional Project ID'}
             },
             'required': ['title']
+          }
+        },
+        {
+          'name': 'add_subtask',
+          'description': 'Add a new subtask to a specific task',
+          'parameters': {
+            'type': 'object',
+            'properties': {
+              'taskId': {'type': 'string', 'description': 'ID of the parent task'},
+              'title': {'type': 'string', 'description': 'Title of the subtask'}
+            },
+            'required': ['taskId', 'title']
           }
         },
         {
