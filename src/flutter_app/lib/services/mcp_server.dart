@@ -4,15 +4,15 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:uuid/uuid.dart';
-import '../data/repository/storage_repository.dart';
+import 'data_service.dart';
 import '../models/models.dart';
 import '../models/ai_models.dart';
 
 class McpServerService {
-  final StorageRepository _repository;
+  final DataService _dataService;
   HttpServer? _server;
 
-  McpServerService(this._repository);
+  McpServerService(this._dataService);
 
   Future<void> start({int port = 8081}) async {
     if (_server != null) return;
@@ -22,7 +22,7 @@ class McpServerService {
     // --- Projects ---
     router.get('/projects', (Request request) async {
       try {
-        final projects = await _repository.getAllProjects();
+        final projects = _dataService.projects;
         // Manually map to ensure deep conversion, avoiding implicit serialization issues
         final jsonList = projects.map((p) {
                        final pJson = p.toJson();
@@ -54,7 +54,7 @@ class McpServerService {
         final content = await request.readAsString();
         final json = jsonDecode(content);
         final project = Project.fromJson(json);
-        await _repository.saveProject(project);
+        _dataService.upsertProject(project);
         return Response.ok(jsonEncode({'status': 'success', 'id': project.id}), headers: {'content-type': 'application/json'});
       } catch (e) {
         return Response.internalServerError(body: 'Error saving project: $e');
@@ -64,7 +64,7 @@ class McpServerService {
     // --- Tasks ---
     router.get('/tasks', (Request request) async {
        try {
-         final projects = await _repository.getAllProjects();
+         final projects = _dataService.projects;
          final allTasks = projects.expand((p) => p.tasks).toList();
          return Response.ok(jsonEncode(allTasks.map((t) => t.toJson()).toList()), headers: {'content-type': 'application/json'});
        } catch (e) {
@@ -94,7 +94,7 @@ class McpServerService {
           subtasks: [] // default empty for new task
         );
 
-        await _repository.saveTask(task);
+        _dataService.upsertTask(task);
         return Response.ok(jsonEncode({'status': 'success', 'id': task.id}), headers: {'content-type': 'application/json'});
       } catch (e) {
         return Response.internalServerError(body: 'Error saving task: $e');
@@ -111,37 +111,13 @@ class McpServerService {
            return Response.badRequest(body: 'Title is required');
         }
 
-        // 1. Find the parent task
-        final projects = await _repository.getAllProjects();
-        Task? parentTask;
+        final subtaskId = _dataService.addSubtask(taskId, title);
         
-        // Inefficient search but functional given current repo limitations (no direct getTaskById)
-        // Improvements: Add getTaskById to repository
-        for (final p in projects) {
-          final t = p.tasks.firstWhere((t) => t.id == taskId, orElse: () => const Task(id: 'not_found', title: ''));
-          if (t.id != 'not_found') {
-            parentTask = t;
-            break;
-          }
-        }
-        
-        if (parentTask == null) {
+        if (subtaskId == null) {
            return Response.notFound('Task with ID $taskId not found');
         }
         
-        // 2. Add Subtask
-        final newSubtask = Subtask(
-          id: const Uuid().v4(),
-          title: title,
-        );
-        
-        final updatedSubtasks = List<Subtask>.from(parentTask.subtasks)..add(newSubtask);
-        final updatedTask = parentTask.copyWith(subtasks: updatedSubtasks);
-        
-        // 3. Save
-        await _repository.saveTask(updatedTask);
-        
-        return Response.ok(jsonEncode({'status': 'success', 'id': newSubtask.id}), headers: {'content-type': 'application/json'});
+        return Response.ok(jsonEncode({'status': 'success', 'id': subtaskId}), headers: {'content-type': 'application/json'});
 
       } catch (e) {
         return Response.internalServerError(body: 'Error adding subtask: $e');
@@ -150,7 +126,7 @@ class McpServerService {
 
     router.delete('/tasks/<id>', (Request request, String id) async {
       try {
-        await _repository.deleteTask(id);
+        _dataService.deleteItem(id);
         return Response.ok(jsonEncode({'status': 'deleted', 'id': id}), headers: {'content-type': 'application/json'});
       } catch (e) {
          return Response.internalServerError(body: 'Error deleting task: $e');
@@ -160,7 +136,7 @@ class McpServerService {
     // --- Knowledge ---
     router.get('/knowledge', (Request request) async {
       try {
-        final knowledge = await _repository.getAllKnowledge();
+        final knowledge = await _dataService.getAllKnowledge();
         final list = knowledge.map((k) => {
           'id': k.id,
           'content': k.content,

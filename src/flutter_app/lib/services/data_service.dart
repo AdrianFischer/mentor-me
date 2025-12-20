@@ -101,6 +101,46 @@ class DataService extends ChangeNotifier {
     return null;
   }
 
+  // --- MCP / External Sync Methods ---
+
+  void upsertProject(Project project) {
+    final index = _projects.indexWhere((p) => p.id == project.id);
+    if (index != -1) {
+      _projects[index] = project;
+    } else {
+      _projects.add(project);
+    }
+    notifyListeners();
+    _repository.saveProject(project);
+  }
+
+  void upsertTask(Task task) {
+    if (task.projectId == null) return;
+    
+    final pIndex = _projects.indexWhere((p) => p.id == task.projectId);
+    if (pIndex == -1) {
+      debugPrint("Cannot upsert task ${task.id}: Project ${task.projectId} not found.");
+      return;
+    }
+    
+    final project = _projects[pIndex];
+    final tIndex = project.tasks.indexWhere((t) => t.id == task.id);
+    
+    List<Task> newTasks;
+    if (tIndex != -1) {
+      newTasks = List<Task>.from(project.tasks);
+      newTasks[tIndex] = task;
+    } else {
+      newTasks = List<Task>.from(project.tasks)..add(task);
+    }
+    
+    final newProject = project.copyWith(tasks: newTasks);
+    _projects[pIndex] = newProject;
+    
+    notifyListeners();
+    _repository.saveTask(task);
+  }
+
   void deleteItem(String itemId) {
     // Check if it is a Project
     int projectIndex = _projects.indexWhere((p) => p.id == itemId);
