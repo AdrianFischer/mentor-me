@@ -131,5 +131,30 @@ void main() {
     final json = jsonDecode(content);
     expect(json, isA<List>());
     expect(json.any((t) => t['name'] == 'add_task'), isTrue);
+    expect(json.any((t) => t['name'] == 'update_item_status'), isTrue);
+  });
+
+  test('POST /items/<itemId>/status updates item status', () async {
+    // Arrange
+    const itemId = 'item123';
+    const isCompleted = true;
+    when(() => mockDataService.setItemStatus(itemId, isCompleted)).thenReturn(null); // setItemStatus returns void
+
+    // Act
+    await serverService.start(port: port);
+
+    final client = HttpClient();
+    final request = await client.postUrl(Uri.parse('http://localhost:$port/items/$itemId/status'));
+    request.write(jsonEncode({'isCompleted': isCompleted}));
+    final response = await request.close();
+    final content = await response.transform(utf8.decoder).join();
+
+    // Assert
+    expect(response.statusCode, 200);
+    final json = jsonDecode(content);
+    expect(json['status'], 'success');
+    expect(json['id'], itemId);
+    expect(json['isCompleted'], isCompleted);
+    verify(() => mockDataService.setItemStatus(itemId, isCompleted)).called(1);
   });
 }
