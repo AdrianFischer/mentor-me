@@ -36,9 +36,21 @@ This project includes an embedded HTTP server (MCP Server) running within the Fl
       "projectId": "target-project-id"
     }
     ```
+    *Note: `id` is auto-generated if omitted.*
 -   **Response:** JSON with status and the new task ID.
 
-### 4. Knowledge
+### 4. Add Subtask
+-   **Endpoint:** `POST /tasks/<taskId>/subtasks`
+-   **Purpose:** Adds a new subtask to a specific parent task.
+-   **Body:**
+    ```json
+    {
+      "title": "Subtask Title"
+    }
+    ```
+-   **Response:** JSON with status and the new subtask ID.
+
+### 5. Knowledge
 -   **Endpoint:** `GET /knowledge`
 -   **Purpose:** Returns stored AI knowledge items.
 
