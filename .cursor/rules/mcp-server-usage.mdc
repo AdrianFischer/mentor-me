@@ -54,6 +54,17 @@ This project includes an embedded HTTP server (MCP Server) running within the Fl
 -   **Endpoint:** `GET /knowledge`
 -   **Purpose:** Returns stored AI knowledge items.
 
+### 6. Update Item Status
+-   **Endpoint:** `POST /items/<itemId>/status`
+-   **Purpose:** Updates the `isCompleted` status of a project, task, or subtask.
+-   **Body:**
+    ```json
+    {
+      "isCompleted": true
+    }
+    ```
+-   **Response:** JSON with status, ID, and new `isCompleted` value.
+
 ## Development & Debugging
 
 -   **Location:** `src/flutter_app/lib/services/mcp_server.dart`
