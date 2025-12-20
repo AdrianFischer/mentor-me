@@ -1,0 +1,6 @@
+{
+  "setup-worktree": [
+    "echo 'Worktree created via git. To initialize dependencies and secrets, please run:'",
+    "echo './scripts/setup_worktree.sh <branch_name>'"
+  ]
+}
