@@ -48,7 +48,10 @@
     - **Markdown Sync:** Two-way synchronization with local Markdown files for portability.
 - **MCP Server (HTTP API):**
     -   **Embedded Server:** Runs on port `8081` (default) within the Flutter app.
-    -   **Endpoints:** Provides RESTful access to Projects (`/projects`) and Tasks (`/tasks`), enabling external tools to query and modify app state.
+    -   **Endpoints:** 
+        -   `GET /projects`: Retrieve full hierarchy.
+        -   `POST /tasks`: Add new task (simplified payload supported).
+        -   `POST /tasks/<taskId>/subtasks`: Add subtask to a specific task.
     -   **Discovery:** Exposes capabilities via `/mcp/tools`.
 - **State Management:** Riverpod for reactive, testable state.
 - **AI Integration:** Google Gemini API for generating task structures and chat responses.
