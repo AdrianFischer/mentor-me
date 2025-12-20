@@ -7,6 +7,7 @@ import 'ui/widgets/debug_overlay.dart';
 import 'ui/assistant_screen.dart';
 import 'models/models.dart';
 import 'providers/data_provider.dart';
+import 'providers/mcp_provider.dart';
 import 'services/debug_data_service.dart';
 
 class MyApp extends ConsumerStatefulWidget {
@@ -521,6 +522,9 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    // Ensure MCP server is running
+    ref.watch(mcpServerProvider);
+
     final dataService = ref.watch(dataServiceProvider);
     final projects = dataService.projects;
     
