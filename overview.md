@@ -52,6 +52,7 @@
         -   `GET /projects`: Retrieve full hierarchy.
         -   `POST /tasks`: Add new task (simplified payload supported).
         -   `POST /tasks/<taskId>/subtasks`: Add subtask to a specific task.
+        -   `POST /items/<itemId>/status`: Update the completion status of any item (project, task, or subtask).
     -   **Discovery:** Exposes capabilities via `/mcp/tools`.
 - **State Management:** Riverpod for reactive, testable state.
 - **AI Integration:** Google Gemini API for generating task structures and chat responses.
