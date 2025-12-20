@@ -7,12 +7,14 @@ import 'package:flutter_app/services/data_service.dart';
 import 'package:flutter_app/providers/data_provider.dart';
 import 'package:mockito/mockito.dart';
 
-// We need a real DataService or a realistic mock.
-// Since DataService depends on StorageRepository, we can mock the repository.
-// Using real DataService + MockRepository is best to test logic.
-
 import 'package:flutter_app/data/repository/storage_repository.dart';
 import 'package:flutter_app/models/models.dart';
+import 'package:flutter_app/services/markdown_persistence_service.dart';
+
+class MockMarkdownPersistence extends Mock implements MarkdownPersistenceService {
+    @override
+    Future<void> saveTask(Task t, Project p) async {}
+}
 
 class MockStorageRepository extends Mock implements StorageRepository {
   // Stub basic methods
@@ -30,12 +32,10 @@ class MockStorageRepository extends Mock implements StorageRepository {
   Future<void> deleteTask(String id) async {}
 }
 
-// We also need to mock MarkdownPersistenceService since we added it
-import 'package:flutter_app/services/markdown_persistence_service.dart';
-class MockMarkdownPersistence extends Mock implements MarkdownPersistenceService {
-    @override
-    Future<void> saveTask(Task t, Project p) async {}
-}
+// We need a real DataService or a realistic mock.
+// Since DataService depends on StorageRepository, we can mock the repository.
+// Using real DataService + MockRepository is best to test logic.
+
 
 void main() {
   testWidgets('Right Arrow navigation focuses new task', (WidgetTester tester) async {

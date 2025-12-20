@@ -22,7 +22,26 @@ class McpServerService {
     router.get('/projects', (Request request) async {
       try {
         final projects = await _repository.getAllProjects();
-        final jsonList = projects.map((p) => p.toJson()).toList();
+        // Manually map to ensure deep conversion, avoiding implicit serialization issues
+        final jsonList = projects.map((p) {
+                       final pJson = p.toJson();
+                       pJson['order'] = p.order.isNaN ? 0.0 : p.order; // Handle NaN
+                       // Explicitly convert nested tasks to ensure they are Maps, not Objects
+                       if (pJson['tasks'] is List) {
+                          pJson['tasks'] = (pJson['tasks'] as List).map((t) {
+                            final tJson = (t as dynamic).toJson();
+                            tJson['order'] = t.order.isNaN ? 0.0 : t.order; // Handle NaN
+                            if (tJson['subtasks'] is List) {
+                              tJson['subtasks'] = (tJson['subtasks'] as List).map((s) {
+                                final sJson = (s as dynamic).toJson();
+                                sJson['order'] = s.order.isNaN ? 0.0 : s.order; // Handle NaN
+                                return sJson;
+                              }).toList();
+                            }
+                            return tJson; 
+                          }).toList();
+                       }          return pJson;
+        }).toList();
         return Response.ok(jsonEncode(jsonList), headers: {'content-type': 'application/json'});
       } catch (e) {
         return Response.internalServerError(body: 'Error fetching projects: $e');
