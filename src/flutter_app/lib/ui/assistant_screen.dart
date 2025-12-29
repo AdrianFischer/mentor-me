@@ -391,7 +391,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
           color: msg.isUser ? Colors.blue.shade100 : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text(msg.text),
+        child: SelectableText(msg.text),
       ),
     );
   }
