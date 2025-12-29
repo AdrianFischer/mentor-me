@@ -77,29 +77,33 @@ void main() {
       service = AssistantService(mockDataService, registry);
     });
 
-    test('starts in Assistant Mode', () {
-      expect(service.isMentorMode, false);
+    test('starts in Standard Mode', () {
+      expect(service.isThinkingMode, false);
       expect(service.messages, isEmpty);
     });
 
-    test('toggles to Mentor Mode', () {
-      service.toggleMode();
-      expect(service.isMentorMode, true);
+    test('toggles to Thinking Mode', () {
+      service.toggleThinking();
+      expect(service.isThinkingMode, true);
     });
 
-    test('switching modes switches message history', () {
-      // Add message in Assistant Mode
-      service.sendMessage("Hello Assistant");
-      // Since we are in mock mode (no key in test), it might have added a response or just the user message + processing
-      // In Assistant Mock mode: 
-      // It adds user message. 
-      // Then if no key, it waits and responds.
-      // We need to wait for async.
+    test('switching modes preserves message history (Unified)', () async {
+      // Add message in Standard Mode
+      await service.sendMessage("Hello Assistant");
+      expect(service.messages.isNotEmpty, true);
+      final countBefore = service.messages.length;
+
+      // Switch to Thinking
+      service.toggleThinking();
+      expect(service.isThinkingMode, true);
+      
+      // History should be preserved
+      expect(service.messages.length, countBefore);
     });
     
-    test('Mock Mentor Mode responds correctly', () async {
-      service.toggleMode(); // Switch to Mentor
-      expect(service.isMentorMode, true);
+    test('Mock Thinking Mode responds correctly', () async {
+      service.toggleThinking(); // Switch to Thinking
+      expect(service.isThinkingMode, true);
 
       // Send message
       await service.sendMessage("I'm stuck");
@@ -107,29 +111,30 @@ void main() {
       // Verify user message added
       expect(service.messages.any((m) => m.text == "I'm stuck" && m.isUser), true);
       
-      // Verify mock mentor response
-      expect(service.messages.any((m) => m.text.contains("[Mock Mentor]") && !m.isUser), true);
+      // Verify mock thinking response
+      expect(service.messages.any((m) => m.text.contains("[Mock Thinking]") && !m.isUser), true);
     });
 
-    test('Separate histories', () async {
-      // 1. Assistant Mode
+    test('Unified history across toggles', () async {
+      // 1. Standard Mode
       await service.sendMessage("Assistant Task");
-      final assistantCount = service.messages.length;
-      expect(assistantCount, greaterThan(0));
+      final count1 = service.messages.length;
+      expect(count1, greaterThan(0));
 
-      // 2. Switch to Mentor
-      service.toggleMode();
-      expect(service.messages, isEmpty); // Mentor history starts empty
+      // 2. Switch to Thinking
+      service.toggleThinking();
+      // History should NOT be empty
+      expect(service.messages.length, count1);
 
-      // 3. Mentor Mode
+      // 3. Thinking Mode Message
       await service.sendMessage("Mentor Help");
-      expect(service.messages.length, greaterThan(0));
-      expect(service.messages.first.text, "Mentor Help");
+      final count2 = service.messages.length;
+      expect(count2, greaterThan(count1));
 
       // 4. Switch back
-      service.toggleMode();
-      expect(service.messages.length, assistantCount);
-      expect(service.messages.first.text, "Assistant Task");
+      service.toggleThinking();
+      // History should still be there
+      expect(service.messages.length, count2);
     });
   });
 }

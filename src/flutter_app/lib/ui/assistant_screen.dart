@@ -4,10 +4,11 @@ import '../services/assistant_service.dart';
 import '../models/ai_models.dart';
 import '../ai_tools/tool_registry.dart';
 import '../providers/data_provider.dart';
+import 'knowledge_screen.dart';
 
 // Provider definition
 final assistantServiceProvider = ChangeNotifierProvider<AssistantService>((ref) {
-  final dataService = ref.watch(dataServiceProvider);
+  final dataService = ref.read(dataServiceProvider);
   final registry = ToolRegistry(dataService);
   return AssistantService(dataService, registry);
 });
@@ -109,7 +110,16 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
         children: [
           // Pending Actions Section
           if (assistant.pendingActions.isNotEmpty) ...[
-            _buildHeader("Review Actions (${assistant.pendingActions.length})"),
+            Builder(
+              builder: (context) {
+                final pendingCount = assistant.pendingActions.where((a) => !a.isExecuted).length;
+                final executedCount = assistant.pendingActions.where((a) => a.isExecuted).length;
+                final headerText = executedCount > 0
+                    ? "Review Actions ($pendingCount pending, $executedCount executed)"
+                    : "Review Actions ($pendingCount)";
+                return _buildHeader(headerText);
+              },
+            ),
             Flexible(
               flex: 1,
               child: ListView.builder(
@@ -157,13 +167,47 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
       children: [
         _buildConversationColumn(assistant, isNarrow: true),
         
-        // Show pending actions as overlay cards if they exist
+        // Show pending actions as overlay list if they exist
         if (assistant.pendingActions.isNotEmpty)
           Positioned(
-            bottom: 100, // Above input area
+            bottom: 90, // Above input area
             left: 16,
             right: 16,
-            child: _buildActionCard(context, assistant, assistant.pendingActions.first),
+            height: 300, // Fixed height for review list
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(12),
+              color: const Color(0xFFF5F5F7),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Colors.grey, width: 0.2)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Review Actions (${assistant.pendingActions.length})",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        // Collapse button could go here
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: assistant.pendingActions.length,
+                      itemBuilder: (context, index) {
+                        return _buildActionCard(context, assistant, assistant.pendingActions[index]);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
       ],
     );
@@ -182,17 +226,17 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
           Row(
             children: [
                Icon(
-                 assistant.isMentorMode ? Icons.school : Icons.assistant,
-                 color: assistant.isMentorMode ? Colors.deepPurple : Colors.blue,
+                 assistant.isThinkingMode ? Icons.lightbulb : Icons.lightbulb_outline,
+                 color: assistant.isThinkingMode ? Colors.amber[700] : Colors.blueGrey,
                ),
                const SizedBox(width: 8),
                if (!isNarrow)
                  Text(
-                  assistant.isMentorMode ? "Mentor Mode" : "Assistant Mode",
+                  assistant.isThinkingMode ? "Thinking Mode" : "Standard Mode",
                   style: TextStyle(
                       fontWeight: FontWeight.bold, 
                       fontSize: 16,
-                      color: assistant.isMentorMode ? Colors.deepPurple : Colors.blue,
+                      color: assistant.isThinkingMode ? Colors.amber[700] : Colors.blueGrey,
                   ),
                 ),
             ],
@@ -200,36 +244,35 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
           Row(
             children: [
                 if (!isNarrow) ...[
-                  const Text("Assistant", style: TextStyle(fontSize: 12)),
+                  const Text("Standard", style: TextStyle(fontSize: 12)),
                   Switch(
-                    value: assistant.isMentorMode,
-                    onChanged: (val) => assistant.toggleMode(),
-                    activeColor: Colors.deepPurple,
-                    activeTrackColor: Colors.deepPurple.shade100,
-                    inactiveThumbColor: Colors.blue,
-                    inactiveTrackColor: Colors.blue.shade100,
+                    value: assistant.isThinkingMode,
+                    onChanged: (val) => assistant.toggleThinking(),
+                    activeColor: Colors.amber[700],
+                    activeTrackColor: Colors.amber[100],
+                    inactiveThumbColor: Colors.blueGrey,
+                    inactiveTrackColor: Colors.blueGrey.shade100,
                   ),
-                  const Text("Mentor", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                  Text("Thinking", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.amber[700])),
                 ] else
                   IconButton(
                     icon: Icon(
-                      assistant.isMentorMode ? Icons.school : Icons.assistant,
-                      color: assistant.isMentorMode ? Colors.deepPurple : Colors.blue,
+                      assistant.isThinkingMode ? Icons.lightbulb : Icons.lightbulb_outline,
+                      color: assistant.isThinkingMode ? Colors.amber[700] : Colors.blueGrey,
                       size: 20,
                     ),
-                    onPressed: () => assistant.toggleMode(),
+                    onPressed: () => assistant.toggleThinking(),
                   ),
                 const SizedBox(width: 8),
-                if (assistant.isMentorMode) 
-                  IconButton(
-                    icon: Icon(
-                      assistant.isVoiceEnabled ? Icons.volume_up : Icons.volume_off, 
-                      size: 20, 
-                      color: assistant.isVoiceEnabled ? Colors.deepPurple : Colors.grey
-                    ),
-                    tooltip: 'Toggle Voice Response',
-                    onPressed: () => assistant.toggleVoice(),
+                IconButton(
+                  icon: Icon(
+                    assistant.isVoiceEnabled ? Icons.volume_up : Icons.volume_off, 
+                    size: 20, 
+                    color: assistant.isVoiceEnabled ? Colors.amber[700] : Colors.grey
                   ),
+                  tooltip: 'Toggle Voice Response',
+                  onPressed: () => assistant.toggleVoice(),
+                ),
                 const SizedBox(width: 8),
                 if (isNarrow)
                   IconButton(
@@ -238,13 +281,23 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                     onPressed: () => _showActionLogBottomSheet(context, assistant),
                   ),
                 IconButton(
+                  icon: const Icon(Icons.psychology, size: 20, color: Colors.grey),
+                  tooltip: 'Manage Knowledge',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const KnowledgeScreen()),
+                    );
+                  },
+                ),
+                IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20, color: Colors.grey),
                   tooltip: 'Clear History',
                   onPressed: () {
                     showDialog(
                       context: context, 
                       builder: (ctx) => AlertDialog(
-                        title: Text("Clear ${assistant.isMentorMode ? 'Mentor' : 'Assistant'} History?"),
+                        title: const Text("Clear Chat History?"),
                         content: const Text("This action cannot be undone."),
                         actions: [
                           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
@@ -429,12 +482,17 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
   }
 
   Widget _buildActionCard(BuildContext context, AssistantService assistant, ProposedAction action) {
+    final isExecuted = action.isExecuted;
     return Card(
-      elevation: 2,
+      key: ValueKey(action.id),
+      elevation: isExecuted ? 0 : 2,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.blue.shade300, width: 1.5),
+        side: BorderSide(
+          color: isExecuted ? Colors.green.shade200 : Colors.blue.shade300, 
+          width: isExecuted ? 1 : 1.5
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -443,14 +501,20 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.pending_actions, size: 16, color: Colors.orange),
+                Icon(
+                  isExecuted ? Icons.check_circle : Icons.pending_actions, 
+                  size: 16, 
+                  color: isExecuted ? Colors.green : Colors.orange
+                ),
                 const SizedBox(width: 8),
                 Text(
-                  "REVIEW: ${action.toolName.replaceAll('_', ' ').toUpperCase()}",
-                  style: const TextStyle(
+                  isExecuted 
+                    ? "EXECUTED: ${action.toolName.replaceAll('_', ' ').toUpperCase()}"
+                    : "REVIEW: ${action.toolName.replaceAll('_', ' ').toUpperCase()}",
+                  style: TextStyle(
                     fontSize: 10, 
                     fontWeight: FontWeight.bold, 
-                    color: Colors.orange
+                    color: isExecuted ? Colors.green : Colors.orange
                   ),
                 ),
               ],
@@ -458,33 +522,39 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
             const SizedBox(height: 8),
             Text(
               action.description,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 16, 
+                fontWeight: FontWeight.w600,
+                color: isExecuted ? Colors.grey.shade600 : Colors.black,
+              ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => assistant.declineAction(action),
-                  style: TextButton.styleFrom(foregroundColor: Colors.red),
-                  child: const Text("Decline"),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    print("[VERIFY_FLOW] UI Interaction: User accepted action ${action.toolName}");
-                    assistant.acceptAction(action);
-                  },
-                  icon: const Icon(Icons.check, size: 16),
-                  label: const Text("Accept"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
+            if (!isExecuted) ...[
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => assistant.declineAction(action),
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                    child: const Text("Decline"),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      print("[VERIFY_FLOW] UI Interaction: User accepted action ${action.toolName}");
+                      assistant.acceptAction(action);
+                    },
+                    icon: const Icon(Icons.check, size: 16),
+                    label: const Text("Accept"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
