@@ -6,7 +6,7 @@ import '../models/models.dart';
 class MarkdownPersistenceService {
   final String? _baseDir;
 
-  MarkdownPersistenceService() : _baseDir = Config.dataDir;
+  MarkdownPersistenceService({String? baseDir}) : _baseDir = baseDir ?? Config.dataDir;
 
   bool get isEnabled => _baseDir != null;
 

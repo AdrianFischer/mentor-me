@@ -409,6 +409,17 @@ class DataService extends ChangeNotifier {
     print("[VERIFY_FLOW] Saving knowledge: $content");
     final knowledge = Knowledge(content: content);
     await _repository.saveKnowledge(knowledge);
+    notifyListeners();
+  }
+
+  Future<void> updateKnowledge(Knowledge knowledge) async {
+    await _repository.saveKnowledge(knowledge);
+    notifyListeners();
+  }
+
+  Future<void> deleteKnowledge(String id) async {
+    await _repository.deleteKnowledge(id);
+    notifyListeners();
   }
 
   Future<List<Knowledge>> getAllKnowledge() async {

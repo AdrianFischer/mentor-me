@@ -101,7 +101,14 @@ class MemoryStorageRepository implements StorageRepository {
   Future<List<Knowledge>> getAllKnowledge() async {
     return List.unmodifiable(_knowledgeBase);
   }
+
+  @override
+  Future<void> deleteKnowledge(String id) async {
+    _knowledgeBase.removeWhere((k) => k.id == id);
+  }
 }
+
+
 
 
 

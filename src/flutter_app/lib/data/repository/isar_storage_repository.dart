@@ -203,4 +203,11 @@ class IsarStorageRepository implements StorageRepository {
       updatedAt: i.updatedAt,
     )).toList();
   }
+
+  @override
+  Future<void> deleteKnowledge(String id) async {
+    await _isar.writeTxn(() async {
+      await _isar.isarKnowledges.filter().originalIdEqualTo(id).deleteAll();
+    });
+  }
 }
