@@ -35,8 +35,8 @@ GenerativeModel _createGenerativeModel() {
       );
   }).toList();
 
-  return FirebaseAI.vertexAI(location: 'global').generativeModel(
-    model: 'gemini-3-flash-preview',
+  return FirebaseAI.vertexAI(location: 'us-central1').generativeModel(
+    model: 'gemini-2.5-pro',
     tools: [Tool.functionDeclarations(validTools)],
   );
 }
