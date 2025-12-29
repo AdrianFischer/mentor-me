@@ -8,7 +8,9 @@ import 'ui/assistant_screen.dart';
 import 'models/models.dart';
 import 'providers/data_provider.dart';
 import 'providers/mcp_provider.dart';
+import 'services/data_service.dart';
 import 'services/debug_data_service.dart';
+import 'services/assistant_service.dart';
 
 class MyApp extends ConsumerStatefulWidget {
   final bool initialIsAssistantActive;
@@ -25,7 +27,10 @@ class _MyAppState extends ConsumerState<MyApp> {
   String? _selectedProjectId;
   String? _selectedTaskId;
   String? _selectedSubtaskId;
+  
+  // AI Assistant State
   bool _isAssistantActive = false;
+  String? _selectedConversationId;
 
   int _focusedColumnIndex = 0;
   final FocusNode _keyboardFocusNode = FocusNode();
@@ -68,7 +73,6 @@ class _MyAppState extends ConsumerState<MyApp> {
   void _handleKeyEvent(KeyEvent event) {
     if (event is KeyDownEvent) {
       // If a TextField has focus, do NOT handle arrow left/right globally.
-      // The TextField (or EditableItemWidget) will handle navigation boundaries via callbacks.
       if (FocusManager.instance.primaryFocus != _keyboardFocusNode) {
          if (event.logicalKey == LogicalKeyboardKey.arrowLeft || 
              event.logicalKey == LogicalKeyboardKey.arrowRight) {
@@ -86,7 +90,8 @@ class _MyAppState extends ConsumerState<MyApp> {
         _changeColumn(-1);
       } else if (event.logicalKey == LogicalKeyboardKey.enter) {
         // Do not handle Enter globally if Assistant is active (let the input field handle it)
-        if (!_isAssistantActive) {
+        // Unless we are in the Conversation List column
+        if (!_isAssistantActive || (_isAssistantActive && _focusedColumnIndex == 1)) {
           _handleEnterKey();
         }
       }
@@ -95,8 +100,20 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   void _handleEnterKey() {
     final dataService = ref.read(dataServiceProvider);
-    final projects = dataService.projects;
+    
+    // AI Mode: Add Conversation
+    if (_isAssistantActive && _focusedColumnIndex == 1) {
+       final newId = dataService.createConversation("New Chat");
+       setState(() {
+         _selectedConversationId = newId;
+         // Auto-focus chat? Or stay on list? 
+         // Typically create -> rename.
+       });
+       return;
+    }
 
+    // Task Mode logic
+    final projects = dataService.projects;
     // Resolve Indices
     int? projectIndex = projects.indexWhere((p) => p.id == _selectedProjectId);
     if (projectIndex == -1) projectIndex = null;
@@ -178,40 +195,48 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   void _moveSelection(int delta) {
     final dataService = ref.read(dataServiceProvider);
+    
+    // AI Mode Logic
+    if (_isAssistantActive) {
+       if (_focusedColumnIndex == 1) { // Conversation List
+          final conversations = dataService.conversations;
+          if (conversations.isEmpty) return;
+          
+          int currentIndex = conversations.indexWhere((c) => c.id == _selectedConversationId);
+          int nextIndex = currentIndex + delta;
+          if (nextIndex < 0) nextIndex = 0;
+          if (nextIndex >= conversations.length) nextIndex = conversations.length - 1;
+          
+          setState(() {
+            _selectedConversationId = conversations[nextIndex].id;
+          });
+       }
+       return;
+    }
+
+    // Standard Mode Logic
     final projects = dataService.projects;
     var (pIndex, tIndex, sIndex) = _getSelectionIndices(projects);
 
     setState(() {
       if (_focusedColumnIndex == 0) {
-        // Special handling for Assistant item at index 0 (conceptually)
-        // pIndex is index in `projects`. 
-        // If _isAssistantActive, conceptual index is 0.
-        // If not, conceptual index is pIndex + 1.
-        
+        // ... (Project Selection Logic) ...
         int conceptualIndex = _isAssistantActive ? 0 : (pIndex != null ? pIndex + 1 : -1);
         
-        // Remove current if empty
         if (!_isAssistantActive && pIndex != null && projects[pIndex].title.isEmpty && projects[pIndex].tasks.isEmpty) {
            dataService.deleteItem(projects[pIndex].id);
-           
            if (projects.isEmpty) {
              _selectedProjectId = null;
              _isAssistantActive = true;
              return;
            }
-           
-           // If we delete, selection logic is handled by re-render usually, but here we manually adjust
-           // Assuming deleteItem removes it instantly.
-           // Safe fallback to assistant or nearest.
            if (delta > 0) {
-              // try select next (which is now at pIndex)
               if (pIndex < projects.length) {
                  _selectedProjectId = projects[pIndex].id;
               } else {
                  _selectedProjectId = projects.last.id;
               }
            } else {
-              // move up
               if (pIndex > 0) {
                  _selectedProjectId = projects[pIndex - 1].id;
               } else {
@@ -223,7 +248,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         }
 
         int nextIndex = conceptualIndex + delta;
-        int maxIndex = projects.length; // 0..length
+        int maxIndex = projects.length;
 
         if (nextIndex < 0) nextIndex = 0;
         if (nextIndex > maxIndex) nextIndex = maxIndex;
@@ -231,6 +256,10 @@ class _MyAppState extends ConsumerState<MyApp> {
         if (nextIndex == 0) {
           _isAssistantActive = true;
           _selectedProjectId = null;
+          // When switching to assistant, select first conversation if any
+          if (dataService.conversations.isNotEmpty && _selectedConversationId == null) {
+             _selectedConversationId = dataService.conversations.first.id;
+          }
         } else {
           _isAssistantActive = false;
           _selectedProjectId = projects[nextIndex - 1].id;
@@ -238,10 +267,10 @@ class _MyAppState extends ConsumerState<MyApp> {
         _selectedTaskId = null;
         _selectedSubtaskId = null;
       } 
-      else if (_focusedColumnIndex == 1) {
+      else if (_focusedColumnIndex == 1) { // Task Column
          if (pIndex == null) return;
          var tasks = projects[pIndex].tasks;
-         
+         // ... (Task Selection Logic) ...
          if (tIndex != null && tasks[tIndex].title.isEmpty && tasks[tIndex].subtasks.isEmpty) {
             dataService.deleteItem(tasks[tIndex].id);
             if (tasks.isEmpty) {
@@ -270,10 +299,10 @@ class _MyAppState extends ConsumerState<MyApp> {
            _selectedSubtaskId = null;
          }
       }
-      else if (_focusedColumnIndex == 2) {
+      else if (_focusedColumnIndex == 2) { // Subtask Column
         if (pIndex == null || tIndex == null) return;
         var subtasks = projects[pIndex].tasks[tIndex].subtasks;
-        
+        // ... (Subtask Selection Logic) ...
         if (sIndex != null && subtasks[sIndex].title.isEmpty) {
            dataService.deleteItem(subtasks[sIndex].id);
            if (subtasks.isEmpty) {
@@ -304,7 +333,23 @@ class _MyAppState extends ConsumerState<MyApp> {
   }
 
   void _changeColumn(int delta) {
-    if (_isAssistantActive) return;
+    // If we are in Assistant mode:
+    // 0: Projects (Header)
+    // 1: Conversations
+    // 2: Chat
+    
+    if (_isAssistantActive) {
+       setState(() {
+         int next = _focusedColumnIndex + delta;
+         if (next < 0) next = 0;
+         if (next > 2) next = 2;
+         
+         if (next == 2 && _selectedConversationId == null) return; // Can't focus chat without conv
+         
+         _focusedColumnIndex = next;
+       });
+       return;
+    }
 
     final dataService = ref.read(dataServiceProvider);
     final projects = dataService.projects;
@@ -362,9 +407,9 @@ class _MyAppState extends ConsumerState<MyApp> {
           _isAssistantActive = false;
           _selectedProjectId = projects[index].id;
           if (isMobile) {
-            _focusedColumnIndex = 1; // Jump to tasks on mobile selection
+            _focusedColumnIndex = 1; 
           } else {
-            _focusedColumnIndex = 0; // Stay on project column on desktop
+            _focusedColumnIndex = 0; 
           }
           _selectedTaskId = null;
           _selectedSubtaskId = null;
@@ -384,6 +429,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         dataService.updateTitle(projects[index].id, val);
       },
       onDelete: (index) {
+        // ... (Existing delete logic) ...
         final idToDelete = projects[index].id;
         String? nextFocusId;
         if (index > 0) {
@@ -419,6 +465,59 @@ class _MyAppState extends ConsumerState<MyApp> {
     );
   }
 
+  Widget _buildConversationColumn(DataService dataService, {VoidCallback? onBack}) {
+    final conversations = dataService.conversations;
+    int? selectedIndex;
+    if (_selectedConversationId != null) {
+      selectedIndex = conversations.indexWhere((c) => c.id == _selectedConversationId);
+      if (selectedIndex == -1) selectedIndex = null;
+    }
+
+    return EditableColumn(
+      key: const ValueKey('conversations'),
+      title: 'Conversations',
+      backgroundColor: Colors.white,
+      selectedIndex: selectedIndex,
+      isActiveColumn: _focusedColumnIndex == 1,
+      items: conversations.map((c) => EditableItem(id: c.id, text: c.title)).toList(),
+      onItemSelected: (index) {
+        setState(() {
+          _selectedConversationId = conversations[index].id;
+          _focusedColumnIndex = 2; // Jump to chat
+        });
+      },
+      onAdd: (val) {
+        String newId = dataService.createConversation(val);
+        setState(() {
+          _selectedConversationId = newId;
+          _focusedColumnIndex = 1;
+        });
+      },
+      onUpdate: (index, val) {
+        dataService.updateConversationTitle(conversations[index].id, val);
+      },
+      onDelete: (index) {
+        final id = conversations[index].id;
+        bool isSelected = (id == _selectedConversationId);
+        dataService.deleteConversation(id);
+        
+        if (isSelected) {
+          setState(() {
+            _selectedConversationId = null;
+            if (conversations.isNotEmpty) {
+               // select prev or next or none
+            }
+          });
+        }
+      },
+      onReorder: (old, newI) {}, // Conversations usually sorted by Date, not manual order
+      onBack: onBack,
+      onNavigateLeft: () => _changeColumn(-1),
+      onNavigateRight: () => _changeColumn(1),
+    );
+  }
+
+  // ... (Task and Subtask columns remain similar) ...
   Widget _buildTaskColumn(dynamic dataService, List<Project> projects, int pIndex, int? tIndex, {VoidCallback? onBack}) {
     return EditableColumn(
       key: ValueKey('tasks_$_selectedProjectId'),
@@ -544,25 +643,23 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Ensure MCP server is running
     ref.watch(mcpServerProvider);
-
     final dataService = ref.watch(dataServiceProvider);
     final projects = dataService.projects;
-    
-    // Resolve Indices
     var (pIndex, tIndex, sIndex) = _getSelectionIndices(projects);
 
-    // Header for Assistant
     final aiAssistantWidget = GestureDetector(
        key: const ValueKey('ai_assistant_header'),
        onTap: () {
           setState(() {
             _isAssistantActive = true;
             _selectedProjectId = null;
-            _focusedColumnIndex = 0;
+            _focusedColumnIndex = 1; // Default focus on conversation list
             _selectedTaskId = null;
             _selectedSubtaskId = null;
+            if (_selectedConversationId == null && dataService.conversations.isNotEmpty) {
+               _selectedConversationId = dataService.conversations.first.id;
+            }
           });
        },
        child: Container(
@@ -599,19 +696,38 @@ class _MyAppState extends ConsumerState<MyApp> {
               final isMobile = constraints.maxWidth < 1260;
               
               if (isMobile) {
+                // Mobile layout adaptation
                 if (_isAssistantActive) {
-                  return Scaffold(
-                    appBar: AppBar(
-                      leading: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new),
-                        onPressed: () => setState(() => _isAssistantActive = false),
-                      ),
-                      title: const Text("AI Assistant"),
-                    ),
-                    body: const AssistantScreen(isMobile: true),
-                  );
+                   if (_focusedColumnIndex == 1 || _selectedConversationId == null) {
+                      return Scaffold(
+                        appBar: AppBar(
+                          leading: IconButton(icon: Icon(Icons.close), onPressed: () => setState(() => _isAssistantActive = false)),
+                          title: Text("Conversations"),
+                        ),
+                        body: _buildConversationColumn(dataService),
+                        floatingActionButton: FloatingActionButton(
+                          onPressed: () {
+                             String newId = dataService.createConversation("New Chat");
+                             setState(() {
+                               _selectedConversationId = newId;
+                               _focusedColumnIndex = 2; 
+                             });
+                          },
+                          child: Icon(Icons.add_comment),
+                        ),
+                      );
+                   } else {
+                      return Scaffold(
+                        appBar: AppBar(
+                          leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => setState(() => _focusedColumnIndex = 1)),
+                          title: Text("Chat"),
+                        ),
+                        body: AssistantScreen(conversationId: _selectedConversationId!),
+                      );
+                   }
                 }
                 
+                // ... (Existing Mobile Logic for Tasks) ...
                 Widget mobileBody;
                 if (_focusedColumnIndex == 0) {
                   mobileBody = _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget, isMobile: true);
@@ -639,36 +755,40 @@ class _MyAppState extends ConsumerState<MyApp> {
                 bottomNavigationBar: Container(
                   height: 30,
                   alignment: Alignment.center,
-                  child: const Text(
-                    "Built with Assisted Intelligence", 
-                    style: TextStyle(color: Colors.grey, fontSize: 10),
-                  ),
+                  child: const Text("Built with Assisted Intelligence", style: TextStyle(color: Colors.grey, fontSize: 10)),
                 ),
                 body: Row(
                   children: [
+                    // Col 1: Projects (Fixed)
                     Expanded(
                       flex: 1,
                       child: _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget, isMobile: false),
                     ),
-                    if (_isAssistantActive)
-                      const Expanded(
-                        flex: 4,
-                        child: AssistantScreen(isMobile: false),
-                      )
-                    else ...[
-                      Expanded(
-                        flex: 2,
-                        child: pIndex != null 
-                          ? _buildTaskColumn(dataService, projects, pIndex, tIndex)
-                          : Container(color: Colors.white, child: const Center(child: Text('Select a Project'))),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: (pIndex != null && tIndex != null)
-                          ? _buildSubtaskColumn(dataService, projects, pIndex, tIndex, sIndex)
-                          : Container(color: const Color(0xFFFAFAFA), child: const Center(child: Text('Select a Task'))),
-                      ),
-                    ],
+                    
+                    // Col 2: Tasks OR Conversations
+                    Expanded(
+                      flex: 2,
+                      child: _isAssistantActive
+                        ? _buildConversationColumn(dataService)
+                        : (pIndex != null 
+                            ? _buildTaskColumn(dataService, projects, pIndex, tIndex)
+                            : Container(color: Colors.white, child: const Center(child: Text('Select a Project')))
+                          ),
+                    ),
+                    
+                    // Col 3: Subtasks OR Chat
+                    Expanded(
+                      flex: 2,
+                      child: _isAssistantActive
+                        ? (_selectedConversationId != null
+                            ? AssistantScreen(conversationId: _selectedConversationId!)
+                            : Container(color: const Color(0xFFFAFAFA), child: const Center(child: Text('Select a Conversation')))
+                          )
+                        : ((pIndex != null && tIndex != null)
+                            ? _buildSubtaskColumn(dataService, projects, pIndex, tIndex, sIndex)
+                            : Container(color: const Color(0xFFFAFAFA), child: const Center(child: Text('Select a Task')))
+                          ),
+                    ),
                   ],
                 ),
               );

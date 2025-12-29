@@ -13,10 +13,14 @@ class DataService extends ChangeNotifier {
   final MarkdownPersistenceService _markdownPersistence;
   final List<Project> _projects = [];
   final Map<String, Timer> _debounceTimers = {};
+  
+  // Conversations Cache
+  List<Conversation> _conversations = [];
 
   DataService(this._repository, this._markdownPersistence);
 
   List<Project> get projects => _projects;
+  List<Conversation> get conversations => _conversations;
 
   // --- AI / UI Tool Interface ---
 
@@ -301,9 +305,11 @@ class DataService extends ChangeNotifier {
     _repository.onDataChanged.listen((_) {
       print("Data change detected. Reloading...");
       _reloadProjects();
+      _reloadConversations();
     });
     
     await _reloadProjects();
+    await _reloadConversations();
   }
   
   Future<void> _reloadProjects() async {
@@ -311,6 +317,39 @@ class DataService extends ChangeNotifier {
     _projects.clear();
     _projects.addAll(projects);
     notifyListeners();
+  }
+
+  Future<void> _reloadConversations() async {
+    final list = await _repository.getAllConversations();
+    _conversations.clear();
+    _conversations.addAll(list);
+    notifyListeners();
+  }
+
+  // --- Conversations ---
+
+  String createConversation(String title) {
+    final conversation = Conversation(title: title);
+    _conversations.insert(0, conversation); // Prepend
+    notifyListeners();
+    _repository.saveConversation(conversation);
+    return conversation.id;
+  }
+
+  void updateConversationTitle(String id, String title) {
+    final index = _conversations.indexWhere((c) => c.id == id);
+    if (index != -1) {
+      final updated = _conversations[index].copyWith(title: title, lastModified: DateTime.now());
+      _conversations[index] = updated;
+      notifyListeners();
+      _repository.saveConversation(updated);
+    }
+  }
+
+  void deleteConversation(String id) {
+    _conversations.removeWhere((c) => c.id == id);
+    notifyListeners();
+    _repository.deleteConversation(id);
   }
 
   // --- Reordering ---
@@ -395,12 +434,12 @@ class DataService extends ChangeNotifier {
     await _repository.saveChatMessage(message, mode);
   }
 
-  Future<List<ChatMessage>> getChatHistory(String mode) async {
-    return _repository.getChatHistory(mode);
+  Future<List<ChatMessage>> getChatHistory(String mode, {String? conversationId}) async {
+    return _repository.getChatHistory(mode, conversationId: conversationId);
   }
 
-  Future<void> clearChatHistory(String mode) async {
-    await _repository.clearChatHistory(mode);
+  Future<void> clearChatHistory(String mode, {String? conversationId}) async {
+    await _repository.clearChatHistory(mode, conversationId: conversationId);
   }
 
   // --- Knowledge Base ---
@@ -428,6 +467,7 @@ class DataService extends ChangeNotifier {
 
   void clear() {
     _projects.clear();
+    _conversations.clear();
     notifyListeners();
   }
   

@@ -19,7 +19,7 @@ class IsarStorageRepository implements StorageRepository {
     final dir = await getApplicationDocumentsDirectory();
     if (Isar.instanceNames.isEmpty) {
       _isar = await Isar.open(
-        [IsarProjectSchema, IsarTaskSchema, IsarChatMessageSchema, IsarKnowledgeSchema],
+        [IsarProjectSchema, IsarTaskSchema, IsarConversationSchema, IsarChatMessageSchema, IsarKnowledgeSchema],
         directory: dir.path,
       );
     } else {
@@ -124,7 +124,7 @@ class IsarStorageRepository implements StorageRepository {
       // If we want cascade delete, we need to query tasks.
       // A safe approach:
       final tasks = await _isar.isarTasks.filter().projectIdEqualTo(projectId).findAll();
-      await _isar.isarTasks.deleteAll(tasks.map((e) => e.id).toList());
+      await _isar.isarTasks.deleteAll(tasks.map((e) => e.id).where((id) => id != null).cast<int>().toList());
     });
     // _dataChangeController.add(null);
   }
@@ -137,6 +137,41 @@ class IsarStorageRepository implements StorageRepository {
     // _dataChangeController.add(null);
   }
 
+  // --- Conversations ---
+
+  @override
+  Future<void> saveConversation(Conversation conversation) async {
+    await _isar.writeTxn(() async {
+      final existing = await _isar.isarConversations.filter().originalIdEqualTo(conversation.id).findFirst();
+      final c = existing ?? IsarConversation();
+      c.originalId = conversation.id;
+      c.title = conversation.title;
+      c.lastModified = conversation.lastModified;
+      await _isar.isarConversations.put(c);
+    });
+  }
+
+  @override
+  Future<List<Conversation>> getAllConversations() async {
+    final list = await _isar.isarConversations.where().sortByLastModifiedDesc().findAll();
+    return list.map((c) => Conversation(
+      id: c.originalId,
+      title: c.title,
+      lastModified: c.lastModified,
+    )).toList();
+  }
+
+  @override
+  Future<void> deleteConversation(String conversationId) async {
+    await _isar.writeTxn(() async {
+      await _isar.isarConversations.filter().originalIdEqualTo(conversationId).deleteAll();
+      // Also delete messages associated with this conversation
+      await _isar.isarChatMessages.filter().conversationIdEqualTo(conversationId).deleteAll();
+    });
+  }
+
+  // --- Chat Messages ---
+
   @override
   Future<void> saveChatMessage(ChatMessage message, String mode) async {
     final im = IsarChatMessage()
@@ -144,7 +179,8 @@ class IsarStorageRepository implements StorageRepository {
       ..text = message.text
       ..isUser = message.isUser
       ..timestamp = message.timestamp
-      ..mode = mode;
+      ..mode = mode
+      ..conversationId = message.conversationId;
 
     await _isar.writeTxn(() async {
       await _isar.isarChatMessages.put(im);
@@ -152,25 +188,40 @@ class IsarStorageRepository implements StorageRepository {
   }
 
   @override
-  Future<List<ChatMessage>> getChatHistory(String mode) async {
-    final msgs = await _isar.isarChatMessages
-        .filter()
-        .modeEqualTo(mode)
-        .sortByTimestamp()
-        .findAll();
+  Future<List<ChatMessage>> getChatHistory(String mode, {String? conversationId}) async {
+    QueryBuilder<IsarChatMessage, IsarChatMessage, QAfterFilterCondition> query = _isar.isarChatMessages.filter().modeEqualTo(mode);
+    
+    if (conversationId != null) {
+      query = query.conversationIdEqualTo(conversationId);
+    } else {
+      // Legacy behavior: If conversationId is NOT provided, maybe return all? 
+      // Or return those with NULL conversationId (legacy)?
+      // For now, let's return those with NULL conversationId to support migration if needed, 
+      // OR just return everything if we treat "mode" as the only filter for legacy.
+      // But typically, we want specific context. 
+      // Let's assume strict filtering if ID is null (legacy messages).
+      // query = query.conversationIdIsNull(); 
+    }
+
+    final msgs = await query.sortByTimestamp().findAll();
 
     return msgs.map((m) => ChatMessage(
       text: m.text,
       isUser: m.isUser,
       id: m.originalId,
       timestamp: m.timestamp,
+      conversationId: m.conversationId,
     )).toList();
   }
 
   @override
-  Future<void> clearChatHistory(String mode) async {
+  Future<void> clearChatHistory(String mode, {String? conversationId}) async {
     await _isar.writeTxn(() async {
-      await _isar.isarChatMessages.filter().modeEqualTo(mode).deleteAll();
+      var query = _isar.isarChatMessages.filter().modeEqualTo(mode);
+      if (conversationId != null) {
+        query = query.conversationIdEqualTo(conversationId);
+      }
+      await query.deleteAll();
     });
   }
 

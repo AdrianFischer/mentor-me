@@ -15,8 +15,14 @@ class DeleteItemTool implements AiTool {
 
   @override
   Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
-    final itemId = args['item_id'] as String;
-    dataService.deleteItem(itemId);
+    print("[Tool] Executing delete_item with args: $args");
+    final itemId = args['item_id'] ?? args['itemId'];
+    
+    if (itemId == null) {
+      return {'result': 'error', 'message': 'Missing item_id'};
+    }
+
+    dataService.deleteItem(itemId as String);
     return {'result': 'success'};
   }
 }

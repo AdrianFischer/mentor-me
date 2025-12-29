@@ -5,8 +5,6 @@ abstract class StorageRepository {
   Future<void> init();
   
   /// Loads all projects and their associated tasks.
-  /// Any tasks not assigned to a project are returned in a special "Agent Tasks" project or separate list, 
-  /// but typically we want to return the full hierarchy.
   Future<List<Project>> getAllProjects();
 
   Future<void> saveProject(Project project);
@@ -15,10 +13,16 @@ abstract class StorageRepository {
   Future<void> saveTask(Task task);
   Future<void> deleteTask(String taskId);
 
-  /// Chat History
+  /// Chat History & Conversations
+  Future<void> saveConversation(Conversation conversation);
+  Future<List<Conversation>> getAllConversations();
+  Future<void> deleteConversation(String conversationId);
+
   Future<void> saveChatMessage(ChatMessage message, String mode);
-  Future<List<ChatMessage>> getChatHistory(String mode);
-  Future<void> clearChatHistory(String mode);
+  /// If conversationId is provided, returns messages for that conversation.
+  /// If not, assumes legacy/global mode behavior.
+  Future<List<ChatMessage>> getChatHistory(String mode, {String? conversationId});
+  Future<void> clearChatHistory(String mode, {String? conversationId});
 
   /// Knowledge Base
   Future<void> saveKnowledge(Knowledge knowledge);

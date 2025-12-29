@@ -15,13 +15,19 @@ class AddTaskTool implements AiTool {
 
   @override
   Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
-    final projectId = args['project_id'] as String;
-    final title = args['title'] as String;
-    final id = dataService.addTask(projectId, title);
+    print("[Tool] Executing add_task with args: $args");
+    final projectId = args['project_id'] ?? args['projectId'];
+    final title = args['title'];
+
+    if (projectId == null || title == null) {
+       return {'result': 'error', 'message': 'Missing project_id or title'};
+    }
+
+    final id = dataService.addTask(projectId as String, title as String);
     if (id != null) {
       return {'result': 'success', 'task_id': id};
     } else {
-      return {'result': 'error', 'message': 'Project not found'};
+      return {'result': 'error', 'message': 'Project not found with ID: $projectId'};
     }
   }
 }
