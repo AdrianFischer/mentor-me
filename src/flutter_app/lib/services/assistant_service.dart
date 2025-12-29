@@ -30,6 +30,7 @@ class AssistantService extends ChangeNotifier {
   
   bool _isLoading = false;
   bool _isThinkingMode = false;
+  String _draftMessage = '';
 
   AssistantService(this._dataService, this._toolRegistry, this._modelWrapper) {
     _initTts();
@@ -61,6 +62,11 @@ class AssistantService extends ChangeNotifier {
   bool get isThinkingMode => _isThinkingMode;
   String get currentSpeech => _lastWords;
   bool get isVoiceEnabled => _isVoiceEnabled;
+  String get draftMessage => _draftMessage;
+
+  void setDraftMessage(String text) {
+    _draftMessage = text;
+  }
 
   Future<void> _initTts() async {
     if (Platform.isIOS) {
@@ -85,133 +91,157 @@ class AssistantService extends ChangeNotifier {
         "You are an intelligent assistant integrated into a task management app. "
         "You have two modes of operation controlled by the user: 'Standard' and 'Thinking'.\n"
         "- Standard Mode: Be concise. Execute tools immediately. Focus on getting things done.\n"
-        "- Thinking Mode: Act as a mentor. Analyze the user's request deeply. Explain your reasoning. "
-        "Verify assumptions before executing tools. Use the 'save_memory' tool to remember important user context.\n\n"
-        "Current Projects Context: $projectContext.\n\n"
-        "IMPORTANT LANGUAGE RULE: The user may speak in German or English. "
-        "You must UNDERSTAND their intent in either language, but ALWAYS RESPOND IN ENGLISH. "
-        "Preserve the User's original language for content (e.g., Task Titles).");
-
-    _chat = _modelWrapper.startChat(
-      history: [
-        systemInstruction, 
-      ],
-    );
-  }
-
-  void toggleThinking() {
-    _isThinkingMode = !_isThinkingMode;
-    notifyListeners();
-  }
-
-  Future<void> toggleRecording() async {
-    if (_isListening) {
-      await _speech.stop();
-      _isListening = false;
-      notifyListeners();
-      if (_lastWords.isNotEmpty) {
-        sendMessage(_lastWords);
-      }
-    } else {
-      bool available = false;
-      try {
-        available = await _speech.initialize(
-          onError: (error) {
-            _lastError = error.errorMsg;
-            notifyListeners();
-          },
-        );
-      } catch (e) {
-        available = false;
-      }
-
-      if (available) {
-        _isListening = true;
-        _lastWords = '';
-        notifyListeners();
-        _speech.listen(onResult: (result) {
-          _lastWords = result.recognizedWords;
-          notifyListeners();
-        });
-      } else {
-        _messages.add(ChatMessage(text: "Microphone unavailable.", isUser: false));
-        notifyListeners();
-      }
-    }
-  }
-
-  Future<void> sendMessage(String text) async {
-    if (text.trim().isEmpty) return;
-    print("[VERIFY_FLOW] Service Receive: $text (Thinking: $_isThinkingMode)");
-
-    final userMsg = ChatMessage(text: text, isUser: true);
-    _messages.add(userMsg);
-    await _dataService.saveChatMessage(userMsg, 'assistant');
-
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      await _handleUnifiedMessage(text);
-    } catch (e) {
-      _messages.add(ChatMessage(text: "Error: $e", isUser: false));
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> _handleUnifiedMessage(String text) async {
-      if (_chat == null) _startNewChat();
-
-      String fullPrompt;
-      if (_isThinkingMode) {
-        fullPrompt = "[System: THINKING MODE ENABLED. Deeply analyze this request. Explain your plan. Act as a Mentor.]\nUser: $text";
-      } else {
-        fullPrompt = "[System: THINKING MODE DISABLED. Be concise. Execute tools immediately if clear.]\nUser: $text";
-      }
-
-      var currentContent = Content.text(fullPrompt);
-      var iterations = 0;
-      const maxIterations = 5;
-
-      while (iterations < maxIterations) {
-        final response = await _chat!.sendMessage(currentContent);
+                "- Thinking Mode: Act as a mentor. Analyze the user's request deeply. "
+                "Explain your reasoning *within your regular text response*. "
+                "CRITICAL: Do NOT use internal thought blocks/signatures. Generate ONLY standard text and function calls. "
+                "Verify assumptions before executing tools. Use the 'save_memory' tool to remember important user context.\n\n"
+                "Current Projects Context: $projectContext.\n\n"
+                "IMPORTANT LANGUAGE RULE: The user may speak in German or English. "
+                "You must DETECT the language of the user's current message and RESPOND IN THE SAME LANGUAGE. "
+                "However, if the user asks to create content (like a Task Title), preserve that specific text exactly as given, regardless of the surrounding conversation language.");
         
-        if (response.functionCalls.isNotEmpty) {
-          final functionResponseParts = <FunctionResponse>[];
-          
-          for (var call in response.functionCalls) {
-             try {
-                if (call.name == 'save_memory') {
-                   final result = await _toolRegistry.executeTool(call.name, call.args);
-                   functionResponseParts.add(FunctionResponse(call.name, result));
-                } else {
-                   _pendingActions.add(ProposedAction(
-                    description: _toolRegistry.describeAction(call.name, call.args),
-                    toolName: call.name,
-                    toolArgs: call.args,
-                  ));
-                  notifyListeners();
-                  
-                  functionResponseParts.add(FunctionResponse(
-                    call.name,
-                    {'result': 'pending', 'message': 'Action proposed to user. Waiting for approval.'},
-                  ));
-                }
-             } catch (e) {
-                functionResponseParts.add(FunctionResponse(call.name, {'result': 'error', 'message': e.toString()}));
-             }
+            _chat = _modelWrapper.startChat(
+              history: [
+                systemInstruction, 
+              ],
+            );
           }
-          
+        
+          void toggleThinking() {
+            _isThinkingMode = !_isThinkingMode;
+            notifyListeners();
+          }
+        
+          Future<void> toggleRecording() async {
+            if (_isListening) {
+              await _speech.stop();
+              _isListening = false;
+              notifyListeners();
+              if (_lastWords.isNotEmpty) {
+                sendMessage(_lastWords);
+              }
+            } else {
+              bool available = false;
+              try {
+                available = await _speech.initialize(
+                  onError: (error) {
+                    _lastError = error.errorMsg;
+                    notifyListeners();
+                  },
+                );
+              } catch (e) {
+                available = false;
+              }
+        
+              if (available) {
+                _isListening = true;
+                _lastWords = '';
+                notifyListeners();
+                _speech.listen(onResult: (result) {
+                  _lastWords = result.recognizedWords;
+                  notifyListeners();
+                });
+              } else {
+                _messages.add(ChatMessage(text: "Microphone unavailable.", isUser: false));
+                notifyListeners();
+              }
+            }
+          }
+        
+          Future<void> sendMessage(String text) async {
+            if (text.trim().isEmpty) return;
+            print("[VERIFY_FLOW] Service Receive: $text (Thinking: $_isThinkingMode)");
+        
+            _draftMessage = ''; // Clear draft on send
+            notifyListeners(); 
+        
+            final userMsg = ChatMessage(text: text, isUser: true);
+            _messages.add(userMsg);
+            await _dataService.saveChatMessage(userMsg, 'assistant');
+        
+            _isLoading = true;
+            notifyListeners();
+        
+            try {
+              await _handleUnifiedMessage(text);
+            } catch (e) {
+              _messages.add(ChatMessage(text: "Error: $e", isUser: false));
+            } finally {
+              _isLoading = false;
+              notifyListeners();
+            }
+          }
+        
+          Future<void> _handleUnifiedMessage(String text) async {
+              if (_chat == null) _startNewChat();
+        
+              String fullPrompt;
+              if (_isThinkingMode) {
+                fullPrompt = "[System: THINKING MODE ENABLED. Deeply analyze this request. Explain your plan. Act as a Mentor.]\nUser: $text";
+              }
+              else {
+                fullPrompt = "[System: THINKING MODE DISABLED. Be concise. Execute tools immediately if clear.]\nUser: $text";
+              }
+        
+              var currentContent = Content.text(fullPrompt);
+              var iterations = 0;
+              const maxIterations = 5;
+        
+              while (iterations < maxIterations) {
+                final aiResponse = await _chat!.sendMessage(currentContent);
+                
+                if (aiResponse.functionCalls.isNotEmpty) {
+                  final functionResponseParts = <FunctionResponse>[];
+                  
+                  for (var call in aiResponse.functionCalls) {
+                     try {
+                        if (call.name == 'save_memory') {
+                           final result = await _toolRegistry.executeTool(call.name, call.args);
+                           functionResponseParts.add(FunctionResponse(call.name, result));
+                        } else {
+                           _pendingActions.add(ProposedAction(
+                            description: _toolRegistry.describeAction(call.name, call.args),
+                            toolName: call.name,
+                            toolArgs: call.args,
+                          ));
+                          notifyListeners();
+                          
+                          functionResponseParts.add(FunctionResponse(
+                            call.name,
+                            {'result': 'pending', 'message': 'Action proposed to user. Waiting for approval.'},
+                          ));
+                        }
+                     } catch (e) {
+                        functionResponseParts.add(FunctionResponse(call.name, {'result': 'error', 'message': e.toString()}));
+                     }
+                  }
+                  
           if (functionResponseParts.isNotEmpty) {
-             currentContent = Content.multi(functionResponseParts);
+             // WORKAROUND: The current SDK drops thought_signatures required by Gemini 3 Flash Preview.
+             // We cannot use the native 'functionResponse' flow.
+             // Instead, we restart the chat and feed the results as a text context.
+             
+             final sb = StringBuffer();
+             sb.writeln("System: The following tools were executed based on your previous request:");
+             
+             for (var fr in functionResponseParts) {
+                sb.writeln("- Tool '${fr.name}' executed. Result: ${fr.response}");
+             }
+             sb.writeln("\nPlease continue assisting the user based on these results.");
+
+             // Restart chat to clear the 'pending function call' state which enforces signatures
+             _chat = null; 
+             _startNewChat();
+
+             // Send the result as a text message (User role) to prompt the model
+             currentContent = Content.text(sb.toString());
              iterations++;
              continue; 
           }
+        
         }
         
-        final textResponse = response.text;
+        final textResponse = aiResponse.text;
         if (textResponse != null && textResponse.isNotEmpty) {
           final aiMsg = ChatMessage(text: textResponse, isUser: false);
           _messages.add(aiMsg);

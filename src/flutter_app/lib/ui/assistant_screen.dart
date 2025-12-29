@@ -68,6 +68,14 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize controller with draft if available
+    final assistant = ref.read(assistantServiceProvider);
+    _textController.text = assistant.draftMessage;
+    
+    _textController.addListener(() {
+      ref.read(assistantServiceProvider).setDraftMessage(_textController.text);
+    });
+
     // Auto-focus the input field when Assistant Screen loads
     // Force rebuild
     WidgetsBinding.instance.addPostFrameCallback((_) {
