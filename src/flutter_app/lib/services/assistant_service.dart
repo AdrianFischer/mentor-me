@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -8,6 +10,40 @@ import '../ai_tools/tool_registry.dart';
 import '../models/ai_models.dart';
 import '../services/data_service.dart';
 import '../config.dart';
+
+class ThinkingHttpClient extends http.BaseClient {
+  final http.Client _inner = http.Client();
+  final bool Function() _isThinkingMode;
+
+  ThinkingHttpClient(this._isThinkingMode);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (_isThinkingMode() && request is http.Request && request.url.path.contains('generateContent')) {
+       try {
+         final body = jsonDecode(request.body) as Map<String, dynamic>;
+         if (body['generationConfig'] == null) {
+            body['generationConfig'] = {};
+         }
+         // Inject Thinking Config
+         // According to search: "generationConfig": { "thinkingConfig": { "thinkingLevel": "HIGH" } }
+         // Also adding includeThoughts just in case useful for debug/future
+         (body['generationConfig'] as Map<String, dynamic>)['thinkingConfig'] = {
+            'thinkingLevel': 'HIGH',
+            'includeThoughts': true 
+         };
+
+         final newBody = jsonEncode(body);
+         request.body = newBody;
+         request.headers['content-length'] = utf8.encode(newBody).length.toString();
+         debugPrint("[ThinkingHttpClient] Injected thinkingConfig: HIGH");
+       } catch (e) {
+         debugPrint("[ThinkingHttpClient] Failed to inject thinking param: $e");
+       }
+    }
+    return _inner.send(request);
+  }
+}
 
 class AssistantService extends ChangeNotifier {
   final DataService _dataService;
@@ -98,9 +134,7 @@ class AssistantService extends ChangeNotifier {
       model: 'gemini-3.0-flash',
       apiKey: _apiKey.isNotEmpty ? _apiKey : 'dummy-key',
       tools: [Tool(functionDeclarations: tools)],
-      // generationConfig: GenerationConfig(
-      //   // thinkingLevel: _isThinkingMode ? ThinkingLevel.high : ThinkingLevel.low, // Future SDK update
-      // ),
+      httpClient: ThinkingHttpClient(() => _isThinkingMode),
     );
 
     _initTts();
