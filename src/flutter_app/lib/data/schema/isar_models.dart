@@ -4,7 +4,7 @@ part 'isar_models.g.dart';
 
 @collection
 class IsarProject {
-  Id id = Isar.autoIncrement;
+  Id? id;
 
   @Index(unique: true, replace: true)
   late String originalId;
@@ -18,7 +18,7 @@ class IsarProject {
 
 @collection
 class IsarTask {
-  Id id = Isar.autoIncrement;
+  Id? id;
 
   @Index(unique: true, replace: true)
   late String originalId;
@@ -43,8 +43,20 @@ class IsarSubtask {
 }
 
 @collection
+class IsarConversation {
+  Id? id;
+
+  @Index(unique: true, replace: true)
+  late String originalId;
+
+  late String title;
+
+  late DateTime lastModified;
+}
+
+@collection
 class IsarChatMessage {
-  Id id = Isar.autoIncrement;
+  Id? id;
 
   @Index(unique: true, replace: true)
   late String originalId;
@@ -55,14 +67,17 @@ class IsarChatMessage {
   
   late DateTime timestamp;
   
-  // "assistant" or "mentor"
+  // "assistant" or "mentor" (Legacy support, though arguably redundant with conversationId)
   @Index()
   late String mode; 
+
+  @Index()
+  String? conversationId;
 }
 
 @collection
 class IsarKnowledge {
-  Id id = Isar.autoIncrement;
+  Id? id;
 
   @Index(unique: true, replace: true)
   late String originalId;

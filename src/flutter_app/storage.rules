@@ -1,0 +1,13 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow access to user-specific TTS files
+    match /tts/{userId}/{fileName} {
+      // Allow read/write if the user is the owner
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // FALLBACK: Allow read/write for the 'guest_user' (for local dev without auth)
+      allow read, write: if userId == 'guest_user';
+    }
+  }
+}

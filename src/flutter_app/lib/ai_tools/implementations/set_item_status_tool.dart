@@ -10,15 +10,22 @@ class SetItemStatusTool implements AiTool {
 
   @override
   String describeAction(Map<String, dynamic> args) {
-    final status = args['is_completed'] ? 'completed' : 'active';
+    final isCompleted = args['is_completed'] ?? args['isCompleted'] ?? false;
+    final status = isCompleted ? 'completed' : 'active';
     return "Mark item as $status";
   }
 
   @override
   Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
-    final itemId = args['item_id'] as String;
-    final isCompleted = args['is_completed'] as bool;
-    dataService.setItemStatus(itemId, isCompleted);
+    print("[Tool] Executing set_item_status with args: $args");
+    final itemId = args['item_id'] ?? args['itemId'];
+    final isCompleted = args['is_completed'] ?? args['isCompleted'];
+
+    if (itemId == null || isCompleted == null) {
+      return {'result': 'error', 'message': 'Missing item_id or is_completed'};
+    }
+
+    dataService.setItemStatus(itemId as String, isCompleted as bool);
     return {'result': 'success'};
   }
 }

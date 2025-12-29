@@ -15,13 +15,19 @@ class AddSubtaskTool implements AiTool {
 
   @override
   Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
-    final taskId = args['task_id'] as String;
-    final title = args['title'] as String;
-    final id = dataService.addSubtask(taskId, title);
+    print("[Tool] Executing add_subtask with args: $args");
+    final taskId = args['task_id'] ?? args['taskId'];
+    final title = args['title'];
+
+    if (taskId == null || title == null) {
+      return {'result': 'error', 'message': 'Missing task_id or title'};
+    }
+
+    final id = dataService.addSubtask(taskId as String, title as String);
     if (id != null) {
       return {'result': 'success', 'subtask_id': id};
     } else {
-      return {'result': 'error', 'message': 'Task not found'};
+      return {'result': 'error', 'message': 'Task not found with ID: $taskId'};
     }
   }
 }
