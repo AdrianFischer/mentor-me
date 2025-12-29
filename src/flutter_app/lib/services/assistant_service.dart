@@ -131,7 +131,7 @@ class AssistantService extends ChangeNotifier {
 
     // Unified Model
     _model = GenerativeModel(
-      model: 'gemini-3.0-flash',
+      model: 'gemini-2.0-flash-thinking-exp-01-21',
       apiKey: _apiKey.isNotEmpty ? _apiKey : 'dummy-key',
       tools: [Tool(functionDeclarations: tools)],
       httpClient: ThinkingHttpClient(() => _isThinkingMode),
