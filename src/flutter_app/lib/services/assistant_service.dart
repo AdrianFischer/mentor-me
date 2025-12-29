@@ -91,14 +91,12 @@ class AssistantService extends ChangeNotifier {
         "You are an intelligent assistant integrated into a task management app. "
         "You have two modes of operation controlled by the user: 'Standard' and 'Thinking'.\n"
         "- Standard Mode: Be concise. Execute tools immediately. Focus on getting things done.\n"
-                "- Thinking Mode: Act as a mentor. Analyze the user's request deeply. "
-                "Explain your reasoning *within your regular text response*. "
-                "CRITICAL: Do NOT use internal thought blocks/signatures. Generate ONLY standard text and function calls. "
-                "Verify assumptions before executing tools. Use the 'save_memory' tool to remember important user context.\n\n"
-                "Current Projects Context: $projectContext.\n\n"
-                "IMPORTANT LANGUAGE RULE: The user may speak in German or English. "
-                "You must DETECT the language of the user's current message and RESPOND IN THE SAME LANGUAGE. "
-                "However, if the user asks to create content (like a Task Title), preserve that specific text exactly as given, regardless of the surrounding conversation language.");
+        "- Thinking Mode: Act as a mentor. Analyze the user's request deeply. Explain your reasoning. "
+        "Verify assumptions before executing tools. Use the 'save_memory' tool to remember important user context.\n\n"
+        "Current Projects Context: $projectContext.\n\n"
+        "IMPORTANT LANGUAGE RULE: The user may speak in German or English. "
+        "You must DETECT the language of the user's current message and RESPOND IN THE SAME LANGUAGE. "
+        "However, if the user asks to create content (like a Task Title), preserve that specific text exactly as given, regardless of the surrounding conversation language.");
         
             _chat = _modelWrapper.startChat(
               history: [
@@ -217,24 +215,8 @@ class AssistantService extends ChangeNotifier {
                   }
                   
           if (functionResponseParts.isNotEmpty) {
-             // WORKAROUND: The current SDK drops thought_signatures required by Gemini 3 Flash Preview.
-             // We cannot use the native 'functionResponse' flow.
-             // Instead, we restart the chat and feed the results as a text context.
-             
-             final sb = StringBuffer();
-             sb.writeln("System: The following tools were executed based on your previous request:");
-             
-             for (var fr in functionResponseParts) {
-                sb.writeln("- Tool '${fr.name}' executed. Result: ${fr.response}");
-             }
-             sb.writeln("\nPlease continue assisting the user based on these results.");
-
-             // Restart chat to clear the 'pending function call' state which enforces signatures
-             _chat = null; 
-             _startNewChat();
-
-             // Send the result as a text message (User role) to prompt the model
-             currentContent = Content.text(sb.toString());
+             final partsToSendBack = functionResponseParts.cast<Part>();
+             currentContent = Content.multi(partsToSendBack);
              iterations++;
              continue; 
           }
