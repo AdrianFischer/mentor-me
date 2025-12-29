@@ -4,8 +4,9 @@ import 'package:firebase_ai/firebase_ai.dart';
 class AIResponse {
   final String? text;
   final List<FunctionCall> functionCalls;
+  final Content? rawModelContent;
 
-  AIResponse({this.text, this.functionCalls = const []});
+  AIResponse({this.text, this.functionCalls = const [], this.rawModelContent});
 }
 
 // Wrapper interface for Chat Session
@@ -46,6 +47,7 @@ class FirebaseChatSessionWrapper implements ChatSessionWrapper {
     return AIResponse(
       text: response.text,
       functionCalls: response.functionCalls.toList(),
+      rawModelContent: response.candidates.isNotEmpty ? response.candidates.first.content : null,
     );
   }
 }
