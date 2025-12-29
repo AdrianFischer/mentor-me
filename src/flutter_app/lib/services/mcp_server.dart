@@ -14,7 +14,7 @@ class McpServerService {
 
   McpServerService(this._dataService);
 
-  Future<void> start({int port = 8081}) async {
+  Future<void> start({int port = 8081, int retries = 5}) async {
     if (_server != null) return;
 
     final router = Router();
@@ -223,15 +223,33 @@ class McpServerService {
       .addMiddleware(logRequests())
       .addHandler(router.call);
 
-    try {
-        _server = await shelf_io.serve(handler, InternetAddress.anyIPv4, port);
+    for (var i = 0; i < retries; i++) {
+      try {
+        _server = await HttpServer.bind(InternetAddress.anyIPv4, port + i, shared: true);
+        shelf_io.serveRequests(_server!, handler);
         print('MCP Server listening on http://${_server!.address.host}:${_server!.port}');
-    } catch (e) {
+        return; // Success, exit
+      } on SocketException catch (e) {
+        if (i < retries - 1) {
+          print('Failed to start MCP Server on port ${port + i}: $e. Retrying on next port...');
+        } else {
+          print('Failed to start MCP Server after $retries attempts: $e');
+          rethrow; // Re-throw if all retries fail
+        }
+      } catch (e) {
         print('Failed to start MCP Server: $e');
+        rethrow;
+      }
     }
+  }
+
+  Future<void> restart({int port = 8081, int retries = 5}) async {
+    await stop();
+    await start(port: port, retries: retries);
   }
 
   Future<void> stop() async {
     await _server?.close();
+    _server = null;
   }
 }
