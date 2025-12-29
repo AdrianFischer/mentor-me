@@ -5,11 +5,13 @@ class ProposedAction {
   final String description;
   final String toolName;
   final Map<String, dynamic> toolArgs;
+  bool isExecuted;
 
   ProposedAction({
     required this.description,
     required this.toolName,
     required this.toolArgs,
+    this.isExecuted = false,
   }) : id = const Uuid().v4();
 }
 
@@ -41,6 +43,20 @@ class Knowledge {
   }) : id = id ?? const Uuid().v4(), 
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
+
+  Knowledge copyWith({
+    String? id,
+    String? content,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Knowledge(
+      id: id ?? this.id,
+      content: content ?? this.content,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 

@@ -2,16 +2,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_app/services/assistant_service.dart';
 import 'package:flutter_app/services/data_service.dart';
+import 'package:flutter_app/services/ai_wrapper.dart';
 import 'package:flutter_app/ai_tools/tool_registry.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:flutter_app/models/ai_models.dart';
-
+import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter/services.dart';
 
 class MockDataService extends Mock implements DataService {
   @override
   List<Project> get projects => [];
 }
+
+// Mock the Wrappers, NOT the final Firebase classes
+class MockAIModelWrapper extends Mock implements AIModelWrapper {}
+class MockChatSessionWrapper extends Mock implements ChatSessionWrapper {}
 
 class FakeChatMessage extends Fake implements ChatMessage {}
 
@@ -20,39 +25,22 @@ void main() {
   
   setUpAll(() {
     registerFallbackValue(FakeChatMessage());
+    registerFallbackValue(Content.text(''));
+    // We might need to register fallback for Content if used in any() matcher
+    // But Content is final, so we can't extend Fake implements Content easily?
+    // Wait, earlier error said Content is final.
+    // So FakeContent definition above might fail if Content is final!
+    // I should check if Content is final.
+    // If Content is final, I cannot mock/fake it.
+    // But I can instantiate it! Content.text('foo').
+    // So for registerFallbackValue, I can pass a real instance.
+    registerFallbackValue(Content.text(''));
     
     const MethodChannel channel = MethodChannel('flutter_tts');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
-        if (methodCall.method == 'speak') {
-          return 1;
-        }
-        if (methodCall.method == 'awaitSpeakCompletion') {
-          return 1;
-        }
-        if (methodCall.method == 'setLanguage') {
-          return 1;
-        }
-        if (methodCall.method == 'setSpeechRate') {
-          return 1;
-        }
-        if (methodCall.method == 'setVolume') {
-          return 1;
-        }
-        if (methodCall.method == 'setPitch') {
-          return 1;
-        }
-        if (methodCall.method == 'isLanguageAvailable') {
-          return true;
-        }
-        if (methodCall.method == 'setIosAudioCategory') {
-           return 1;
-        }
-        if (methodCall.method == 'setSharedInstance') {
-           return 1;
-        }
-        return null;
+        return 1; // Simplify
       },
     );
   });
@@ -61,9 +49,14 @@ void main() {
     late AssistantService service;
     late MockDataService mockDataService;
     late ToolRegistry registry;
+    late MockAIModelWrapper mockModelWrapper;
+    late MockChatSessionWrapper mockChatSession;
 
     setUp(() {
       mockDataService = MockDataService();
+      mockModelWrapper = MockAIModelWrapper();
+      mockChatSession = MockChatSessionWrapper();
+
       // Stub chat history methods
       when(() => mockDataService.getChatHistory(any())).thenAnswer((_) async => []);
       when(() => mockDataService.saveChatMessage(any(), any())).thenAnswer((_) async {});
@@ -73,8 +66,21 @@ void main() {
       when(() => mockDataService.getAllKnowledge()).thenAnswer((_) async => []);
       when(() => mockDataService.saveKnowledge(any())).thenAnswer((_) async {});
 
+      // Stub Wrapper
+      when(() => mockModelWrapper.startChat(history: any(named: 'history')))
+          .thenReturn(mockChatSession);
+      
+      // Stub Chat Session
+      when(() => mockChatSession.sendMessage(any()))
+          .thenAnswer((_) async => AIResponse(text: "Mock Response"));
+          
+      // Stub history getter
+      when(() => mockChatSession.history).thenReturn([]);
+
       registry = ToolRegistry(mockDataService);
-      service = AssistantService(mockDataService, registry);
+      
+      // Inject Mock Wrapper
+      service = AssistantService(mockDataService, registry, mockModelWrapper);
     });
 
     test('starts in Standard Mode', () {
@@ -111,8 +117,8 @@ void main() {
       // Verify user message added
       expect(service.messages.any((m) => m.text == "I'm stuck" && m.isUser), true);
       
-      // Verify mock thinking response
-      expect(service.messages.any((m) => m.text.contains("[Mock Thinking]") && !m.isUser), true);
+      // Verify response (Mock Response)
+      expect(service.messages.any((m) => m.text == "Mock Response" && !m.isUser), true);
     });
 
     test('Unified history across toggles', () async {

@@ -1,16 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_ai/firebase_ai.dart';
 import '../services/assistant_service.dart';
+import '../services/ai_wrapper.dart';
 import '../models/ai_models.dart';
 import '../ai_tools/tool_registry.dart';
+import '../ai_tools/tool_definitions.dart';
 import '../providers/data_provider.dart';
 import 'knowledge_screen.dart';
+
+// Helper to create model with tools
+GenerativeModel _createGenerativeModel() {
+  final List<FunctionDeclaration> validTools = ToolDefinitions.tools.map((t) {
+      final properties = <String, Schema>{};
+      final propsMap = t['parameters']['properties'] as Map;
+      
+      for (var entry in propsMap.entries) {
+        final type = entry.value['type'];
+        final description = entry.value['description'];
+        
+        if (type == 'integer') {
+          properties[entry.key] = Schema.integer(description: description, nullable: false);
+        } else if (type == 'boolean') {
+          properties[entry.key] = Schema.boolean(description: description, nullable: false);
+        } else {
+          properties[entry.key] = Schema.string(description: description, nullable: false);
+        }
+      }
+
+      return FunctionDeclaration(
+        t['name'],
+        t['description'],
+        parameters: properties, 
+      );
+  }).toList();
+
+  return FirebaseAI.vertexAI(location: 'global').generativeModel(
+    model: 'gemini-3-flash-preview',
+    tools: [Tool.functionDeclarations(validTools)],
+  );
+}
 
 // Provider definition
 final assistantServiceProvider = ChangeNotifierProvider<AssistantService>((ref) {
   final dataService = ref.read(dataServiceProvider);
   final registry = ToolRegistry(dataService);
-  return AssistantService(dataService, registry);
+  
+  // Create wrapper with real model
+  final model = _createGenerativeModel();
+  final wrapper = FirebaseAIModelWrapper(model);
+  
+  return AssistantService(dataService, registry, wrapper);
 });
 
 class AssistantScreen extends ConsumerStatefulWidget {
@@ -561,4 +601,3 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
     );
   }
 }
-

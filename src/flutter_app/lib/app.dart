@@ -11,7 +11,10 @@ import 'providers/mcp_provider.dart';
 import 'services/debug_data_service.dart';
 
 class MyApp extends ConsumerStatefulWidget {
-  const MyApp({super.key});
+  final bool initialIsAssistantActive;
+  final String? initialSelectedProjectId;
+
+  const MyApp({super.key, this.initialIsAssistantActive = false, this.initialSelectedProjectId});
 
   @override
   ConsumerState<MyApp> createState() => _MyAppState();
@@ -30,6 +33,8 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
+    _isAssistantActive = widget.initialIsAssistantActive;
+    _selectedProjectId = widget.initialSelectedProjectId;
     // Request focus initially for keyboard shortcuts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _keyboardFocusNode.requestFocus();
@@ -62,6 +67,15 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   void _handleKeyEvent(KeyEvent event) {
     if (event is KeyDownEvent) {
+      // If a TextField has focus, do NOT handle arrow left/right globally.
+      // The TextField (or EditableItemWidget) will handle navigation boundaries via callbacks.
+      if (FocusManager.instance.primaryFocus != _keyboardFocusNode) {
+         if (event.logicalKey == LogicalKeyboardKey.arrowLeft || 
+             event.logicalKey == LogicalKeyboardKey.arrowRight) {
+           return;
+         }
+      }
+
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
         _moveSelection(1);
       } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
@@ -334,7 +348,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     });
   }
 
-  Widget _buildProjectColumn(dynamic dataService, List<Project> projects, int? pIndex, Widget aiAssistantWidget, {VoidCallback? onBack}) {
+  Widget _buildProjectColumn(dynamic dataService, List<Project> projects, int? pIndex, Widget aiAssistantWidget, {VoidCallback? onBack, required bool isMobile}) {
     return EditableColumn(
       key: const ValueKey('projects'),
       title: 'Projects',
@@ -347,7 +361,11 @@ class _MyAppState extends ConsumerState<MyApp> {
         setState(() {
           _isAssistantActive = false;
           _selectedProjectId = projects[index].id;
-          _focusedColumnIndex = 1; // Jump to tasks on mobile selection
+          if (isMobile) {
+            _focusedColumnIndex = 1; // Jump to tasks on mobile selection
+          } else {
+            _focusedColumnIndex = 0; // Stay on project column on desktop
+          }
           _selectedTaskId = null;
           _selectedSubtaskId = null;
         });
@@ -397,6 +415,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         dataService.reorderProjects(oldIndex, newIndex);
       },
       onBack: onBack,
+      onNavigateRight: () => _changeColumn(1),
     );
   }
 
@@ -458,6 +477,8 @@ class _MyAppState extends ConsumerState<MyApp> {
         dataService.reorderTasks(projects[pIndex].id, oldIndex, newIndex);
       },
       onBack: onBack,
+      onNavigateLeft: () => _changeColumn(-1),
+      onNavigateRight: () => _changeColumn(1),
     );
   }
 
@@ -517,6 +538,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         dataService.reorderSubtasks(projects[pIndex].tasks[tIndex].id, oldIndex, newIndex);
       },
       onBack: onBack,
+      onNavigateLeft: () => _changeColumn(-1),
     );
   }
 
@@ -592,7 +614,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                 
                 Widget mobileBody;
                 if (_focusedColumnIndex == 0) {
-                  mobileBody = _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget);
+                  mobileBody = _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget, isMobile: true);
                 } else if (_focusedColumnIndex == 1) {
                   mobileBody = pIndex != null 
                     ? _buildTaskColumn(dataService, projects, pIndex, tIndex, onBack: () => setState(() => _focusedColumnIndex = 0))
@@ -626,7 +648,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                   children: [
                     Expanded(
                       flex: 1,
-                      child: _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget),
+                      child: _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget, isMobile: false),
                     ),
                     if (_isAssistantActive)
                       const Expanded(

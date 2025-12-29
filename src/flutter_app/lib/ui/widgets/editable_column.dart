@@ -16,6 +16,9 @@ class EditableColumn extends StatefulWidget {
   final Function(int, int)? onReorder;
   final Widget? header;
   final VoidCallback? onBack;
+  final bool showDeleteButton;
+  final VoidCallback? onNavigateLeft;
+  final VoidCallback? onNavigateRight;
 
   const EditableColumn({
     super.key,
@@ -32,6 +35,9 @@ class EditableColumn extends StatefulWidget {
     this.onReorder,
     this.header,
     this.onBack,
+    this.showDeleteButton = false,
+    this.onNavigateLeft,
+    this.onNavigateRight,
   });
 
   @override
@@ -107,7 +113,7 @@ class _EditableColumnState extends State<EditableColumn> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.04),
@@ -136,6 +142,9 @@ class _EditableColumnState extends State<EditableColumn> {
                     onSubmitted: _addNewItem,
                     onToggleCheck: () => widget.onCheckChanged?.call(index, !item.isCompleted),
                     onDelete: () => widget.onDelete?.call(index),
+                    showDeleteButton: widget.showDeleteButton,
+                    onNavigateLeft: widget.onNavigateLeft,
+                    onNavigateRight: widget.onNavigateRight,
                 );
               },
             ),

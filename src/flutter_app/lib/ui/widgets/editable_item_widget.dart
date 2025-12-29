@@ -23,6 +23,9 @@ class EditableItemWidget extends StatefulWidget {
   final VoidCallback onSubmitted;
   final VoidCallback onToggleCheck;
   final VoidCallback onDelete;
+  final bool showDeleteButton;
+  final VoidCallback? onNavigateLeft;
+  final VoidCallback? onNavigateRight;
 
   const EditableItemWidget({
     Key? key,
@@ -35,6 +38,9 @@ class EditableItemWidget extends StatefulWidget {
     required this.onSubmitted,
     required this.onToggleCheck,
     required this.onDelete,
+    this.showDeleteButton = false,
+    this.onNavigateLeft,
+    this.onNavigateRight,
   }) : super(key: key);
 
   @override
@@ -58,25 +64,7 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
     }
   }
 
-  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is KeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.backspace) {
-        if (_controller.text.isEmpty) {
-            widget.onDelete();
-            return KeyEventResult.handled;
-        }
-      } else if (event.logicalKey == LogicalKeyboardKey.enter) {
-        if (HardwareKeyboard.instance.isMetaPressed) {
-            widget.onToggleCheck();
-            return KeyEventResult.handled;
-        } else {
-          widget.onSubmitted();
-          return KeyEventResult.handled;
-        }
-      }
-    }
-    return KeyEventResult.ignored;
-  }
+
 
   @override
   void didUpdateWidget(EditableItemWidget oldWidget) {
@@ -123,17 +111,11 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
           _focusNode.requestFocus();
         },
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
+          duration: const Duration(milliseconds: 100),
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           decoration: BoxDecoration(
-            color: widget.isSelected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: widget.isSelected 
-                ? [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))] 
-                : [],
-            border: widget.isSelected && widget.isActiveColumn
-                ? Border.all(color: Colors.blue.withOpacity(0.3), width: 1)
-                : null,
+            color: widget.isSelected ? Colors.black.withOpacity(0.06) : Colors.black.withOpacity(0),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
@@ -157,7 +139,7 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                     shape: BoxShape.circle,
                     color: isChecked ? Colors.blue : Colors.transparent,
                     border: Border.all(
-                      color: isChecked ? Colors.blue : (widget.isSelected ? Colors.blue : Colors.grey[400]!),
+                      color: isChecked ? Colors.blue : Colors.grey[400]!,
                       width: 1.5,
                     ),
                   ),
@@ -176,28 +158,74 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                     fontSize: 15,
                     color: isChecked ? Colors.grey : Colors.black87,
                     decoration: isChecked ? TextDecoration.lineThrough : null,
-                    fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: FontWeight.normal,
                   ),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     isDense: true,
-                    contentPadding: EdgeInsets.zero,
+                    contentPadding: EdgeInsets.symmetric(vertical: 4), // Slight padding for comfort
                     hintText: 'New Item',
                     hintStyle: TextStyle(color: Colors.black26),
                   ),
-                  maxLines: 1,
-                  textInputAction: TextInputAction.done,
+                  maxLines: null, // Allow multi-line input
+                  minLines: 1,
+                  textInputAction: TextInputAction.newline, // Allows new lines within the field
                   onChanged: widget.onChanged,
                   onTap: widget.onTap,
                   onSubmitted: (_) {
-                    widget.onSubmitted();
+                    // This is handled by _handleKeyEvent
                   },
                 ),
               ),
+              
+              if (widget.showDeleteButton)
+                 IconButton(
+                   icon: const Icon(Icons.delete_outline, size: 18, color: Colors.grey),
+                   onPressed: widget.onDelete,
+                   tooltip: 'Delete',
+                   padding: EdgeInsets.zero,
+                   constraints: const BoxConstraints(),
+                 ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        if (_controller.selection.isValid &&
+            _controller.selection.isCollapsed &&
+            _controller.selection.baseOffset == 0) {
+          widget.onNavigateLeft?.call();
+          return KeyEventResult.handled;
+        }
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+        if (_controller.selection.isValid &&
+            _controller.selection.isCollapsed &&
+            _controller.selection.baseOffset == _controller.text.length) {
+          widget.onNavigateRight?.call();
+          return KeyEventResult.handled;
+        }
+      } else if (event.logicalKey == LogicalKeyboardKey.backspace) {
+        if (_controller.text.isEmpty) {
+            widget.onDelete();
+            return KeyEventResult.handled;
+        }
+      } else if (event.logicalKey == LogicalKeyboardKey.enter) {
+        if (HardwareKeyboard.instance.isShiftPressed) {
+          return KeyEventResult.ignored; // Allow TextField to handle Shift+Enter for new line
+        } else if (HardwareKeyboard.instance.isMetaPressed) {
+            widget.onToggleCheck();
+            return KeyEventResult.handled;
+        } else {
+          widget.onSubmitted();
+          return KeyEventResult.handled;
+        }
+      }
+    }
+    return KeyEventResult.ignored;
   }
 }

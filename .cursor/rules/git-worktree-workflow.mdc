@@ -1,0 +1,76 @@
+---
+description: Workflow for using git worktrees to enable parallel agent development.
+globs: ["scripts/setup_worktree.sh", ".cursor/worktrees.json"]
+---
+# Git Worktree Workflow
+
+## Purpose
+To enable parallel development by multiple agents (or the user) on different features simultaneously without conflict. This workflow uses isolated git worktrees to provide separate working directories for each task, ensuring clean state and independent dependency management.
+
+## Trigger
+Use this workflow when:
+- Starting a new feature or bugfix that requires isolation.
+- "Parallel work", "new worktree", or "isolated environment" is requested.
+- You need to work on a branch without switching the main repository's state.
+
+## Protocol
+
+### 1. Create a Worktree
+**Do NOT** use raw `git worktree` commands manually. Use the provided automation script to ensure environment secrets and dependencies are set up correctly.
+
+```bash
+./scripts/setup_worktree.sh <branch-name> [base-branch]
+```
+
+**Example:**
+```bash
+./scripts/setup_worktree.sh feature/new-login-screen
+```
+
+**What this does:**
+1.  Creates a new worktree at `worktrees/feature-new-login-screen`.
+2.  Creates a new branch `feature/new-login-screen` (if it doesn't exist).
+3.  **Critical:** Copies `src/flutter_app/.env` from the main repository to the new worktree (so API keys work).
+4.  Runs `flutter pub get` in the new worktree to resolve dependencies.
+
+### 2. Switch Context
+Once created, you must switch your working context to the new directory.
+
+```bash
+cd worktrees/feature-new-login-screen
+```
+
+**Important:**
+- All file edits, shell commands, and git operations should be performed *inside* this directory.
+- The `codebase_investigator` or `glob` tools will need to be directed here if you are searching within this specific context.
+
+### 3. Development Workflow
+- **Edit:** Modify files as usual.
+- **Run:** You can run the app or tests from this directory (it has its own `.env` and `pubspec.lock`).
+- **Commit:** Use standard git commands (`git add`, `git commit`). They will apply to the branch checked out in this worktree.
+
+### 4. User Review
+**Mandatory:** Before merging or cleaning up, explicitly ask the user to review the changes.
+- Provide a brief summary of what was done.
+- Offer to run tests or show a diff.
+- Wait for approval.
+
+### 5. Cleanup
+When the task is complete and merged (or abandoned):
+
+1.  **Remove the worktree:**
+    ```bash
+    git worktree remove worktrees/feature-new-login-screen
+    ```
+2.  **Delete the branch (if merged/not needed):**
+    ```bash
+    git branch -d feature/new-login-screen
+    ```
+
+## Directory Structure
+- `worktrees/`: Contains all active worktrees. This directory is `.gitignored`.
+- `scripts/setup_worktree.sh`: The automation script.
+
+## Troubleshooting
+- **Missing Secrets:** If the app crashes due to missing API keys, verify that `.env` exists in `worktrees/<your-branch>/src/flutter_app/.env`. If not, copy it manually from the root `src/flutter_app/.env`.
+- **Dependency Errors:** If imports fail, run `flutter pub get` inside the worktree's `src/flutter_app` directory.

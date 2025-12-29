@@ -23,6 +23,7 @@ abstract class StorageRepository {
   /// Knowledge Base
   Future<void> saveKnowledge(Knowledge knowledge);
   Future<List<Knowledge>> getAllKnowledge();
+  Future<void> deleteKnowledge(String id);
 
   /// Stream that emits when data is changed externally or needs reload.
   Stream<void> get onDataChanged;

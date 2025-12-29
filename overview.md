@@ -26,7 +26,7 @@
 | **verify_config_setup**<br>Verify environment configuration and API key loading. | Completed | Integration |
 | **document_feature_list**<br>Document feature list from design specs 2025_12_13 | Completed | Documentation |
 | **implement_backspace_deletion**<br>Implement backspace deletion for list items. | Completed | Maintenance |
-| **implement_3_column_interaction**<br>Implement 3-column interaction and testing | Completed | Interaction Testing |
+| **implement_3_column_interaction**<br>Refined hierarchical navigation: strict boundary checks for column jumping. | Completed | Robustness & Tests |
 | **web_dev_infra**<br>Set up web development infrastructure for the Flutter app. | Completed | Infrastructure |
 | **verify_and_fix_features**<br>Verify all features in FEATURES.md, add tests for failures, and fix them. | Completed | Integration |
 | **remove_empty_elements**<br>Automatically remove empty list elements unless they have children. | Completed | Testing verification |
