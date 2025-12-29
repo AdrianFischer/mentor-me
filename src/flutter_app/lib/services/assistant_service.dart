@@ -95,9 +95,12 @@ class AssistantService extends ChangeNotifier {
 
     // Unified Model
     _model = GenerativeModel(
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-3.0-flash',
       apiKey: _apiKey.isNotEmpty ? _apiKey : 'dummy-key',
       tools: [Tool(functionDeclarations: tools)],
+      // generationConfig: GenerationConfig(
+      //   // thinkingLevel: _isThinkingMode ? ThinkingLevel.high : ThinkingLevel.low, // Future SDK update
+      // ),
     );
 
     _initTts();
