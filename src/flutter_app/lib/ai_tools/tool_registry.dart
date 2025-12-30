@@ -6,6 +6,11 @@ import 'implementations/add_subtask_tool.dart';
 import 'implementations/set_item_status_tool.dart';
 import 'implementations/delete_item_tool.dart';
 import 'implementations/save_memory_tool.dart';
+import 'implementations/set_task_goal_tool.dart';
+import 'implementations/record_goal_progress_tool.dart';
+import 'implementations/get_project_tool.dart';
+import 'implementations/get_task_tool.dart';
+import 'implementations/update_item_name_tool.dart';
 
 class ToolRegistry {
   final DataService _dataService;
@@ -18,7 +23,18 @@ class ToolRegistry {
     _register(SetItemStatusTool());
     _register(DeleteItemTool());
     _register(SaveMemoryTool());
+    _register(SetTaskGoalTool());
+    _register(RecordGoalProgressTool());
+    _register(GetProjectTool());
+    _register(GetTaskTool());
+    _register(UpdateItemNameTool());
   }
+
+  void register(AiTool tool) {
+    _register(tool);
+  }
+
+  List<AiTool> get tools => _tools.values.toList();
 
   void _register(AiTool tool) {
     _tools[tool.name] = tool;

@@ -1,246 +1,193 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:mcp_dart/mcp_dart.dart';
+import 'package:mcp_dart/mcp_dart.dart' as mcp;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:uuid/uuid.dart';
 import 'data_service.dart';
-import '../models/models.dart';
-import '../models/ai_models.dart';
+import '../ai_tools/tool_registry.dart';
+import '../ai_tools/ai_tool.dart';
 
 class McpServerService {
   final DataService _dataService;
+  final ToolRegistry _toolRegistry;
   HttpServer? _server;
+  final Map<String, _SseTransport> _sessions = {};
 
-  McpServerService(this._dataService);
+  McpServerService(this._dataService, this._toolRegistry);
 
   Future<void> start({int port = 8081, int retries = 5}) async {
     if (_server != null) return;
 
-    final router = Router();
-
-    // --- Projects ---
-    router.get('/projects', (Request request) async {
-      try {
-        final projects = _dataService.projects;
-        // Manually map to ensure deep conversion, avoiding implicit serialization issues
-        final jsonList = projects.map((p) {
-                       final pJson = p.toJson();
-                       pJson['order'] = p.order.isNaN ? 0.0 : p.order; // Handle NaN
-                       // Explicitly convert nested tasks to ensure they are Maps, not Objects
-                       if (pJson['tasks'] is List) {
-                          pJson['tasks'] = (pJson['tasks'] as List).map((t) {
-                            final tJson = (t as dynamic).toJson();
-                            tJson['order'] = t.order.isNaN ? 0.0 : t.order; // Handle NaN
-                            if (tJson['subtasks'] is List) {
-                              tJson['subtasks'] = (tJson['subtasks'] as List).map((s) {
-                                final sJson = (s as dynamic).toJson();
-                                sJson['order'] = s.order.isNaN ? 0.0 : s.order; // Handle NaN
-                                return sJson;
-                              }).toList();
-                            }
-                            return tJson; 
-                          }).toList();
-                       }          return pJson;
-        }).toList();
-        return Response.ok(jsonEncode(jsonList), headers: {'content-type': 'application/json'});
-      } catch (e) {
-        return Response.internalServerError(body: 'Error fetching projects: $e');
-      }
-    });
-
-    router.post('/projects', (Request request) async {
-      try {
-        final content = await request.readAsString();
-        final json = jsonDecode(content);
-        final project = Project.fromJson(json);
-        _dataService.upsertProject(project);
-        return Response.ok(jsonEncode({'status': 'success', 'id': project.id}), headers: {'content-type': 'application/json'});
-      } catch (e) {
-        return Response.internalServerError(body: 'Error saving project: $e');
-      }
-    });
-
-    // --- Tasks ---
-    router.get('/tasks', (Request request) async {
-       try {
-         final projects = _dataService.projects;
-         final allTasks = projects.expand((p) => p.tasks).toList();
-         return Response.ok(jsonEncode(allTasks.map((t) => t.toJson()).toList()), headers: {'content-type': 'application/json'});
-       } catch (e) {
-         return Response.internalServerError(body: 'Error fetching tasks: $e');
-       }
-    });
-
-    router.post('/tasks', (Request request) async {
-      try {
-        final content = await request.readAsString();
-        final json = jsonDecode(content);
-        
-        // Handle simplified input (create ID if missing)
-        String id = json['id'] ?? const Uuid().v4();
-        String title = json['title'] ?? '';
-        String? projectId = json['projectId'];
-        bool isCompleted = json['isCompleted'] ?? false;
-        
-        // Check if we need to create a full Task object manually
-        // or if we can use Task.fromJson if the structure matches.
-        // For robustness, we construct it manually if simplified keys are present.
-        final task = Task(
-          id: id, 
-          title: title, 
-          projectId: projectId, 
-          isCompleted: isCompleted,
-          subtasks: [] // default empty for new task
-        );
-
-        _dataService.upsertTask(task);
-        return Response.ok(jsonEncode({'status': 'success', 'id': task.id}), headers: {'content-type': 'application/json'});
-      } catch (e) {
-        return Response.internalServerError(body: 'Error saving task: $e');
-      }
-    });
-    
-    router.post('/tasks/<taskId>/subtasks', (Request request, String taskId) async {
-      try {
-        final content = await request.readAsString();
-        final json = jsonDecode(content);
-        final title = json['title'];
-        
-        if (title == null || title.isEmpty) {
-           return Response.badRequest(body: 'Title is required');
-        }
-
-        final subtaskId = _dataService.addSubtask(taskId, title);
-        
-        if (subtaskId == null) {
-           return Response.notFound('Task with ID $taskId not found');
-        }
-        
-        return Response.ok(jsonEncode({'status': 'success', 'id': subtaskId}), headers: {'content-type': 'application/json'});
-
-      } catch (e) {
-        return Response.internalServerError(body: 'Error adding subtask: $e');
-      }
-    });
-
-    router.delete('/tasks/<id>', (Request request, String id) async {
-      try {
-        _dataService.deleteItem(id);
-        return Response.ok(jsonEncode({'status': 'deleted', 'id': id}), headers: {'content-type': 'application/json'});
-      } catch (e) {
-         return Response.internalServerError(body: 'Error deleting task: $e');
-      }
-    });
-
-    router.post('/items/<itemId>/status', (Request request, String itemId) async {
-      try {
-        final content = await request.readAsString();
-        final json = jsonDecode(content);
-        final isCompleted = json['isCompleted'];
-
-        if (isCompleted == null || !(isCompleted is bool)) {
-           return Response.badRequest(body: '"isCompleted" boolean field is required');
-        }
-
-        _dataService.setItemStatus(itemId, isCompleted);
-        return Response.ok(jsonEncode({'status': 'success', 'id': itemId, 'isCompleted': isCompleted}), headers: {'content-type': 'application/json'});
-      } catch (e) {
-        return Response.internalServerError(body: 'Error updating item status: $e');
-      }
-    });
-
-    // --- Knowledge ---
-    router.get('/knowledge', (Request request) async {
-      try {
-        final knowledge = await _dataService.getAllKnowledge();
-        final list = knowledge.map((k) => {
-          'id': k.id,
-          'content': k.content,
-          'createdAt': k.createdAt.toIso8601String(),
-          'updatedAt': k.updatedAt.toIso8601String(),
-        }).toList();
-        return Response.ok(jsonEncode(list), headers: {'content-type': 'application/json'});
-      } catch (e) {
-        return Response.internalServerError(body: 'Error fetching knowledge: $e');
-      }
-    });
-
-    // --- MCP Discovery ---
-    router.get('/mcp/tools', (Request request) {
-      final tools = [
-        {
-          'name': 'get_projects',
-          'description': 'Get all projects and their tasks',
-          'parameters': {'type': 'object', 'properties': {}}
-        },
-        {
-          'name': 'add_task',
-          'description': 'Add a new task',
-          'parameters': {
-            'type': 'object',
-            'properties': {
-              'title': {'type': 'string'},
-              'projectId': {'type': 'string', 'description': 'Optional Project ID'}
-            },
-            'required': ['title']
-          }
-        },
-        {
-          'name': 'add_subtask',
-          'description': 'Add a new subtask to a specific task',
-          'parameters': {
-            'type': 'object',
-            'properties': {
-              'taskId': {'type': 'string', 'description': 'ID of the parent task'},
-              'title': {'type': 'string', 'description': 'Title of the subtask'}
-            },
-            'required': ['taskId', 'title']
-          }
-        },
-        {
-          'name': 'update_item_status',
-          'description': 'Update the completion status of a project, task, or subtask.',
-          'parameters': {
-            'type': 'object',
-            'properties': {
-              'itemId': {'type': 'string', 'description': 'The ID of the item (project, task, or subtask) to update.'},
-              'isCompleted': {'type': 'boolean', 'description': 'The new completion status.'}
-            },
-            'required': ['itemId', 'isCompleted']
-          }
-        },
-        {
-           'name': 'get_knowledge',
-           'description': 'Get all knowledge items',
-           'parameters': {'type': 'object', 'properties': {}}
-        }
-      ];
-      return Response.ok(jsonEncode(tools), headers: {'content-type': 'application/json'});
-    });
-
-    final handler = Pipeline()
-      .addMiddleware(logRequests())
-      .addHandler(router.call);
-
     for (var i = 0; i < retries; i++) {
+      final currentPort = port + i;
       try {
-        _server = await HttpServer.bind(InternetAddress.anyIPv4, port + i, shared: true);
-        shelf_io.serveRequests(_server!, handler);
-        print('MCP Server listening on http://${_server!.address.host}:${_server!.port}');
-        return; // Success, exit
+        final router = Router();
+
+        // SSE Endpoint (GET)
+        router.get('/mcp', (Request request) {
+          final transport = _SseTransport(request.requestedUri.path);
+          final sessionId = transport.sessionId;
+          _sessions[sessionId] = transport;
+
+          // Create and connect the MCP Server
+          final server = McpServer(
+            Implementation(name: 'flutter_app_data', version: '1.0.0'),
+          );
+          _registerTools(server);
+          
+          // Connect server to transport
+          server.connect(transport);
+
+          // Return SSE Stream
+          return Response.ok(
+            transport.stream,
+            headers: {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive',
+            },
+            context: {'shelf.io.buffer_output': false}, 
+          );
+        });
+
+        // Message Endpoint (POST)
+        router.post('/mcp', (Request request) async {
+          final sessionId = request.url.queryParameters['sessionId'];
+          if (sessionId == null || !_sessions.containsKey(sessionId)) {
+            return Response.notFound('Session not found');
+          }
+
+          final transport = _sessions[sessionId]!;
+          final body = await request.readAsString();
+          
+          try {
+            final message = mcp.JsonRpcMessage.fromJson(jsonDecode(body));
+            transport.handleMessage(message);
+            return Response(202);
+          } catch (e) {
+             return Response.badRequest(body: 'Invalid JSON-RPC');
+          }
+        });
+
+        final handler = Pipeline()
+            .addMiddleware(logRequests())
+            .addHandler(router);
+
+        _server = await shelf_io.serve(handler, InternetAddress.anyIPv4, currentPort);
+        print('MCP Server listening on http://localhost:$currentPort/mcp');
+        return;
       } on SocketException catch (e) {
         if (i < retries - 1) {
-          print('Failed to start MCP Server on port ${port + i}: $e. Retrying on next port...');
+          print('Failed to start MCP Server on port $currentPort: $e. Retrying...');
         } else {
-          print('Failed to start MCP Server after $retries attempts: $e');
-          rethrow; // Re-throw if all retries fail
+          print('Failed to start MCP Server: $e');
+          rethrow;
         }
-      } catch (e) {
-        print('Failed to start MCP Server: $e');
-        rethrow;
       }
     }
+  }
+
+  void _registerTools(McpServer server) {
+    // Register 'get_projects' specially if it's not in the registry or needs special handling?
+    // Actually, 'get_projects' is NOT in the ToolRegistry (Wait, check file list).
+    // I did not see 'get_projects_tool.dart' in the file list I read earlier.
+    // I saw 'get_project_tool.dart' (singular).
+    // Let's check if 'get_projects' is missing from registry.
+    // If so, I should add it or keep it hardcoded for now, but the plan says "Unify".
+    // I'll keep the manual one if it's not in registry, but otherwise use registry.
+
+    // Register tools from ToolRegistry
+    for (final tool in _toolRegistry.tools) {
+       server.registerTool(
+         tool.name,
+         description: tool.description,
+         inputSchema: _mapToInputSchema(tool.inputSchema),
+         callback: (args, extra) async {
+            try {
+               final result = await _toolRegistry.executeTool(tool.name, args);
+               return CallToolResult(
+                 content: [TextContent(text: jsonEncode(result))],
+                 isError: result.containsKey('error') || (result['result'] == 'error'),
+               );
+            } catch (e) {
+               return CallToolResult(
+                 content: [TextContent(text: 'Error executing ${tool.name}: $e')],
+                 isError: true,
+               );
+            }
+         }
+       );
+    }
+    
+    // Explicitly add 'get_projects' if not present (it seems it was manually added in previous version)
+    // The previous version had a complex 'get_projects' that serialized the whole tree.
+    // Use the existing logic for 'get_projects' if it's not in registry.
+    bool hasGetProjects = _toolRegistry.tools.any((t) => t.name == 'get_projects');
+    if (!hasGetProjects) {
+       server.registerTool(
+        'get_projects',
+        description: 'Get all projects and their tasks',
+        callback: (args, extra) async {
+          final projects = _dataService.projects;
+          final jsonList = projects.map((p) {
+            final pJson = p.toJson();
+            pJson['order'] = p.order.isNaN ? 0.0 : p.order;
+            if (pJson['tasks'] is List) {
+                pJson['tasks'] = (pJson['tasks'] as List).map((t) {
+                  final tJson = (t as dynamic).toJson();
+                  tJson['order'] = t.order.isNaN ? 0.0 : t.order;
+                  if (tJson['subtasks'] is List) {
+                    tJson['subtasks'] = (tJson['subtasks'] as List).map((s) {
+                      final sJson = (s as dynamic).toJson();
+                      sJson['order'] = s.order.isNaN ? 0.0 : s.order;
+                      return sJson;
+                    }).toList();
+                  }
+                  return tJson; 
+                }).toList();
+            }
+            return pJson;
+          }).toList();
+          
+          return CallToolResult(
+            content: [TextContent(text: jsonEncode(jsonList))],
+          );
+        },
+      );
+    }
+  }
+
+  ToolInputSchema _mapToInputSchema(Map<String, dynamic> schema) {
+     final propsMap = <String, JsonSchema>{};
+     final properties = schema['properties'] as Map<String, dynamic>?;
+     final requiredList = (schema['required'] as List?)?.map((e) => e.toString()).toList() ?? [];
+
+     if (properties != null) {
+        properties.forEach((key, value) {
+           final desc = value['description'] as String?;
+           final type = value['type'] as String?;
+           // Handle basic types
+           if (type == 'string') {
+              propsMap[key] = JsonSchema.string(description: desc);
+           } else if (type == 'number' || type == 'integer') {
+              propsMap[key] = JsonSchema.number(description: desc);
+           } else if (type == 'boolean') {
+              propsMap[key] = JsonSchema.boolean(description: desc);
+           } else {
+              // Fallback for complex types or unknown
+              propsMap[key] = JsonSchema.string(description: desc); 
+           }
+        });
+     }
+
+     return ToolInputSchema(
+       properties: propsMap,
+       required: requiredList,
+     );
   }
 
   Future<void> restart({int port = 8081, int retries = 5}) async {
@@ -249,7 +196,61 @@ class McpServerService {
   }
 
   Future<void> stop() async {
-    await _server?.close();
+    await _server?.close(force: true);
     _server = null;
+    _sessions.clear();
+  }
+}
+
+class _SseTransport implements Transport {
+  final String sessionId;
+  final String _endpointPath;
+  final StreamController<List<int>> _streamController = StreamController<List<int>>();
+
+  @override
+  void Function()? onclose;
+
+  @override
+  void Function(Error error)? onerror;
+
+  @override
+  void Function(JsonRpcMessage message)? onmessage;
+
+  _SseTransport(this._endpointPath) : sessionId = const Uuid().v4() {
+    // Send endpoint event immediately
+    // Note: We need to give the client the full path including sessionId query param
+    final endpointUrl = '$_endpointPath?sessionId=$sessionId';
+    _sendSseEvent('endpoint', endpointUrl);
+  }
+
+  Stream<List<int>> get stream => _streamController.stream;
+
+  void handleMessage(JsonRpcMessage message) {
+    onmessage?.call(message);
+  }
+
+  @override
+  Future<void> start() async {
+    // No-op for SSE
+  }
+
+  @override
+  Future<void> send(JsonRpcMessage message, {dynamic relatedRequestId}) async {
+    _sendSseEvent('message', jsonEncode(message.toJson()));
+  }
+
+  @override
+  Future<void> close() async {
+    await _streamController.close();
+    onclose?.call();
+  }
+
+  void _sendSseEvent(String event, String data) {
+    if (_streamController.isClosed) return;
+    final sb = StringBuffer();
+    sb.writeln('event: $event');
+    sb.writeln('data: $data');
+    sb.writeln();
+    _streamController.add(utf8.encode(sb.toString()));
   }
 }

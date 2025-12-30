@@ -9,6 +9,18 @@ class AddProjectTool implements AiTool {
   String get description => 'Create a new project';
 
   @override
+  Map<String, dynamic> get inputSchema => {
+        'type': 'object',
+        'properties': {
+          'title': {
+            'type': 'string',
+            'description': 'Title of the project',
+          },
+        },
+        'required': ['title'],
+      };
+
+  @override
   String describeAction(Map<String, dynamic> args) {
     return "Create new project '${args['title']}'";
   }
