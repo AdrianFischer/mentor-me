@@ -1,0 +1,37 @@
+---
+description: Enforces task tracking for every Gemini CLI session within the 'Gemini CLI' project.
+globs: 
+alwaysApply: true
+---
+# Gemini CLI Session Workflow
+
+You must strictley follow this workflow to ensure transparency and granular task tracking in the Flutter App.
+
+## 1. Session Initialization
+- **Check Project:** Verify if the project "Gemini CLI" exists.
+- **Create Session Task:** At the start of a new interaction/topic, create a **Main Task** in the "Gemini CLI" project.
+  - **Naming Convention:** `Session YYYY-MM-DD: <Short Topic/Goal>`
+- **Link Context:** Store the `task_id` of this session task in your memory/context for the duration of the chat.
+
+## 2. Granular Planning (The "Subtask Rule")
+- **No Invisible Work:** You are NOT allowed to perform significant actions (coding, file manipulation, complex analysis) without a corresponding **Subtask**.
+- **Breakdown:** Before starting execution, break the user's request into atomic subtasks using `add_subtask`.
+- **Dynamic Updates:** If you discover new necessary steps during execution, add new subtasks immediately.
+
+## 3. Execution Protocol (Single Task Focus)
+- **Sequential Work:** Work on **only one** subtask at a time.
+- **Transparency Loop:**
+  1.  **Identify:** State clearly: "Working on subtask: <Name>"
+  2.  **Execute:** Perform the necessary tool calls (shell, write_file, etc.).
+  3.  **Complete:** Immediately mark the subtask as completed using `set_item_status(is_completed: true)`.
+  4.  **Next:** Move to the next subtask.
+
+## 4. Example Flow
+User: "Refactor the login page."
+Agent:
+1.  Calls `add_task(project="Gemini CLI", title="Session: Refactor Login")`.
+2.  Calls `add_subtask(title="Analyze current login_page.dart")`.
+3.  Calls `add_subtask(title="Create new layout widgets")`.
+4.  Says: "I will start by analyzing the current code."
+5.  Reads file...
+6.  Calls `set_item_status(id=..., is_completed=true)`.

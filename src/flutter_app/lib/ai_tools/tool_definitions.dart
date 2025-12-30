@@ -175,6 +175,25 @@ class ToolDefinitions {
       }
     },
     {
+      "name": "set_ai_status",
+      "description": "Sets the AI agent status for a task or subtask. Status can be: notReady, ready, inProgress, or done. When status is set to 'done', the item is automatically marked as completed.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "description": "The UUID of the task or subtask."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["notReady", "ready", "inProgress", "done"],
+            "description": "The AI agent status: notReady (paused), ready (ready for agent), inProgress (agent working), or done (completed by agent)."
+          }
+        },
+        "required": ["item_id", "status"]
+      }
+    },
+    {
       'name': 'save_memory',
     'description': 'Save a specific fact, preference, or insight about the user to long-term memory. Use this when the user states something important that should be remembered for future conversations.',
     'parameters': {
