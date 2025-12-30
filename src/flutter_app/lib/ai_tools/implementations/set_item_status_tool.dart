@@ -9,6 +9,22 @@ class SetItemStatusTool implements AiTool {
   String get description => 'Mark an item as active or completed';
 
   @override
+  Map<String, dynamic> get inputSchema => {
+        'type': 'object',
+        'properties': {
+          'item_id': {
+            'type': 'string',
+            'description': 'ID of the item',
+          },
+          'is_completed': {
+            'type': 'boolean',
+            'description': 'True for completed, false for active',
+          },
+        },
+        'required': ['item_id', 'is_completed'],
+      };
+
+  @override
   String describeAction(Map<String, dynamic> args) {
     final isCompleted = args['is_completed'] ?? args['isCompleted'] ?? false;
     final status = isCompleted ? 'completed' : 'active';

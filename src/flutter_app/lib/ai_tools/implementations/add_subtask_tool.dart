@@ -9,6 +9,22 @@ class AddSubtaskTool implements AiTool {
   String get description => 'Add a subtask to a task';
 
   @override
+  Map<String, dynamic> get inputSchema => {
+        'type': 'object',
+        'properties': {
+          'task_id': {
+            'type': 'string',
+            'description': 'ID of the parent task',
+          },
+          'title': {
+            'type': 'string',
+            'description': 'Title of the subtask',
+          },
+        },
+        'required': ['task_id', 'title'],
+      };
+
+  @override
   String describeAction(Map<String, dynamic> args) {
     return "Add subtask '${args['title']}'";
   }

@@ -9,6 +9,22 @@ class AddTaskTool implements AiTool {
   String get description => 'Add a task to a project';
 
   @override
+  Map<String, dynamic> get inputSchema => {
+        'type': 'object',
+        'properties': {
+          'project_id': {
+            'type': 'string',
+            'description': 'ID of the project',
+          },
+          'title': {
+            'type': 'string',
+            'description': 'Title of the task',
+          },
+        },
+        'required': ['project_id', 'title'],
+      };
+
+  @override
   String describeAction(Map<String, dynamic> args) {
     return "Add task '${args['title']}' to project";
   }

@@ -5,6 +5,7 @@ import 'storage_repository.dart';
 
 class MemoryStorageRepository implements StorageRepository {
   final List<Project> _projects = [];
+  final List<Conversation> _conversations = [];
   final Map<String, List<ChatMessage>> _chatHistories = {};
   final List<Knowledge> _knowledgeBase = [];
   final StreamController<void> _dataChangeController = StreamController<void>.broadcast();
@@ -73,18 +74,41 @@ class MemoryStorageRepository implements StorageRepository {
   }
 
   @override
+  Future<void> saveConversation(Conversation conversation) async {
+    final index = _conversations.indexWhere((c) => c.id == conversation.id);
+    if (index >= 0) {
+      _conversations[index] = conversation;
+    } else {
+      _conversations.add(conversation);
+    }
+  }
+
+  @override
+  Future<List<Conversation>> getAllConversations() async {
+    return List.unmodifiable(_conversations);
+  }
+
+  @override
+  Future<void> deleteConversation(String conversationId) async {
+    _conversations.removeWhere((c) => c.id == conversationId);
+  }
+
+  @override
   Future<void> saveChatMessage(ChatMessage message, String mode) async {
-    _chatHistories.putIfAbsent(mode, () => []).add(message);
+    final key = message.conversationId ?? mode;
+    _chatHistories.putIfAbsent(key, () => []).add(message);
   }
 
   @override
-  Future<List<ChatMessage>> getChatHistory(String mode) async {
-    return List.unmodifiable(_chatHistories[mode] ?? []);
+  Future<List<ChatMessage>> getChatHistory(String mode, {String? conversationId}) async {
+    final key = conversationId ?? mode;
+    return List.unmodifiable(_chatHistories[key] ?? []);
   }
 
   @override
-  Future<void> clearChatHistory(String mode) async {
-    _chatHistories[mode] = [];
+  Future<void> clearChatHistory(String mode, {String? conversationId}) async {
+    final key = conversationId ?? mode;
+    _chatHistories[key] = [];
   }
 
   @override
@@ -107,6 +131,7 @@ class MemoryStorageRepository implements StorageRepository {
     _knowledgeBase.removeWhere((k) => k.id == id);
   }
 }
+
 
 
 

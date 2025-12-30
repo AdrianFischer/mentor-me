@@ -9,6 +9,18 @@ class DeleteItemTool implements AiTool {
   String get description => 'Delete an item';
 
   @override
+  Map<String, dynamic> get inputSchema => {
+        'type': 'object',
+        'properties': {
+          'item_id': {
+            'type': 'string',
+            'description': 'ID of the item',
+          },
+        },
+        'required': ['item_id'],
+      };
+
+  @override
   String describeAction(Map<String, dynamic> args) {
     return "Delete item";
   }
