@@ -33,6 +33,11 @@ class McpServerService {
           final sessionId = transport.sessionId;
           _sessions[sessionId] = transport;
 
+          transport.onclose = () {
+             _sessions.remove(sessionId);
+             print('Session $sessionId closed and removed.');
+          };
+
           // Create and connect the MCP Server
           final server = McpServer(
             Implementation(name: 'flutter_app_data', version: '1.0.0'),
@@ -206,6 +211,7 @@ class _SseTransport implements Transport {
   final String sessionId;
   final String _endpointPath;
   final StreamController<List<int>> _streamController = StreamController<List<int>>();
+  Timer? _heartbeatTimer;
 
   @override
   void Function()? onclose;
@@ -218,9 +224,18 @@ class _SseTransport implements Transport {
 
   _SseTransport(this._endpointPath) : sessionId = const Uuid().v4() {
     // Send endpoint event immediately
-    // Note: We need to give the client the full path including sessionId query param
     final endpointUrl = '$_endpointPath?sessionId=$sessionId';
     _sendSseEvent('endpoint', endpointUrl);
+
+    // Start heartbeat
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      if (_streamController.isClosed) {
+        timer.cancel();
+        return;
+      }
+      // Send comment to keep connection alive
+      _streamController.add(utf8.encode(': keep-alive\n\n'));
+    });
   }
 
   Stream<List<int>> get stream => _streamController.stream;
@@ -241,6 +256,7 @@ class _SseTransport implements Transport {
 
   @override
   Future<void> close() async {
+    _heartbeatTimer?.cancel();
     await _streamController.close();
     onclose?.call();
   }
