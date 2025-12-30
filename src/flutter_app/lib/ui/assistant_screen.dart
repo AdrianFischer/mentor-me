@@ -1,57 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_ai/firebase_ai.dart';
+import '../services/ai_agent.dart';
 import '../services/assistant_service.dart';
-import '../services/ai_wrapper.dart';
 import '../models/ai_models.dart';
-import '../ai_tools/tool_registry.dart';
-import '../ai_tools/tool_definitions.dart';
-import '../providers/data_provider.dart';
 import 'knowledge_screen.dart';
-
-// Helper to create model with tools
-GenerativeModel _createGenerativeModel() {
-  final List<FunctionDeclaration> validTools = ToolDefinitions.tools.map((t) {
-      final properties = <String, Schema>{};
-      final propsMap = t['parameters']['properties'] as Map;
-      
-      for (var entry in propsMap.entries) {
-        final type = entry.value['type'];
-        final description = entry.value['description'];
-        
-        if (type == 'integer') {
-          properties[entry.key] = Schema.integer(description: description, nullable: false);
-        } else if (type == 'boolean') {
-          properties[entry.key] = Schema.boolean(description: description, nullable: false);
-        } else {
-          properties[entry.key] = Schema.string(description: description, nullable: false);
-        }
-      }
-
-      return FunctionDeclaration(
-        t['name'],
-        t['description'],
-        parameters: properties, 
-      );
-  }).toList();
-
-  return FirebaseAI.vertexAI(location: 'us-central1').generativeModel(
-    model: 'gemini-2.5-pro',
-    tools: [Tool.functionDeclarations(validTools)],
-  );
-}
-
-// Provider definition
-final assistantServiceProvider = ChangeNotifierProvider<AssistantService>((ref) {
-  final dataService = ref.read(dataServiceProvider);
-  final registry = ToolRegistry(dataService);
-  
-  // Create wrapper with real model
-  final model = _createGenerativeModel();
-  final wrapper = FirebaseAIModelWrapper(model);
-  
-  return AssistantService(dataService, registry, wrapper);
-});
+import '../providers/ai_provider.dart';
 
 class AssistantScreen extends ConsumerStatefulWidget {
   final bool isMobile;
@@ -86,10 +40,12 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
   }
 
   void _loadConversation() {
+    // Schedule loading to next frame to avoid notifying during build
     Future.microtask(() {
-      final assistant = ref.read(assistantServiceProvider);
+      if (!mounted) return;
+      final assistant = ref.read(activeAgentProvider);
       assistant.loadConversation(widget.conversationId).then((_) {
-         // Restore draft if any (logic could be refined per conversation in future)
+         // Restore draft if any
          if (mounted) {
            _textController.text = assistant.draftMessage;
          }
@@ -104,7 +60,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
     super.dispose();
   }
 
-  void _handleSubmit(AssistantService assistant) {
+  void _handleSubmit(AiAgent assistant) {
     if (_textController.text.isNotEmpty) {
       print("[VERIFY_FLOW] UI Submit: ${_textController.text}");
       assistant.sendMessage(_textController.text);
@@ -115,60 +71,65 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final assistant = ref.watch(assistantServiceProvider);
+    final assistant = ref.watch(activeAgentProvider);
 
-    return Scaffold( // Use scaffold to ensure overlay context if needed, or Container
-      body: Stack(
-        children: [
-          // Main Chat Area
-          Column(
+    return ListenableBuilder(
+      listenable: assistant,
+      builder: (context, child) {
+        return Scaffold( // Use scaffold to ensure overlay context if needed, or Container
+          body: Stack(
             children: [
-              _buildConversationHeader(assistant),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: assistant.messages.length,
-                  itemBuilder: (context, index) {
-                    final msg = assistant.messages[index];
-                    return _buildMessageBubble(msg);
-                  },
-                ),
+              // Main Chat Area
+              Column(
+                children: [
+                  _buildConversationHeader(assistant),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: assistant.messages.length,
+                      itemBuilder: (context, index) {
+                        final msg = assistant.messages[index];
+                        return _buildMessageBubble(msg);
+                      },
+                    ),
+                  ),
+                  if (assistant.isLoading)
+                    const LinearProgressIndicator(minHeight: 2),
+                  _buildInputArea(assistant),
+                ],
               ),
-              if (assistant.isLoading)
-                const LinearProgressIndicator(minHeight: 2),
-              _buildInputArea(assistant),
+
+              // Action Log Overlay (Top Right)
+              if (assistant.pendingActions.isNotEmpty || assistant.executedActions.isNotEmpty)
+                Positioned(
+                  top: 60, // Below header
+                  right: 16,
+                  width: 350,
+                  bottom: 100, // Above input
+                  child: PointerInterceptor( // Only intercept clicks on cards, let clicks through gaps pass? 
+                    // Actually Flutter Stack passes clicks through transparent areas by default.
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (assistant.pendingActions.isNotEmpty)
+                          ...assistant.pendingActions.where((a) => !a.isExecuted).map((a) => _buildActionOverlayCard(assistant, a)),
+                        
+                        // Show recently executed actions (limit to last 3 for overlay cleanliness?)
+                        if (assistant.executedActions.isNotEmpty)
+                           ...assistant.executedActions.reversed.take(3).map((a) => _buildLogOverlayCard(a)),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
-
-          // Action Log Overlay (Top Right)
-          if (assistant.pendingActions.isNotEmpty || assistant.executedActions.isNotEmpty)
-            Positioned(
-              top: 60, // Below header
-              right: 16,
-              width: 350,
-              bottom: 100, // Above input
-              child: PointerInterceptor( // Only intercept clicks on cards, let clicks through gaps pass? 
-                // Actually Flutter Stack passes clicks through transparent areas by default.
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    if (assistant.pendingActions.isNotEmpty)
-                      ...assistant.pendingActions.where((a) => !a.isExecuted).map((a) => _buildActionOverlayCard(assistant, a)),
-                    
-                    // Show recently executed actions (limit to last 3 for overlay cleanliness?)
-                    if (assistant.executedActions.isNotEmpty)
-                       ...assistant.executedActions.reversed.take(3).map((a) => _buildLogOverlayCard(a)),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
+        );
+      }
     );
   }
 
-  Widget _buildConversationHeader(AssistantService assistant) {
+  Widget _buildConversationHeader(AiAgent assistant) {
     return Container(
       height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -285,7 +246,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
     );
   }
 
-  Widget _buildInputArea(AssistantService assistant) {
+  Widget _buildInputArea(AiAgent assistant) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
@@ -374,7 +335,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
     );
   }
 
-  Widget _buildActionOverlayCard(AssistantService assistant, ProposedAction action) {
+  Widget _buildActionOverlayCard(AiAgent assistant, ProposedAction action) {
     return Card(
       key: ValueKey(action.id),
       elevation: 6,

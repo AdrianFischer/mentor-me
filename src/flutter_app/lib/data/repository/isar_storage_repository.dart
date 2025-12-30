@@ -216,6 +216,7 @@ class IsarStorageRepository implements StorageRepository {
       c.originalId = conversation.id;
       c.title = conversation.title;
       c.lastModified = conversation.lastModified;
+      c.notes = conversation.notes;
       await _isar.isarConversations.put(c);
     });
   }
@@ -227,6 +228,7 @@ class IsarStorageRepository implements StorageRepository {
       id: c.originalId,
       title: c.title,
       lastModified: c.lastModified,
+      notes: c.notes,
     )).toList();
   }
 

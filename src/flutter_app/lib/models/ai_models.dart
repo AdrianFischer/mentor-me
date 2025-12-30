@@ -19,21 +19,25 @@ class Conversation {
   final String id;
   final String title;
   final DateTime lastModified;
+  final String? notes;
 
   Conversation({
     required this.title,
     String? id,
     DateTime? lastModified,
+    this.notes,
   }) : id = id ?? const Uuid().v4(), lastModified = lastModified ?? DateTime.now();
 
   Conversation copyWith({
     String? title,
     DateTime? lastModified,
+    String? notes,
   }) {
     return Conversation(
       id: id,
       title: title ?? this.title,
       lastModified: lastModified ?? this.lastModified,
+      notes: notes ?? this.notes,
     );
   }
 }

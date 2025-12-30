@@ -8,6 +8,15 @@ import 'markdown_persistence_service.dart';
 
 const uuid = Uuid();
 
+class TaggedItem {
+  final String id;
+  final String title;
+  final String type; // 'project', 'task', 'subtask'
+  final dynamic originalObject;
+  
+  TaggedItem(this.id, this.title, this.type, this.originalObject);
+}
+
 class DataService extends ChangeNotifier {
   final StorageRepository _repository;
   final MarkdownPersistenceService _markdownPersistence;
@@ -22,9 +31,48 @@ class DataService extends ChangeNotifier {
   List<Project> get projects => _projects;
   List<Conversation> get conversations => _conversations;
 
+  List<String> get allTags {
+    final tags = <String>{};
+    for (final p in _projects) {
+      tags.addAll(p.tags);
+      for (final t in p.tasks) {
+        tags.addAll(t.tags);
+        for (final s in t.subtasks) {
+          tags.addAll(s.tags);
+        }
+      }
+    }
+    return tags.toList()..sort();
+  }
+
+  List<TaggedItem> getItemsWithTag(String tag) {
+    final items = <TaggedItem>[];
+    for (final p in _projects) {
+      if (p.tags.contains(tag)) {
+        items.add(TaggedItem(p.id, p.title, 'project', p));
+      }
+      for (final t in p.tasks) {
+        if (t.tags.contains(tag)) {
+          items.add(TaggedItem(t.id, t.title, 'task', t));
+        }
+        for (final s in t.subtasks) {
+           if (s.tags.contains(tag)) {
+             items.add(TaggedItem(s.id, s.title, 'subtask', s));
+           }
+        }
+      }
+    }
+    return items;
+  }
+
+  List<String> _extractTags(String text) {
+    final regex = RegExp(r'#[\w\u00C0-\u017F-]+');
+    return regex.allMatches(text).map((m) => m.group(0)!).toList();
+  }
+
   // --- AI / UI Tool Interface ---
 
-  String addProject(String title) {
+  Future<String> addProject(String title) async {
     print("[VERIFY_FLOW] Data Update: addProject($title)");
     // Determine order: Last + 1.0
     double newOrder = 0.0;
@@ -33,14 +81,15 @@ class DataService extends ChangeNotifier {
       newOrder = _projects.last.order + 1.0;
     }
     
-    final project = Project(id: uuid.v4(), title: title, order: newOrder);
+    final tags = _extractTags(title);
+    final project = Project(id: uuid.v4(), title: title, order: newOrder, tags: tags);
     _projects.add(project);
     notifyListeners();
-    _repository.saveProject(project);
+    await _repository.saveProject(project);
     return project.id;
   }
 
-  String? addTask(String projectId, String title) {
+  Future<String?> addTask(String projectId, String title) async {
     try {
       print("[VERIFY_FLOW] Data Update: addTask($title) to $projectId");
       final index = _projects.indexWhere((p) => p.id == projectId);
@@ -53,7 +102,8 @@ class DataService extends ChangeNotifier {
         newOrder = project.tasks.last.order + 1.0;
       }
       
-      final task = Task(id: uuid.v4(), title: title, projectId: projectId, order: newOrder);
+      final tags = _extractTags(title);
+      final task = Task(id: uuid.v4(), title: title, projectId: projectId, order: newOrder, tags: tags);
       
       final newTasks = List<Task>.from(project.tasks)..add(task);
       final newProject = project.copyWith(tasks: newTasks);
@@ -61,7 +111,7 @@ class DataService extends ChangeNotifier {
       _projects[index] = newProject;
       notifyListeners();
       
-      _repository.saveTask(task);
+      await _repository.saveTask(task);
       _markdownPersistence.saveTask(task, newProject);
 
       return task.id;
@@ -71,7 +121,7 @@ class DataService extends ChangeNotifier {
     }
   }
 
-  String? addSubtask(String taskId, String title) {
+  Future<String?> addSubtask(String taskId, String title) async {
     for (var i = 0; i < _projects.length; i++) {
       final project = _projects[i];
       final taskIndex = project.tasks.indexWhere((t) => t.id == taskId);
@@ -84,7 +134,8 @@ class DataService extends ChangeNotifier {
           newOrder = task.subtasks.last.order + 1.0;
         }
 
-        final subtask = Subtask(id: uuid.v4(), title: title, order: newOrder);
+        final tags = _extractTags(title);
+        final subtask = Subtask(id: uuid.v4(), title: title, order: newOrder, tags: tags);
         
         final newSubtasks = List<Subtask>.from(task.subtasks)..add(subtask);
         final newTask = task.copyWith(subtasks: newSubtasks);
@@ -97,7 +148,7 @@ class DataService extends ChangeNotifier {
         
         notifyListeners();
         
-        _repository.saveTask(newTask);
+        await _repository.saveTask(newTask);
         
         return subtask.id;
       }
@@ -105,9 +156,88 @@ class DataService extends ChangeNotifier {
     return null;
   }
 
+  void setTaskGoal(String taskId, TaskGoal goal) {
+    for (var i = 0; i < _projects.length; i++) {
+      final project = _projects[i];
+      final taskIndex = project.tasks.indexWhere((t) => t.id == taskId);
+      if (taskIndex != -1) {
+        final task = project.tasks[taskIndex];
+        final newTask = task.copyWith(goal: goal);
+        
+        final newTasksList = List<Task>.from(project.tasks);
+        newTasksList[taskIndex] = newTask;
+        
+        final newProject = project.copyWith(tasks: newTasksList);
+        _projects[i] = newProject;
+        
+        notifyListeners();
+        _repository.saveTask(newTask);
+        return;
+      }
+    }
+  }
+
+  void recordGoalProgress(String taskId, {double? amount, bool? isSuccess, String? note}) {
+    for (var i = 0; i < _projects.length; i++) {
+      final project = _projects[i];
+      final taskIndex = project.tasks.indexWhere((t) => t.id == taskId);
+      
+      if (taskIndex != -1) {
+        final task = project.tasks[taskIndex];
+        if (task.goal == null) return;
+        
+        TaskGoal? newGoal;
+        
+        task.goal!.map(
+          numeric: (n) {
+             if (amount == null) return;
+             final newCurrent = n.current + amount;
+             final transaction = GoalTransaction(
+               id: uuid.v4(),
+               amount: amount,
+               date: DateTime.now(),
+               note: note
+             );
+             newGoal = n.copyWith(
+               current: newCurrent,
+               history: [...n.history, transaction]
+             );
+          }, 
+          habit: (h) {
+            if (isSuccess == null) return;
+            final entry = HabitRecord(
+               date: DateTime.now(),
+               isSuccess: isSuccess,
+               note: note
+            );
+            newGoal = h.copyWith(
+               history: [...h.history, entry]
+            );
+          }
+        );
+        
+        if (newGoal != null) {
+           final newTask = task.copyWith(goal: newGoal);
+           final newTasksList = List<Task>.from(project.tasks);
+           newTasksList[taskIndex] = newTask;
+           
+           final newProject = project.copyWith(tasks: newTasksList);
+           _projects[i] = newProject;
+           
+           notifyListeners();
+           _repository.saveTask(newTask);
+        }
+        return;
+      }
+    }
+  }
+
   // --- MCP / External Sync Methods ---
 
   void upsertProject(Project project) {
+    // Note: If using upsert from MCP, ensure tags are handled. 
+    // Usually project comes fully formed.
+    // If not, we might want to re-parse title here too, but let's trust the input or model.
     final index = _projects.indexWhere((p) => p.id == project.id);
     if (index != -1) {
       _projects[index] = project;
@@ -146,6 +276,7 @@ class DataService extends ChangeNotifier {
   }
 
   void deleteItem(String itemId) {
+    // ... (Existing implementation) ...
     // Check if it is a Project
     int projectIndex = _projects.indexWhere((p) => p.id == itemId);
     if (projectIndex != -1) {
@@ -194,7 +325,7 @@ class DataService extends ChangeNotifier {
     }
   }
 
-  void setItemStatus(String itemId, bool isCompleted) {
+  Future<void> setItemStatus(String itemId, bool isCompleted) async {
     for (var i = 0; i < _projects.length; i++) {
       final project = _projects[i];
       for (var j = 0; j < project.tasks.length; j++) {
@@ -208,7 +339,7 @@ class DataService extends ChangeNotifier {
           final newProject = project.copyWith(tasks: newTasksList);
           _projects[i] = newProject;
           
-          _repository.saveTask(newTask);
+          await _repository.saveTask(newTask);
           notifyListeners();
           return;
         }
@@ -227,7 +358,7 @@ class DataService extends ChangeNotifier {
             final newProject = project.copyWith(tasks: newTasksList);
             _projects[i] = newProject;
             
-            _repository.saveTask(newTask);
+            await _repository.saveTask(newTask);
             notifyListeners();
             return;
           }
@@ -237,11 +368,13 @@ class DataService extends ChangeNotifier {
   }
 
   void updateTitle(String itemId, String newTitle) {
+    final tags = _extractTags(newTitle);
+
     for (var i = 0; i < _projects.length; i++) {
       final project = _projects[i];
       
       if (project.id == itemId) {
-        final newProject = project.copyWith(title: newTitle);
+        final newProject = project.copyWith(title: newTitle, tags: tags);
         _projects[i] = newProject;
         notifyListeners();
         _repository.saveProject(newProject);
@@ -252,7 +385,7 @@ class DataService extends ChangeNotifier {
         final task = project.tasks[j];
         
         if (task.id == itemId) {
-          final newTask = task.copyWith(title: newTitle);
+          final newTask = task.copyWith(title: newTitle, tags: tags);
           final newTasksList = List<Task>.from(project.tasks);
           newTasksList[j] = newTask;
           
@@ -268,7 +401,59 @@ class DataService extends ChangeNotifier {
           final subtask = task.subtasks[k];
           
           if (subtask.id == itemId) {
-            final newSubtask = subtask.copyWith(title: newTitle);
+            final newSubtask = subtask.copyWith(title: newTitle, tags: tags);
+            final newSubtasks = List<Subtask>.from(task.subtasks);
+            newSubtasks[k] = newSubtask;
+            
+            final newTask = task.copyWith(subtasks: newSubtasks);
+            final newTasksList = List<Task>.from(project.tasks);
+            newTasksList[j] = newTask;
+            
+            final newProject = project.copyWith(tasks: newTasksList);
+            _projects[i] = newProject;
+            
+            notifyListeners();
+            _debounceSave(newTask);
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  void updateNotes(String itemId, String newNotes) {
+    for (var i = 0; i < _projects.length; i++) {
+      final project = _projects[i];
+      
+      if (project.id == itemId) {
+        final newProject = project.copyWith(notes: newNotes);
+        _projects[i] = newProject;
+        notifyListeners();
+        _repository.saveProject(newProject);
+        return;
+      }
+      
+      for (var j = 0; j < project.tasks.length; j++) {
+        final task = project.tasks[j];
+        
+        if (task.id == itemId) {
+          final newTask = task.copyWith(notes: newNotes);
+          final newTasksList = List<Task>.from(project.tasks);
+          newTasksList[j] = newTask;
+          
+          final newProject = project.copyWith(tasks: newTasksList);
+          _projects[i] = newProject;
+          
+          notifyListeners();
+          _debounceSave(newTask);
+          return;
+        }
+        
+        for (var k = 0; k < task.subtasks.length; k++) {
+          final subtask = task.subtasks[k];
+          
+          if (subtask.id == itemId) {
+            final newSubtask = subtask.copyWith(notes: newNotes);
             final newSubtasks = List<Subtask>.from(task.subtasks);
             newSubtasks[k] = newSubtask;
             
@@ -340,6 +525,16 @@ class DataService extends ChangeNotifier {
     final index = _conversations.indexWhere((c) => c.id == id);
     if (index != -1) {
       final updated = _conversations[index].copyWith(title: title, lastModified: DateTime.now());
+      _conversations[index] = updated;
+      notifyListeners();
+      _repository.saveConversation(updated);
+    }
+  }
+
+  void updateConversationNotes(String id, String notes) {
+    final index = _conversations.indexWhere((c) => c.id == id);
+    if (index != -1) {
+      final updated = _conversations[index].copyWith(notes: notes, lastModified: DateTime.now());
       _conversations[index] = updated;
       notifyListeners();
       _repository.saveConversation(updated);
