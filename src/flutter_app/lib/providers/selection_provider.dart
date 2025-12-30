@@ -13,6 +13,8 @@ class SelectionState {
   final int focusedColumnIndex; // 0: Projects, 1: Tasks/Conversations, 2: Details/Chat
   final bool isAssistantActive;
   final String? editingItemId;
+  final bool showCompletedTasks;
+  final bool showCompletedSubtasks;
 
   SelectionState({
     this.selectedProjectId,
@@ -24,6 +26,8 @@ class SelectionState {
     this.focusedColumnIndex = 0,
     this.isAssistantActive = false,
     this.editingItemId,
+    this.showCompletedTasks = true,
+    this.showCompletedSubtasks = true,
   });
 
   SelectionState copyWith({
@@ -36,6 +40,8 @@ class SelectionState {
     int? focusedColumnIndex,
     bool? isAssistantActive,
     String? editingItemId,
+    bool? showCompletedTasks,
+    bool? showCompletedSubtasks,
     // Special flags to allow setting null
     bool clearProject = false,
     bool clearTask = false,
@@ -55,6 +61,8 @@ class SelectionState {
       focusedColumnIndex: focusedColumnIndex ?? this.focusedColumnIndex,
       isAssistantActive: isAssistantActive ?? this.isAssistantActive,
       editingItemId: clearEditing ? null : (editingItemId ?? this.editingItemId),
+      showCompletedTasks: showCompletedTasks ?? this.showCompletedTasks,
+      showCompletedSubtasks: showCompletedSubtasks ?? this.showCompletedSubtasks,
     );
   }
 }
@@ -156,6 +164,14 @@ class SelectionNotifier extends Notifier<SelectionState> {
     state = state.copyWith(focusedColumnIndex: index);
   }
 
+  void toggleShowCompletedTasks() {
+    state = state.copyWith(showCompletedTasks: !state.showCompletedTasks);
+  }
+
+  void toggleShowCompletedSubtasks() {
+    state = state.copyWith(showCompletedSubtasks: !state.showCompletedSubtasks);
+  }
+
   // --- Logic Operations ---
 
   void moveSelection(int delta) {
@@ -226,30 +242,52 @@ class SelectionNotifier extends Notifier<SelectionState> {
     } 
     else if (state.focusedColumnIndex == 1) { // Task Column
        if (pIndex == null) return;
-       var tasks = projects[pIndex].tasks;
+       // Filter tasks based on showCompletedTasks state
+       var allTasks = projects[pIndex].tasks;
+       var tasks = state.showCompletedTasks 
+           ? allTasks 
+           : allTasks.where((t) => !t.isCompleted).toList();
        
-       int newIndex = (tIndex ?? -1) + delta;
+       if (tasks.isEmpty) return;
+       
+       // Find current index in filtered list
+       int currentFilteredIndex = -1;
+       if (tIndex != null && tIndex < allTasks.length) {
+         final currentTaskId = allTasks[tIndex].id;
+         currentFilteredIndex = tasks.indexWhere((t) => t.id == currentTaskId);
+       }
+       
+       int newIndex = currentFilteredIndex + delta;
        if (newIndex < 0) newIndex = 0;
        if (newIndex >= tasks.length) newIndex = tasks.length - 1;
        
-       if (tasks.isNotEmpty) {
-         state = state.copyWith(
-           selectedTaskId: tasks[newIndex].id,
-           clearSubtask: true
-         );
-       }
+       state = state.copyWith(
+         selectedTaskId: tasks[newIndex].id,
+         clearSubtask: true
+       );
     }
     else if (state.focusedColumnIndex == 2) { // Subtask Column
       if (pIndex == null || tIndex == null) return;
-      var subtasks = projects[pIndex].tasks[tIndex].subtasks;
+      // Filter subtasks based on showCompletedSubtasks state
+      var allSubtasks = projects[pIndex].tasks[tIndex].subtasks;
+      var subtasks = state.showCompletedSubtasks 
+          ? allSubtasks 
+          : allSubtasks.where((s) => !s.isCompleted).toList();
       
-      int newIndex = (sIndex ?? -1) + delta;
+      if (subtasks.isEmpty) return;
+      
+      // Find current index in filtered list
+      int currentFilteredIndex = -1;
+      if (sIndex != null && sIndex < allSubtasks.length) {
+        final currentSubtaskId = allSubtasks[sIndex].id;
+        currentFilteredIndex = subtasks.indexWhere((s) => s.id == currentSubtaskId);
+      }
+      
+      int newIndex = currentFilteredIndex + delta;
       if (newIndex < 0) newIndex = 0;
       if (newIndex >= subtasks.length) newIndex = subtasks.length - 1;
 
-      if (subtasks.isNotEmpty) {
-        state = state.copyWith(selectedSubtaskId: subtasks[newIndex].id);
-      }
+      state = state.copyWith(selectedSubtaskId: subtasks[newIndex].id);
     }
   }
 
@@ -282,13 +320,23 @@ class SelectionNotifier extends Notifier<SelectionState> {
     if (nextColumn >= 0 && nextColumn <= 2) {
        // Logic to auto-select first item if moving into a column
        if (nextColumn == 1 && pIndex != null) {
-          if (projects[pIndex].tasks.isNotEmpty && state.selectedTaskId == null) {
-             state = state.copyWith(selectedTaskId: projects[pIndex].tasks.first.id, focusedColumnIndex: nextColumn);
+          // Filter tasks based on showCompletedTasks state
+          var allTasks = projects[pIndex].tasks;
+          var tasks = state.showCompletedTasks 
+              ? allTasks 
+              : allTasks.where((t) => !t.isCompleted).toList();
+          if (tasks.isNotEmpty && state.selectedTaskId == null) {
+             state = state.copyWith(selectedTaskId: tasks.first.id, focusedColumnIndex: nextColumn);
              return;
           }
        } else if (nextColumn == 2 && pIndex != null && tIndex != null) {
-          if (projects[pIndex].tasks[tIndex].subtasks.isNotEmpty && state.selectedSubtaskId == null) {
-             state = state.copyWith(selectedSubtaskId: projects[pIndex].tasks[tIndex].subtasks.first.id, focusedColumnIndex: nextColumn);
+          // Filter subtasks based on showCompletedSubtasks state
+          var allSubtasks = projects[pIndex].tasks[tIndex].subtasks;
+          var subtasks = state.showCompletedSubtasks 
+              ? allSubtasks 
+              : allSubtasks.where((s) => !s.isCompleted).toList();
+          if (subtasks.isNotEmpty && state.selectedSubtaskId == null) {
+             state = state.copyWith(selectedSubtaskId: subtasks.first.id, focusedColumnIndex: nextColumn);
              return;
           }
        }

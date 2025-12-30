@@ -1387,50 +1387,55 @@ const IsarTaskSchema = CollectionSchema(
   name: r'IsarTask',
   id: 8117048608637594012,
   properties: {
-    r'goal': PropertySchema(
+    r'aiStatus': PropertySchema(
       id: 0,
+      name: r'aiStatus',
+      type: IsarType.string,
+    ),
+    r'goal': PropertySchema(
+      id: 1,
       name: r'goal',
       type: IsarType.object,
       target: r'IsarTaskGoal',
     ),
     r'isCompleted': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'isCompleted',
       type: IsarType.bool,
     ),
     r'notes': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'notes',
       type: IsarType.string,
     ),
     r'order': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'order',
       type: IsarType.double,
     ),
     r'originalId': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'originalId',
       type: IsarType.string,
     ),
     r'projectId': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'projectId',
       type: IsarType.string,
     ),
     r'subtasks': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'subtasks',
       type: IsarType.objectList,
       target: r'IsarSubtask',
     ),
     r'tags': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'title': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'title',
       type: IsarType.string,
     )
@@ -1474,6 +1479,7 @@ int _isarTaskEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.aiStatus.length * 3;
   {
     final value = object.goal;
     if (value != null) {
@@ -1520,25 +1526,26 @@ void _isarTaskSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
+  writer.writeString(offsets[0], object.aiStatus);
   writer.writeObject<IsarTaskGoal>(
-    offsets[0],
+    offsets[1],
     allOffsets,
     IsarTaskGoalSchema.serialize,
     object.goal,
   );
-  writer.writeBool(offsets[1], object.isCompleted);
-  writer.writeString(offsets[2], object.notes);
-  writer.writeDouble(offsets[3], object.order);
-  writer.writeString(offsets[4], object.originalId);
-  writer.writeString(offsets[5], object.projectId);
+  writer.writeBool(offsets[2], object.isCompleted);
+  writer.writeString(offsets[3], object.notes);
+  writer.writeDouble(offsets[4], object.order);
+  writer.writeString(offsets[5], object.originalId);
+  writer.writeString(offsets[6], object.projectId);
   writer.writeObjectList<IsarSubtask>(
-    offsets[6],
+    offsets[7],
     allOffsets,
     IsarSubtaskSchema.serialize,
     object.subtasks,
   );
-  writer.writeStringList(offsets[7], object.tags);
-  writer.writeString(offsets[8], object.title);
+  writer.writeStringList(offsets[8], object.tags);
+  writer.writeString(offsets[9], object.title);
 }
 
 IsarTask _isarTaskDeserialize(
@@ -1548,26 +1555,27 @@ IsarTask _isarTaskDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = IsarTask();
+  object.aiStatus = reader.readString(offsets[0]);
   object.goal = reader.readObjectOrNull<IsarTaskGoal>(
-    offsets[0],
+    offsets[1],
     IsarTaskGoalSchema.deserialize,
     allOffsets,
   );
   object.id = id;
-  object.isCompleted = reader.readBool(offsets[1]);
-  object.notes = reader.readStringOrNull(offsets[2]);
-  object.order = reader.readDouble(offsets[3]);
-  object.originalId = reader.readString(offsets[4]);
-  object.projectId = reader.readStringOrNull(offsets[5]);
+  object.isCompleted = reader.readBool(offsets[2]);
+  object.notes = reader.readStringOrNull(offsets[3]);
+  object.order = reader.readDouble(offsets[4]);
+  object.originalId = reader.readString(offsets[5]);
+  object.projectId = reader.readStringOrNull(offsets[6]);
   object.subtasks = reader.readObjectList<IsarSubtask>(
-        offsets[6],
+        offsets[7],
         IsarSubtaskSchema.deserialize,
         allOffsets,
         IsarSubtask(),
       ) ??
       [];
-  object.tags = reader.readStringList(offsets[7]) ?? [];
-  object.title = reader.readString(offsets[8]);
+  object.tags = reader.readStringList(offsets[8]) ?? [];
+  object.title = reader.readString(offsets[9]);
   return object;
 }
 
@@ -1579,22 +1587,24 @@ P _isarTaskDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
+      return (reader.readString(offset)) as P;
+    case 1:
       return (reader.readObjectOrNull<IsarTaskGoal>(
         offset,
         IsarTaskGoalSchema.deserialize,
         allOffsets,
       )) as P;
-    case 1:
-      return (reader.readBool(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 3:
-      return (reader.readDouble(offset)) as P;
-    case 4:
-      return (reader.readString(offset)) as P;
-    case 5:
       return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readDouble(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
     case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
       return (reader.readObjectList<IsarSubtask>(
             offset,
             IsarSubtaskSchema.deserialize,
@@ -1602,9 +1612,9 @@ P _isarTaskDeserializeProp<P>(
             IsarSubtask(),
           ) ??
           []) as P;
-    case 7:
-      return (reader.readStringList(offset) ?? []) as P;
     case 8:
+      return (reader.readStringList(offset) ?? []) as P;
+    case 9:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1800,6 +1810,136 @@ extension IsarTaskQueryWhere on QueryBuilder<IsarTask, IsarTask, QWhereClause> {
 
 extension IsarTaskQueryFilter
     on QueryBuilder<IsarTask, IsarTask, QFilterCondition> {
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> aiStatusEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> aiStatusGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> aiStatusLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> aiStatusBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'aiStatus',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> aiStatusStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> aiStatusEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> aiStatusContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> aiStatusMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'aiStatus',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> aiStatusIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'aiStatus',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> aiStatusIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'aiStatus',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<IsarTask, IsarTask, QAfterFilterCondition> goalIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2834,6 +2974,18 @@ extension IsarTaskQueryLinks
     on QueryBuilder<IsarTask, IsarTask, QFilterCondition> {}
 
 extension IsarTaskQuerySortBy on QueryBuilder<IsarTask, IsarTask, QSortBy> {
+  QueryBuilder<IsarTask, IsarTask, QAfterSortBy> sortByAiStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aiStatus', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterSortBy> sortByAiStatusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aiStatus', Sort.desc);
+    });
+  }
+
   QueryBuilder<IsarTask, IsarTask, QAfterSortBy> sortByIsCompleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isCompleted', Sort.asc);
@@ -2909,6 +3061,18 @@ extension IsarTaskQuerySortBy on QueryBuilder<IsarTask, IsarTask, QSortBy> {
 
 extension IsarTaskQuerySortThenBy
     on QueryBuilder<IsarTask, IsarTask, QSortThenBy> {
+  QueryBuilder<IsarTask, IsarTask, QAfterSortBy> thenByAiStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aiStatus', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarTask, IsarTask, QAfterSortBy> thenByAiStatusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aiStatus', Sort.desc);
+    });
+  }
+
   QueryBuilder<IsarTask, IsarTask, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -2996,6 +3160,13 @@ extension IsarTaskQuerySortThenBy
 
 extension IsarTaskQueryWhereDistinct
     on QueryBuilder<IsarTask, IsarTask, QDistinct> {
+  QueryBuilder<IsarTask, IsarTask, QDistinct> distinctByAiStatus(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'aiStatus', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<IsarTask, IsarTask, QDistinct> distinctByIsCompleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isCompleted');
@@ -3048,6 +3219,12 @@ extension IsarTaskQueryProperty
   QueryBuilder<IsarTask, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<IsarTask, String, QQueryOperations> aiStatusProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'aiStatus');
     });
   }
 
@@ -6611,33 +6788,38 @@ const IsarSubtaskSchema = Schema(
   name: r'IsarSubtask',
   id: 5864488705088081175,
   properties: {
-    r'isCompleted': PropertySchema(
+    r'aiStatus': PropertySchema(
       id: 0,
+      name: r'aiStatus',
+      type: IsarType.string,
+    ),
+    r'isCompleted': PropertySchema(
+      id: 1,
       name: r'isCompleted',
       type: IsarType.bool,
     ),
     r'notes': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'notes',
       type: IsarType.string,
     ),
     r'order': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'order',
       type: IsarType.double,
     ),
     r'originalId': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'originalId',
       type: IsarType.string,
     ),
     r'tags': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'tags',
       type: IsarType.stringList,
     ),
     r'title': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'title',
       type: IsarType.string,
     )
@@ -6654,6 +6836,7 @@ int _isarSubtaskEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.aiStatus.length * 3;
   {
     final value = object.notes;
     if (value != null) {
@@ -6678,12 +6861,13 @@ void _isarSubtaskSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.isCompleted);
-  writer.writeString(offsets[1], object.notes);
-  writer.writeDouble(offsets[2], object.order);
-  writer.writeString(offsets[3], object.originalId);
-  writer.writeStringList(offsets[4], object.tags);
-  writer.writeString(offsets[5], object.title);
+  writer.writeString(offsets[0], object.aiStatus);
+  writer.writeBool(offsets[1], object.isCompleted);
+  writer.writeString(offsets[2], object.notes);
+  writer.writeDouble(offsets[3], object.order);
+  writer.writeString(offsets[4], object.originalId);
+  writer.writeStringList(offsets[5], object.tags);
+  writer.writeString(offsets[6], object.title);
 }
 
 IsarSubtask _isarSubtaskDeserialize(
@@ -6693,12 +6877,13 @@ IsarSubtask _isarSubtaskDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = IsarSubtask();
-  object.isCompleted = reader.readBool(offsets[0]);
-  object.notes = reader.readStringOrNull(offsets[1]);
-  object.order = reader.readDouble(offsets[2]);
-  object.originalId = reader.readString(offsets[3]);
-  object.tags = reader.readStringList(offsets[4]) ?? [];
-  object.title = reader.readString(offsets[5]);
+  object.aiStatus = reader.readString(offsets[0]);
+  object.isCompleted = reader.readBool(offsets[1]);
+  object.notes = reader.readStringOrNull(offsets[2]);
+  object.order = reader.readDouble(offsets[3]);
+  object.originalId = reader.readString(offsets[4]);
+  object.tags = reader.readStringList(offsets[5]) ?? [];
+  object.title = reader.readString(offsets[6]);
   return object;
 }
 
@@ -6710,16 +6895,18 @@ P _isarSubtaskDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readBool(offset)) as P;
-    case 1:
-      return (reader.readStringOrNull(offset)) as P;
-    case 2:
-      return (reader.readDouble(offset)) as P;
-    case 3:
       return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readBool(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readDouble(offset)) as P;
     case 4:
-      return (reader.readStringList(offset) ?? []) as P;
+      return (reader.readString(offset)) as P;
     case 5:
+      return (reader.readStringList(offset) ?? []) as P;
+    case 6:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -6728,6 +6915,141 @@ P _isarSubtaskDeserializeProp<P>(
 
 extension IsarSubtaskQueryFilter
     on QueryBuilder<IsarSubtask, IsarSubtask, QFilterCondition> {
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition> aiStatusEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition>
+      aiStatusGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition>
+      aiStatusLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition> aiStatusBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'aiStatus',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition>
+      aiStatusStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition>
+      aiStatusEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition>
+      aiStatusContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'aiStatus',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition> aiStatusMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'aiStatus',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition>
+      aiStatusIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'aiStatus',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition>
+      aiStatusIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'aiStatus',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<IsarSubtask, IsarSubtask, QAfterFilterCondition>
       isCompletedEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {

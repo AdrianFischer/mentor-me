@@ -19,6 +19,12 @@ class EditableColumn extends StatefulWidget {
   final bool showDeleteButton;
   final VoidCallback? onNavigateLeft;
   final VoidCallback? onNavigateRight;
+  final String? editingItemId;
+  final Function(int, String)? onNotesUpdate;
+  final VoidCallback? onExitEdit;
+  final bool showCompleted;
+  final VoidCallback? onToggleShowCompleted;
+  final Function(int)? onAiStatusChanged;
 
   const EditableColumn({
     super.key,
@@ -38,6 +44,12 @@ class EditableColumn extends StatefulWidget {
     this.showDeleteButton = false,
     this.onNavigateLeft,
     this.onNavigateRight,
+    this.editingItemId,
+    this.onNotesUpdate,
+    this.onExitEdit,
+    this.showCompleted = true,
+    this.onToggleShowCompleted,
+    this.onAiStatusChanged,
   });
 
   @override
@@ -81,6 +93,16 @@ class _EditableColumnState extends State<EditableColumn> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (widget.onToggleShowCompleted != null)
+                  IconButton(
+                    key: ValueKey('${widget.title.toLowerCase()}_archive_btn'),
+                    icon: Icon(
+                      widget.showCompleted ? Icons.visibility : Icons.visibility_off,
+                      color: widget.showCompleted ? Colors.grey[600] : Colors.blue[600],
+                    ),
+                    onPressed: widget.onToggleShowCompleted,
+                    tooltip: widget.showCompleted ? 'Hide Completed' : 'Show Completed',
+                  ),
                 IconButton(
                   key: ValueKey('${widget.title.toLowerCase()}_add_btn'),
                   icon: Icon(Icons.add_circle, color: Colors.blue[600]),
@@ -130,6 +152,7 @@ class _EditableColumnState extends State<EditableColumn> {
               itemBuilder: (context, index) {
                 final item = widget.items[index];
                 final isSelected = widget.selectedIndex == index;
+                final isEditing = widget.editingItemId == item.id;
 
                 return EditableItemWidget(
                     key: ValueKey(item.id),
@@ -137,11 +160,17 @@ class _EditableColumnState extends State<EditableColumn> {
                     index: index,
                     isSelected: isSelected,
                     isActiveColumn: widget.isActiveColumn,
+                    isEditing: isEditing,
                     onChanged: (val) => widget.onUpdate(index, val),
+                    onNotesChanged: (val) => widget.onNotesUpdate?.call(index, val),
                     onTap: () => widget.onItemSelected?.call(index),
                     onSubmitted: _addNewItem,
                     onToggleCheck: () => widget.onCheckChanged?.call(index, !item.isCompleted),
+                    onToggleAiStatus: widget.onAiStatusChanged != null 
+                        ? () => widget.onAiStatusChanged?.call(index)
+                        : null,
                     onDelete: () => widget.onDelete?.call(index),
+                    onExitEdit: widget.onExitEdit,
                     showDeleteButton: widget.showDeleteButton,
                     onNavigateLeft: widget.onNavigateLeft,
                     onNavigateRight: widget.onNavigateRight,

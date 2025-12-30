@@ -26,6 +26,20 @@ class MyApp extends ConsumerStatefulWidget {
 class _MyAppState extends ConsumerState<MyApp> {
   final FocusNode _rootFocusNode = FocusNode();
 
+  // Helper to cycle through AI statuses
+  AiStatus _cycleAiStatus(AiStatus current) {
+    switch (current) {
+      case AiStatus.notReady:
+        return AiStatus.ready;
+      case AiStatus.ready:
+        return AiStatus.inProgress;
+      case AiStatus.inProgress:
+        return AiStatus.done;
+      case AiStatus.done:
+        return AiStatus.notReady;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -293,13 +307,28 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   Widget _buildTaskColumn(DataService dataService, List<Project> projects, int pIndex, int? tIndex, SelectionState state, {VoidCallback? onBack}) {
     final project = projects[pIndex];
+    // Filter tasks based on showCompletedTasks state
+    final visibleTasks = state.showCompletedTasks 
+        ? project.tasks 
+        : project.tasks.where((t) => !t.isCompleted).toList();
+    
+    // Find the selected index in the filtered list
+    int? filteredIndex;
+    if (tIndex != null && tIndex < project.tasks.length) {
+      final selectedTaskId = project.tasks[tIndex].id;
+      filteredIndex = visibleTasks.indexWhere((t) => t.id == selectedTaskId);
+      if (filteredIndex == -1) filteredIndex = null;
+    }
+    
     return EditableColumn(
       key: ValueKey('tasks_${project.id}'),
       title: 'Tasks',
       backgroundColor: Colors.white,
-      selectedIndex: tIndex,
+      selectedIndex: filteredIndex,
       isActiveColumn: state.focusedColumnIndex == 1,
-      items: project.tasks.map((t) {
+      showCompleted: state.showCompletedTasks,
+      onToggleShowCompleted: () => ref.read(selectionProvider.notifier).toggleShowCompletedTasks(),
+      items: visibleTasks.map((t) {
          // ... Goal mapping logic same as before ...
          GoalMetadata? goal;
          if (t.goal != null) {
@@ -340,30 +369,49 @@ class _MyAppState extends ConsumerState<MyApp> {
              );
            }
          }
-         return EditableItem(id: t.id, text: t.title, isCompleted: t.isCompleted, goal: goal, notes: t.notes);
+         return EditableItem(
+           id: t.id, 
+           text: t.title, 
+           isCompleted: t.isCompleted, 
+           goal: goal, 
+           notes: t.notes,
+           aiStatus: t.aiStatus,
+         );
       }).toList(),
       editingItemId: state.editingItemId,
       onNotesUpdate: (index, val) {
-        dataService.updateNotes(project.tasks[index].id, val);
+        dataService.updateNotes(visibleTasks[index].id, val);
       },
       onExitEdit: () => ref.read(selectionProvider.notifier).setEditingItem(null),
       onCheckChanged: (index, isChecked) {
-        dataService.setItemStatus(project.tasks[index].id, isChecked);
+        dataService.setItemStatus(visibleTasks[index].id, isChecked);
+      },
+      onAiStatusChanged: (index) {
+        final task = visibleTasks[index];
+        final newStatus = _cycleAiStatus(task.aiStatus);
+        dataService.setAiStatus(task.id, newStatus);
       },
       onItemSelected: (index) {
-        ref.read(selectionProvider.notifier).selectTask(project.tasks[index].id);
+        ref.read(selectionProvider.notifier).selectTask(visibleTasks[index].id);
       },
       onAdd: (val) async {
         Actions.invoke(context, const AddNewItemIntent());
       },
       onUpdate: (index, val) {
-        dataService.updateTitle(project.tasks[index].id, val);
+        dataService.updateTitle(visibleTasks[index].id, val);
       },
       onDelete: (index) {
         Actions.invoke(context, const DeleteItemIntent());
       },
       onReorder: (oldIndex, newIndex) {
-        dataService.reorderTasks(project.id, oldIndex, newIndex);
+        // Map filtered indices back to original indices for reordering
+        final oldTaskId = visibleTasks[oldIndex].id;
+        final newTaskId = visibleTasks[newIndex].id;
+        final oldOriginalIndex = project.tasks.indexWhere((t) => t.id == oldTaskId);
+        final newOriginalIndex = project.tasks.indexWhere((t) => t.id == newTaskId);
+        if (oldOriginalIndex != -1 && newOriginalIndex != -1) {
+          dataService.reorderTasks(project.id, oldOriginalIndex, newOriginalIndex);
+        }
       },
       onBack: onBack,
       onNavigateLeft: () => Actions.invoke(context, const ChangeColumnIntent(-1)),
@@ -373,35 +421,68 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   Widget _buildSubtaskColumn(DataService dataService, List<Project> projects, int pIndex, int tIndex, int? sIndex, SelectionState state, {VoidCallback? onBack}) {
     final task = projects[pIndex].tasks[tIndex];
+    // Filter subtasks based on showCompletedSubtasks state
+    final visibleSubtasks = state.showCompletedSubtasks 
+        ? task.subtasks 
+        : task.subtasks.where((s) => !s.isCompleted).toList();
+    
+    // Find the selected index in the filtered list
+    int? filteredIndex;
+    if (sIndex != null && sIndex < task.subtasks.length) {
+      final selectedSubtaskId = task.subtasks[sIndex].id;
+      filteredIndex = visibleSubtasks.indexWhere((s) => s.id == selectedSubtaskId);
+      if (filteredIndex == -1) filteredIndex = null;
+    }
+    
     return EditableColumn(
       key: ValueKey('subtasks_${projects[pIndex].id}_${task.id}'),
       title: 'Subtasks',
       backgroundColor: const Color(0xFFFAFAFA),
-      selectedIndex: sIndex,
+      selectedIndex: filteredIndex,
       isActiveColumn: state.focusedColumnIndex == 2,
-      items: task.subtasks.map((s) => EditableItem(id: s.id, text: s.title, isCompleted: s.isCompleted, notes: s.notes)).toList(),
+      showCompleted: state.showCompletedSubtasks,
+      onToggleShowCompleted: () => ref.read(selectionProvider.notifier).toggleShowCompletedSubtasks(),
+      items: visibleSubtasks.map((s) => EditableItem(
+        id: s.id, 
+        text: s.title, 
+        isCompleted: s.isCompleted, 
+        notes: s.notes,
+        aiStatus: s.aiStatus,
+      )).toList(),
       editingItemId: state.editingItemId,
       onNotesUpdate: (index, val) {
-        dataService.updateNotes(task.subtasks[index].id, val);
+        dataService.updateNotes(visibleSubtasks[index].id, val);
       },
       onExitEdit: () => ref.read(selectionProvider.notifier).setEditingItem(null),
       onCheckChanged: (index, isChecked) {
-        dataService.setItemStatus(task.subtasks[index].id, isChecked);
+        dataService.setItemStatus(visibleSubtasks[index].id, isChecked);
+      },
+      onAiStatusChanged: (index) {
+        final subtask = visibleSubtasks[index];
+        final newStatus = _cycleAiStatus(subtask.aiStatus);
+        dataService.setAiStatus(subtask.id, newStatus);
       },
       onItemSelected: (index) {
-        ref.read(selectionProvider.notifier).selectSubtask(task.subtasks[index].id);
+        ref.read(selectionProvider.notifier).selectSubtask(visibleSubtasks[index].id);
       },
       onAdd: (val) async {
         Actions.invoke(context, const AddNewItemIntent());
       },
       onUpdate: (index, val) {
-        dataService.updateTitle(task.subtasks[index].id, val);
+        dataService.updateTitle(visibleSubtasks[index].id, val);
       },
       onDelete: (index) {
         Actions.invoke(context, const DeleteItemIntent());
       },
       onReorder: (oldIndex, newIndex) {
-        dataService.reorderSubtasks(task.id, oldIndex, newIndex);
+        // Map filtered indices back to original indices for reordering
+        final oldSubtaskId = visibleSubtasks[oldIndex].id;
+        final newSubtaskId = visibleSubtasks[newIndex].id;
+        final oldOriginalIndex = task.subtasks.indexWhere((s) => s.id == oldSubtaskId);
+        final newOriginalIndex = task.subtasks.indexWhere((s) => s.id == newSubtaskId);
+        if (oldOriginalIndex != -1 && newOriginalIndex != -1) {
+          dataService.reorderSubtasks(task.id, oldOriginalIndex, newOriginalIndex);
+        }
       },
       onBack: onBack,
       onNavigateLeft: () => Actions.invoke(context, const ChangeColumnIntent(-1)),
