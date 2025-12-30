@@ -367,6 +367,57 @@ class DataService extends ChangeNotifier {
     }
   }
 
+  Future<void> setAiStatus(String itemId, AiStatus status) async {
+    // If status is done, also mark as completed
+    final shouldComplete = status == AiStatus.done;
+    
+    for (var i = 0; i < _projects.length; i++) {
+      final project = _projects[i];
+      for (var j = 0; j < project.tasks.length; j++) {
+        final task = project.tasks[j];
+        
+        if (task.id == itemId) {
+          final newTask = task.copyWith(
+            aiStatus: status,
+            isCompleted: shouldComplete ? true : task.isCompleted,
+          );
+          final newTasksList = List<Task>.from(project.tasks);
+          newTasksList[j] = newTask;
+          
+          final newProject = project.copyWith(tasks: newTasksList);
+          _projects[i] = newProject;
+          
+          await _repository.saveTask(newTask);
+          notifyListeners();
+          return;
+        }
+        
+        for (var k = 0; k < task.subtasks.length; k++) {
+          final subtask = task.subtasks[k];
+          if (subtask.id == itemId) {
+            final newSubtask = subtask.copyWith(
+              aiStatus: status,
+              isCompleted: shouldComplete ? true : subtask.isCompleted,
+            );
+            final newSubtasks = List<Subtask>.from(task.subtasks);
+            newSubtasks[k] = newSubtask;
+            
+            final newTask = task.copyWith(subtasks: newSubtasks);
+            final newTasksList = List<Task>.from(project.tasks);
+            newTasksList[j] = newTask;
+            
+            final newProject = project.copyWith(tasks: newTasksList);
+            _projects[i] = newProject;
+            
+            await _repository.saveTask(newTask);
+            notifyListeners();
+            return;
+          }
+        }
+      }
+    }
+  }
+
   void updateTitle(String itemId, String newTitle) {
     final tags = _extractTags(newTitle);
 

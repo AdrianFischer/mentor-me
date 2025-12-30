@@ -6,8 +6,9 @@ import '../models/ai_models.dart';
 import '../services/data_service.dart';
 import 'ai_wrapper.dart'; 
 import 'tts_service.dart';
+import 'ai_agent.dart';
 
-class AssistantService extends ChangeNotifier {
+class AssistantService extends AiAgent {
   final DataService _dataService;
   final ToolRegistry _toolRegistry;
   final AIModelWrapper _modelWrapper;
@@ -15,7 +16,7 @@ class AssistantService extends ChangeNotifier {
   ChatSessionWrapper? _chat;
   
   final SpeechToText _speech = SpeechToText();
-  final TtsService _ttsService = TtsService();
+  final TtsService _ttsService;
   bool _isListening = false;
   bool _isVoiceEnabled = true; 
   String _lastWords = '';
@@ -31,7 +32,8 @@ class AssistantService extends ChangeNotifier {
 
   String? _currentConversationId;
 
-  AssistantService(this._dataService, this._toolRegistry, this._modelWrapper);
+  AssistantService(this._dataService, this._toolRegistry, this._modelWrapper, {TtsService? ttsService})
+      : _ttsService = ttsService ?? TtsService();
 
   // --- Conversation Management ---
 

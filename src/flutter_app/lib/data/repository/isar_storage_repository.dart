@@ -1,13 +1,42 @@
 import 'dart:async';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart';
 import '../../models/models.dart';
 import '../../models/ai_models.dart';
 import '../schema/isar_models.dart';
 import 'storage_repository.dart';
 
 class IsarStorageRepository implements StorageRepository {
+  // Helper to convert string to AiStatus enum
+  AiStatus _stringToAiStatus(String? status) {
+    if (status == null) return AiStatus.notReady;
+    switch (status) {
+      case 'ready':
+        return AiStatus.ready;
+      case 'inProgress':
+        return AiStatus.inProgress;
+      case 'done':
+        return AiStatus.done;
+      case 'notReady':
+        return AiStatus.notReady;
+      default:
+        return AiStatus.notReady;
+    }
+  }
+
+  // Helper to convert AiStatus enum to string
+  String _aiStatusToString(AiStatus status) {
+    switch (status) {
+      case AiStatus.ready:
+        return 'ready';
+      case AiStatus.inProgress:
+        return 'inProgress';
+      case AiStatus.done:
+        return 'done';
+      case AiStatus.notReady:
+        return 'notReady';
+    }
+  }
   late Isar _isar;
   final StreamController<void> _dataChangeController = StreamController<void>.broadcast();
 
@@ -88,6 +117,7 @@ class IsarStorageRepository implements StorageRepository {
       order: it.order,
       tags: it.tags,
       notes: it.notes,
+      aiStatus: _stringToAiStatus(it.aiStatus),
       subtasks: it.subtasks.map((s) => Subtask(
         id: s.originalId,
         title: s.title,
@@ -95,6 +125,7 @@ class IsarStorageRepository implements StorageRepository {
         order: s.order,
         tags: s.tags,
         notes: s.notes,
+        aiStatus: _stringToAiStatus(s.aiStatus),
       )).toList(),
       goal: goal,
     );
@@ -129,6 +160,7 @@ class IsarStorageRepository implements StorageRepository {
       t.order = task.order;
       t.tags = task.tags;
       t.notes = task.notes;
+      t.aiStatus = _aiStatusToString(task.aiStatus);
       t.subtasks = task.subtasks.map((s) => IsarSubtask()
         ..originalId = s.id
         ..title = s.title
@@ -136,6 +168,7 @@ class IsarStorageRepository implements StorageRepository {
         ..order = s.order
         ..tags = s.tags
         ..notes = s.notes
+        ..aiStatus = _aiStatusToString(s.aiStatus)
       ).toList();
 
       if (task.goal != null) {

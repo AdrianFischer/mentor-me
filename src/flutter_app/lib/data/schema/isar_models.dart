@@ -39,6 +39,8 @@ class IsarTask {
 
   String? notes;
 
+  String aiStatus = 'notReady';
+
   List<IsarSubtask> subtasks = [];
 
   IsarTaskGoal? goal;
@@ -52,6 +54,7 @@ class IsarSubtask {
   double order = 0.0;
   List<String> tags = [];
   String? notes;
+  String aiStatus = 'notReady';
 }
 
 @embedded
