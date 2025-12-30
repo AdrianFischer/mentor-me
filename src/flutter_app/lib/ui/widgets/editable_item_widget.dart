@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import '../../models/models.dart';
 
 class GoalMetadata {
   final double? progress; // 0.0 - 1.0
@@ -15,6 +17,7 @@ class EditableItem {
   final String? notes;
   final bool isCompleted;
   final GoalMetadata? goal;
+  final AiStatus aiStatus;
 
   EditableItem({
     required this.id, 
@@ -22,6 +25,7 @@ class EditableItem {
     this.notes,
     this.isCompleted = false,
     this.goal,
+    this.aiStatus = AiStatus.notReady,
   });
 }
 
@@ -36,6 +40,7 @@ class EditableItemWidget extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback onSubmitted;
   final VoidCallback onToggleCheck;
+  final VoidCallback? onToggleAiStatus;
   final VoidCallback onDelete;
   final VoidCallback? onExitEdit;
   final bool showDeleteButton;
@@ -54,6 +59,7 @@ class EditableItemWidget extends StatefulWidget {
     required this.onTap,
     required this.onSubmitted,
     required this.onToggleCheck,
+    this.onToggleAiStatus,
     required this.onDelete,
     this.onExitEdit,
     this.showDeleteButton = false,
@@ -184,6 +190,27 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                         : null,
                     ),
                   ),
+                  
+                  // AI Status Button
+                  if (widget.onToggleAiStatus != null)
+                    GestureDetector(
+                      onTap: widget.onToggleAiStatus,
+                      child: Container(
+                        width: 18,
+                        height: 18,
+                        margin: const EdgeInsets.only(right: 12, top: 2),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _getAiStatusColor(widget.item.aiStatus),
+                          border: Border.all(
+                            color: _getAiStatusBorderColor(widget.item.aiStatus),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: _getAiStatusIcon(widget.item.aiStatus),
+                      ),
+                    ),
+                  
                   // Title
                   Expanded(
                     child: widget.isEditing 
@@ -237,8 +264,59 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                   child: _buildGoalVisualization(widget.item.goal!),
                 ),
 
-              // Notes Section (Only visible in Edit Mode)
-              if (widget.isEditing)
+              // Notes Section
+              if (widget.item.notes != null && widget.item.notes!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 44, top: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("NOTES", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                      const SizedBox(height: 4),
+                      widget.isEditing
+                          ? TextField(
+                              controller: _notesController,
+                              focusNode: _notesFocusNode,
+                              style: const TextStyle(fontSize: 13, color: Colors.black87),
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                                hintText: 'Add notes...',
+                                hintStyle: TextStyle(color: Colors.black26),
+                              ),
+                              maxLines: null,
+                              minLines: 2,
+                              onChanged: (val) => widget.onNotesChanged?.call(val),
+                            )
+                          : Container(
+                              constraints: const BoxConstraints(maxHeight: 300),
+                              child: SingleChildScrollView(
+                                child: MarkdownBody(
+                                  data: widget.item.notes!,
+                                  styleSheet: MarkdownStyleSheet(
+                                    p: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
+                                    h1: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                                    h2: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                                    h3: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                                    code: const TextStyle(fontSize: 12, fontFamily: 'monospace', backgroundColor: Color(0xFFF5F5F5)),
+                                    codeblockDecoration: BoxDecoration(
+                                      color: const Color(0xFFF5F5F5),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    blockquote: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic, color: Colors.black54),
+                                    listBullet: const TextStyle(fontSize: 13, color: Colors.black87),
+                                    strong: const TextStyle(fontWeight: FontWeight.bold),
+                                    em: const TextStyle(fontStyle: FontStyle.italic),
+                                  ),
+                                ),
+                              ),
+                            ),
+                    ],
+                  ),
+                )
+              // Show notes field in edit mode even if empty
+              else if (widget.isEditing)
                 Padding(
                   padding: const EdgeInsets.only(left: 44, top: 8),
                   child: Column(
@@ -356,5 +434,44 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
       }
     }
     return KeyEventResult.ignored;
+  }
+
+  Color _getAiStatusColor(AiStatus status) {
+    switch (status) {
+      case AiStatus.notReady:
+        return Colors.transparent;
+      case AiStatus.ready:
+        return Colors.green;
+      case AiStatus.inProgress:
+        return Colors.blue;
+      case AiStatus.done:
+        return Colors.green;
+    }
+  }
+
+  Color _getAiStatusBorderColor(AiStatus status) {
+    switch (status) {
+      case AiStatus.notReady:
+        return Colors.grey[400]!;
+      case AiStatus.ready:
+        return Colors.green;
+      case AiStatus.inProgress:
+        return Colors.blue;
+      case AiStatus.done:
+        return Colors.green;
+    }
+  }
+
+  Widget? _getAiStatusIcon(AiStatus status) {
+    switch (status) {
+      case AiStatus.notReady:
+        return Icon(Icons.pause, size: 10, color: Colors.grey[600]);
+      case AiStatus.ready:
+        return const Icon(Icons.play_arrow, size: 10, color: Colors.white);
+      case AiStatus.inProgress:
+        return const Icon(Icons.sync, size: 10, color: Colors.white);
+      case AiStatus.done:
+        return const Icon(Icons.check, size: 10, color: Colors.white);
+    }
   }
 }
