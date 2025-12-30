@@ -2,6 +2,9 @@
 
 | **identifier**<br>Description | State | Focus |
 |:---|:---|:---|
+| **2025_12_31_1100_commit_open_changes**<br>Commit all open changes to git | Starting analysis of changes | Grouping files for commits |
+| **ai_agent_status_button**<br>Add an AI agent status button next to each task checkbox. | Planning phase completed | Implementation of Phase 1 |
+| **archive_completed_elements**<br>Archive completed elements to hide them from view. | Completed | Feature verified working |
 | **add_ai_footer**<br>Add 'Built with Assisted Intelligence' text to the app home screen. | Completed | Done |
 | **implement_responsive_layout**<br>Implement layout-based responsive UI for mobile and desktop. | Completed | Implementation & Verification |
 | **f6a85b37-42ae-470e-98bf-91e93b0ac0b8**<br>test adding a task in the new project | In Progress | Initial Scope |
@@ -65,4 +68,4 @@
     -   **Shortcuts & Actions:** Uses Flutter's native Intent/Action system to handle keyboard navigation globally, decoupling input events from specific widget focus.
 - **AI Integration:** Google Gemini API for generating task structures and chat responses.
 
-Last updated: 2025-12-30
+Last updated: 2025-12-30 (updated by agent)

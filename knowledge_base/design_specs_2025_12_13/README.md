@@ -72,3 +72,10 @@ When a user selects a task to work on, it expands into a detailed card, replacin
 
 
 
+
+
+
+
+
+
+
