@@ -83,6 +83,98 @@ class ToolDefinitions {
       }
     },
     {
+      "name": "set_task_goal",
+      "description": "Sets a numeric or habit goal for a specific task.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task_id": { "type": "string", "description": "The UUID of the task." },
+          "type": { "type": "string", "enum": ["numeric", "habit"], "description": "The type of goal." },
+          "target": { "type": "number", "description": "Target value for numeric (amount) or habit (frequency 0.0-1.0)." },
+          "unit": { "type": "string", "description": "Unit for numeric goal (e.g. '\$', 'kg')." }
+        },
+        "required": ["task_id", "type", "target"]
+      }
+    },
+    {
+      "name": "record_goal_progress",
+      "description": "Records progress for a task goal.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task_id": { "type": "string", "description": "The UUID of the task." },
+          "numeric_amount": { "type": "number", "description": "The amount to add/subtract for numeric goals." },
+          "habit_success": { "type": "boolean", "description": "True if the habit was performed successfully today." },
+          "note": { "type": "string", "description": "Optional note for the entry." }
+        },
+        "required": ["task_id"]
+      }
+    },
+    {
+      "name": "get_project",
+      "description": "Retrieves details of a specific project, including its tasks.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "The UUID of the project."
+          }
+        },
+        "required": ["project_id"]
+      }
+    },
+    {
+      "name": "get_task",
+      "description": "Retrieves details of a specific task, including its subtasks.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The UUID of the task."
+          }
+        },
+        "required": ["task_id"]
+      }
+    },
+    {
+      "name": "update_item_name",
+      "description": "Updates the name (title) of a project, task, or subtask.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "description": "The UUID of the project, task, or subtask."
+          },
+          "new_name": {
+            "type": "string",
+            "description": "The new name/title for the item."
+          }
+        },
+        "required": ["item_id", "new_name"]
+      }
+    },
+    {
+      "name": "update_notes",
+      "description": "Updates the notes of a project, task, or subtask.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "description": "The UUID of the project, task, or subtask."
+          },
+          "notes": {
+            "type": "string",
+            "description": "The new notes content."
+          }
+        },
+        "required": ["item_id", "notes"]
+      }
+    },
+    {
       'name': 'save_memory',
     'description': 'Save a specific fact, preference, or insight about the user to long-term memory. Use this when the user states something important that should be remembered for future conversations.',
     'parameters': {

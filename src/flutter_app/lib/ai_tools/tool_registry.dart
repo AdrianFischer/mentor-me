@@ -11,6 +11,7 @@ import 'implementations/record_goal_progress_tool.dart';
 import 'implementations/get_project_tool.dart';
 import 'implementations/get_task_tool.dart';
 import 'implementations/update_item_name_tool.dart';
+import 'implementations/update_notes_tool.dart';
 
 class ToolRegistry {
   final DataService _dataService;
@@ -28,6 +29,7 @@ class ToolRegistry {
     _register(GetProjectTool());
     _register(GetTaskTool());
     _register(UpdateItemNameTool());
+    _register(UpdateNotesTool());
   }
 
   void register(AiTool tool) {
