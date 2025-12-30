@@ -12,6 +12,10 @@ class IsarProject {
   late String title;
   
   double order = 0.0;
+  
+  List<String> tags = [];
+
+  String? notes;
 
   final tasks = IsarLinks<IsarTask>();
 }
@@ -31,7 +35,13 @@ class IsarTask {
 
   String? projectId;
 
+  List<String> tags = [];
+
+  String? notes;
+
   List<IsarSubtask> subtasks = [];
+
+  IsarTaskGoal? goal;
 }
 
 @embedded
@@ -40,7 +50,40 @@ class IsarSubtask {
   late String title;
   bool isCompleted = false;
   double order = 0.0;
+  List<String> tags = [];
+  String? notes;
 }
+
+@embedded
+class IsarTaskGoal {
+  late String type; // "numeric" or "habit"
+  
+  // Numeric
+  double? numericTarget;
+  double? numericCurrent;
+  String? numericUnit;
+  List<IsarGoalTransaction> transactions = [];
+
+  // Habit
+  double? habitTargetFrequency;
+  List<IsarHabitRecord> habitHistory = [];
+}
+
+@embedded
+class IsarGoalTransaction {
+  late String id;
+  late double amount;
+  late DateTime date;
+  String? note;
+}
+
+@embedded
+class IsarHabitRecord {
+  late DateTime date;
+  late bool isSuccess;
+  String? note;
+}
+
 
 @collection
 class IsarConversation {

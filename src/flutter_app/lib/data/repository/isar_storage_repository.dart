@@ -45,6 +45,8 @@ class IsarStorageRepository implements StorageRepository {
         title: ip.title,
         tasks: domainTasks,
         order: ip.order,
+        tags: ip.tags,
+        notes: ip.notes,
       ));
     }
 
@@ -52,18 +54,49 @@ class IsarStorageRepository implements StorageRepository {
   }
   
   Task _taskToDomain(IsarTask it) {
+    TaskGoal? goal;
+    if (it.goal != null) {
+      if (it.goal!.type == 'numeric') {
+        goal = TaskGoal.numeric(
+          target: it.goal!.numericTarget ?? 0.0,
+          current: it.goal!.numericCurrent ?? 0.0,
+          unit: it.goal!.numericUnit,
+          history: it.goal!.transactions.map((t) => GoalTransaction(
+            id: t.id,
+            amount: t.amount,
+            date: t.date,
+            note: t.note,
+          )).toList(),
+        );
+      } else if (it.goal!.type == 'habit') {
+        goal = TaskGoal.habit(
+          targetFrequency: it.goal!.habitTargetFrequency ?? 0.0,
+          history: it.goal!.habitHistory.map((h) => HabitRecord(
+            date: h.date,
+            isSuccess: h.isSuccess,
+            note: h.note,
+          )).toList(),
+        );
+      }
+    }
+
     return Task(
       id: it.originalId,
       title: it.title,
       isCompleted: it.isCompleted,
       projectId: it.projectId,
       order: it.order,
+      tags: it.tags,
+      notes: it.notes,
       subtasks: it.subtasks.map((s) => Subtask(
         id: s.originalId,
         title: s.title,
         isCompleted: s.isCompleted,
         order: s.order,
+        tags: s.tags,
+        notes: s.notes,
       )).toList(),
+      goal: goal,
     );
   }
 
@@ -76,6 +109,8 @@ class IsarStorageRepository implements StorageRepository {
       p.originalId = project.id;
       p.title = project.title;
       p.order = project.order;
+      p.tags = project.tags;
+      p.notes = project.notes;
       await _isar.isarProjects.put(p);
     });
     // _dataChangeController.add(null); // Prevent self-reload loop
@@ -92,12 +127,46 @@ class IsarStorageRepository implements StorageRepository {
       t.isCompleted = task.isCompleted;
       t.projectId = task.projectId;
       t.order = task.order;
+      t.tags = task.tags;
+      t.notes = task.notes;
       t.subtasks = task.subtasks.map((s) => IsarSubtask()
         ..originalId = s.id
         ..title = s.title
         ..isCompleted = s.isCompleted
         ..order = s.order
+        ..tags = s.tags
+        ..notes = s.notes
       ).toList();
+
+      if (task.goal != null) {
+        final isarGoal = IsarTaskGoal();
+        task.goal!.map(
+          numeric: (g) {
+            isarGoal.type = 'numeric';
+            isarGoal.numericTarget = g.target;
+            isarGoal.numericCurrent = g.current;
+            isarGoal.numericUnit = g.unit;
+            isarGoal.transactions = g.history.map((tr) => IsarGoalTransaction()
+              ..id = tr.id
+              ..amount = tr.amount
+              ..date = tr.date
+              ..note = tr.note
+            ).toList();
+          },
+          habit: (g) {
+            isarGoal.type = 'habit';
+            isarGoal.habitTargetFrequency = g.targetFrequency;
+            isarGoal.habitHistory = g.history.map((h) => IsarHabitRecord()
+              ..date = h.date
+              ..isSuccess = h.isSuccess
+              ..note = h.note
+            ).toList();
+          },
+        );
+        t.goal = isarGoal;
+      } else {
+        t.goal = null;
+      }
 
       await _isar.isarTasks.put(t);
 
