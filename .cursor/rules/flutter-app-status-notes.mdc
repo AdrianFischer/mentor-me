@@ -1,0 +1,83 @@
+---
+description: Always update notes with status summary when working on Flutter app items
+alwaysApply: true
+globs: src/flutter_app/**/*.dart
+---
+
+# Flutter App Status Notes Rule
+
+## Purpose
+As a reviewer, you need to see at a glance what the state of any project, task, or subtask is. Therefore, whenever you work on anything from the Flutter app, you must update the notes section with a status summary.
+
+## Trigger
+**EVERY TIME** you perform any work on a Flutter app item (project, task, or subtask), you MUST update its notes with a status summary.
+
+This includes but is not limited to:
+- Creating new items
+- Modifying existing items
+- Completing items
+- Adding subtasks
+- Making any changes that affect the item's state
+
+## Protocol
+
+### When Working on Flutter App Items
+
+1. **Before or immediately after making changes**, update the notes field using `mcp_flutterApp_update_notes`
+2. **Include a concise status summary** that covers:
+   - Current state of the item
+   - What was done/changed
+   - Next steps or blockers (if any)
+   - Any important context for reviewers
+
+### Notes Format
+
+The notes should be a brief, clear summary that allows a reviewer to understand the item's state at a glance. Example format:
+
+```
+Status: [Current State]
+Last Updated: [Date/Time]
+Changes: [What was done]
+Next: [What's next or blockers]
+```
+
+Or a more narrative format:
+
+```
+[Brief summary of current state, what was accomplished, and what remains to be done]
+```
+
+### Examples
+
+**For a completed task:**
+```
+Status: ✅ Complete
+- Implemented UpdateNotesTool
+- Registered in ToolRegistry
+- Tested via MCP successfully
+- All subtasks completed
+```
+
+**For an in-progress task:**
+```
+Status: 🔄 In Progress
+- Core implementation done
+- Testing in progress
+- Blocked: Waiting for API response
+```
+
+**For a new task:**
+```
+Status: 📋 Created
+- Task created to implement feature X
+- Starting with analysis phase
+```
+
+## Critical Rule
+**NEVER work on a Flutter app item without updating its notes with the current status summary.** This is mandatory for reviewer visibility.
+
+## Implementation
+- Use `mcp_flutterApp_update_notes` tool to update notes
+- Update notes BEFORE or IMMEDIATELY AFTER making changes
+- Keep notes concise but informative
+- Update notes even if the item already has notes (append or replace as appropriate)
