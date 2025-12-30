@@ -58,7 +58,7 @@ void main() {
       when(() => mockDataService.getAllKnowledge()).thenAnswer((_) async => []);
       
       // Stub tool execution (add_project)
-      when(() => mockDataService.addProject(any())).thenReturn('proj_id');
+      when(() => mockDataService.addProject(any())).thenAnswer((_) async => 'proj_id');
 
       // Stub Wrapper
       when(() => mockModelWrapper.startChat(history: any(named: 'history'))).thenReturn(mockChatSession);

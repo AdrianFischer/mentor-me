@@ -15,6 +15,7 @@ import 'package:flutter_app/ui/widgets/editable_column.dart';
 import 'package:flutter_app/ui/widgets/editable_item_widget.dart';
 import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_app/providers/mcp_provider.dart';
+import 'helpers/fake_storage_repository.dart';
 
 class MockMcpServerService extends Mock implements McpServerService {
   @override
@@ -32,70 +33,6 @@ class MockMarkdownPersistence extends Mock implements MarkdownPersistenceService
     Future<void> saveTask(Task t, Project p) async {}
 }
 
-class MockStorageRepository extends Mock implements StorageRepository {
-  final List<Project> _mockProjects;
-  final _controller = StreamController<void>.broadcast();
-  
-  MockStorageRepository({List<Project>? initialProjects}) : _mockProjects = initialProjects ?? [];
-
-  @override
-  Future<void> init() async {}
-  @override
-  Stream<void> get onDataChanged => _controller.stream;
-
-  @override
-  List<Project> getProjects() => _mockProjects;
-
-  @override
-  Future<List<Project>> getAllProjects() async => _mockProjects;
-
-  @override
-  Future<void> saveProject(Project p) async {
-    final index = _mockProjects.indexWhere((project) => project.id == p.id);
-    if (index >= 0) {
-      _mockProjects[index] = p;
-    } else {
-      _mockProjects.add(p);
-    }
-    _controller.add(null);
-  }
-  @override
-  Future<void> saveTask(Task t) async {}
-  @override
-  Future<void> saveSubtask(Subtask s) async {}
-  @override
-  Future<void> updateTitle(String id, String t) async {}
-  @override
-  Future<void> setItemStatus(String id, bool s) async {}
-  @override
-  Future<void> deleteItem(String id) async {
-     _mockProjects.removeWhere((project) => project.id == id);
-     _controller.add(null);
-  }
-  @override
-  Future<void> reorderProjects(int o, int n) async {}
-  @override
-  Future<void> reorderTasks(String p, int o, int n) async {}
-  @override
-  Future<void> reorderSubtasks(String t, int o, int n) async {}
-  @override
-  Future<void> deleteProject(String id) async {}
-  @override
-  Future<void> deleteTask(String id) async {}
-  @override
-  Future<void> saveChatMessage(ChatMessage m, String mode) async {}
-  @override
-  Future<List<ChatMessage>> getChatHistory(String mode) async => [];
-  @override
-  Future<void> clearChatHistory(String mode) async {}
-  @override
-  Future<void> saveKnowledge(Knowledge k) async {}
-  @override
-  Future<List<Knowledge>> getAllKnowledge() async => [];
-  @override
-  Future<void> deleteKnowledge(String id) async {}
-}
-
 void main() {
   testWidgets('Right Arrow navigation focuses new task', (WidgetTester tester) async {
     // Setup
@@ -104,7 +41,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final mockStorage = MockStorageRepository(initialProjects: [
+    final mockStorage = FakeStorageRepository(initialProjects: [
       Project(id: 'p_test_A', title: 'Project A'),
     ]);
 

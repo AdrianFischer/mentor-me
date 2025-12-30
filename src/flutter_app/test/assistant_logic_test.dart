@@ -29,7 +29,7 @@ void main() {
 
     test('ToolRegistry executes add_project and calls DataService', () async {
       // Arrange
-      when(() => mockDataService.addProject(any())).thenReturn('new_project_id');
+      when(() => mockDataService.addProject(any())).thenAnswer((_) async => 'new_project_id');
 
       // Act
       final result = await registry.executeTool('add_project', {'title': 'New App'});
@@ -42,7 +42,7 @@ void main() {
 
     test('ToolRegistry executes add_task and calls DataService', () async {
       // Arrange
-      when(() => mockDataService.addTask(any(), any())).thenReturn('new_task_id');
+      when(() => mockDataService.addTask(any(), any())).thenAnswer((_) async => 'new_task_id');
 
       // Act
       final result = await registry.executeTool('add_task', {'project_id': 'p1', 'title': 'Fix Bug'});
