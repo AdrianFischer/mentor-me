@@ -117,7 +117,12 @@ class AssistantService extends ChangeNotifier {
         "=== CURRENT PROJECTS & TASKS ===\n$projectContext\n\n"
         "IMPORTANT LANGUAGE RULE: The user may speak in German or English. "
         "You must DETECT the language of the user's current message and RESPOND IN THE SAME LANGUAGE. "
-        "However, if the user asks to create content (like a Task Title), preserve that specific text exactly as given, regardless of the surrounding conversation language.");
+        "However, if the user asks to create content (like a Task Title), preserve that specific text exactly as given, regardless of the surrounding conversation language.\n\n"
+        "VOICE OPTIMIZATION: Your responses are read aloud via Text-to-Speech. "
+        "1. DO NOT use markdown formatting like '**' (bold) or '###' (headlines). These symbols are not voice-friendly. "
+        "2. Use natural sentence structures and punctuation (commas, periods) to guide the speech rhythm. "
+        "3. Keep lists simple and conversational (e.g., 'First... Second...'). "
+        "4. Focus on clear, structured text that is easy to listen to.");
 
     _chat = _modelWrapper.startChat(
       history: [systemInstruction], 
@@ -272,15 +277,23 @@ class AssistantService extends ChangeNotifier {
 
   Future<void> _speakResponse(String text) async {
     try {
+      // Clean text for TTS: Remove markdown artifacts
+      final cleanText = text
+          .replaceAll('**', '') // Remove bold
+          .replaceAll('###', '') // Remove H3
+          .replaceAll('##', '') // Remove H2
+          .replaceAll('`', '') // Remove code ticks
+          .replaceAll(RegExp(r'\[(.*?)\]\(.*?\)'), r'\1'); // Keep link text, remove URL
+
       // Simple heuristic for language detection
       final germanIndicators = ['der', 'die', 'das', 'und', 'ist', 'nicht', 'hallo', 'guten'];
-      final lowerText = text.toLowerCase();
+      final lowerText = cleanText.toLowerCase();
       final isGerman = germanIndicators.any((word) => lowerText.contains(RegExp(r'\b' + word + r'\b')));
       
       final languageCode = isGerman ? 'de-DE' : 'en-US';
       
       final url = await _ttsService.generateAndGetUrl(
-        text: text, 
+        text: cleanText, 
         languageCode: languageCode,
       );
       await _ttsService.playUrl(url);

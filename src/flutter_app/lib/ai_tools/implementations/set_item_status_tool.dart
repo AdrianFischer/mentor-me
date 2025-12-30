@@ -25,7 +25,7 @@ class SetItemStatusTool implements AiTool {
       return {'result': 'error', 'message': 'Missing item_id or is_completed'};
     }
 
-    dataService.setItemStatus(itemId as String, isCompleted as bool);
+    await dataService.setItemStatus(itemId as String, isCompleted as bool);
     return {'result': 'success'};
   }
 }

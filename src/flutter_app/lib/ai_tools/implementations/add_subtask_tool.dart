@@ -23,7 +23,7 @@ class AddSubtaskTool implements AiTool {
       return {'result': 'error', 'message': 'Missing task_id or title'};
     }
 
-    final id = dataService.addSubtask(taskId as String, title as String);
+    final id = await dataService.addSubtask(taskId as String, title as String);
     if (id != null) {
       return {'result': 'success', 'subtask_id': id};
     } else {
