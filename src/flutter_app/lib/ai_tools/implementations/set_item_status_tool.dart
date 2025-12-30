@@ -3,7 +3,7 @@ import '../../services/data_service.dart';
 
 class SetItemStatusTool implements AiTool {
   @override
-  String get name => 'set_item_status';
+  String get name => 'update_item_status';
 
   @override
   String get description => 'Mark an item as active or completed';
