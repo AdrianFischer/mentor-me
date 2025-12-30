@@ -11,6 +11,7 @@ import 'package:flutter_app/providers/data_provider.dart';
 import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_app/providers/mcp_provider.dart';
 import 'package:mocktail/mocktail.dart';
+import 'helpers/fake_storage_repository.dart';
 
 class MockMcpServerService extends Mock implements McpServerService {
   @override
@@ -18,95 +19,6 @@ class MockMcpServerService extends Mock implements McpServerService {
 
   @override
   Future<void> stop() async {}
-}
-
-
-class FakeStorageRepository implements StorageRepository {
-  List<Project> _projects;
-  final _controller = StreamController<void>.broadcast();
-  
-  FakeStorageRepository({List<Project>? initialProjects}) 
-      : _projects = initialProjects ?? [];
-  
-  @override
-  List<Project> getProjects() => _projects;
-
-  @override
-  Future<void> saveProject(Project project) async {
-    final index = _projects.indexWhere((p) => p.id == project.id);
-    if (index >= 0) {
-      _projects[index] = project;
-    } else {
-      _projects.add(project);
-    }
-    _controller.add(null);
-  }
-
-  @override
-  Future<void> saveTask(Task task) async {
-    _controller.add(null);
-  }
-
-  @override
-  Future<void> saveSubtask(Subtask subtask) async {}
-  @override
-  Future<void> updateTitle(String id, String newTitle) async {}
-  @override
-  Future<void> setItemStatus(String id, bool isCompleted) async {}
-  @override
-  Future<void> deleteItem(String id) async {
-    // Try delete project
-    int pIndex = _projects.indexWhere((p) => p.id == id);
-    if (pIndex != -1) {
-      _projects.removeAt(pIndex);
-      _controller.add(null);
-      return;
-    }
-    
-    // Try delete task
-    for (var i = 0; i < _projects.length; i++) {
-      var project = _projects[i];
-      int tIndex = project.tasks.indexWhere((t) => t.id == id);
-      if (tIndex != -1) {
-        var newTasks = List<Task>.from(project.tasks)..removeAt(tIndex);
-        _projects[i] = project.copyWith(tasks: newTasks);
-        _controller.add(null);
-        return;
-      }
-    }
-  }
-
-  @override
-  Future<void> reorderProjects(int oldIndex, int newIndex) async {}
-  @override
-  Future<void> reorderTasks(String projectId, int oldIndex, int newIndex) async {}
-  @override
-  Future<void> reorderSubtasks(String taskId, int oldIndex, int newIndex) async {}
-  @override
-  Future<void> deleteProject(String projectId) async {
-     _projects.removeWhere((p) => p.id == projectId);
-     _controller.add(null);
-  }
-  @override
-  Future<void> saveChatMessage(ChatMessage message, String mode) async {}
-  @override
-  Future<List<ChatMessage>> getChatHistory(String mode) async => [];
-  @override
-  Future<void> clearChatHistory(String mode) async {}
-  @override
-  Future<void> saveKnowledge(Knowledge knowledge) async {}
-  @override
-  Future<List<Knowledge>> getAllKnowledge() async => [];
-  @override
-  Future<void> deleteKnowledge(String id) async {}
-  @override
-  Future<void> deleteTask(String taskId) async {}
-  @override
-  Future<List<Project>> getAllProjects() async => _projects;
-  @override
-  Future<void> init() async {}
-  @override
-  Stream<void> get onDataChanged => _controller.stream;
 }
 
 void main() {

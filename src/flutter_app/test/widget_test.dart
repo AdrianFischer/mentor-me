@@ -62,12 +62,23 @@ class FakeStorageRepository implements StorageRepository {
   Future<void> reorderSubtasks(String taskId, int oldIndex, int newIndex) async {}
   @override
   Future<void> deleteProject(String projectId) async {}
-  @override
-  Future<void> saveChatMessage(ChatMessage message, String mode) async {}
-  @override
-  Future<List<ChatMessage>> getChatHistory(String mode) async => [];
-  @override
-  Future<void> clearChatHistory(String mode) async {}
+    @override
+    Future<void> saveConversation(Conversation conversation) async {}
+  
+    @override
+    Future<List<Conversation>> getAllConversations() async => [];
+  
+    @override
+    Future<void> deleteConversation(String conversationId) async {}
+  
+    @override
+    Future<void> saveChatMessage(ChatMessage message, String mode) async {}
+  
+    @override
+    Future<List<ChatMessage>> getChatHistory(String mode, {String? conversationId}) async => [];
+  
+    @override
+    Future<void> clearChatHistory(String mode, {String? conversationId}) async {}
   @override
   Future<void> saveKnowledge(Knowledge knowledge) async {}
   @override

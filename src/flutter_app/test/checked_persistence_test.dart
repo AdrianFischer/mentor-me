@@ -12,6 +12,7 @@ import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_app/providers/mcp_provider.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_app/ui/widgets/editable_item_widget.dart'; // Import EditableItemWidget
+import 'helpers/fake_storage_repository.dart';
 
 class MockMcpServerService extends Mock implements McpServerService {
   @override
@@ -19,104 +20,6 @@ class MockMcpServerService extends Mock implements McpServerService {
 
   @override
   Future<void> stop() async {}
-}
-
-
-class FakeStorageRepository implements StorageRepository {
-  List<Project> _projects;
-  final _controller = StreamController<void>.broadcast();
-  
-  FakeStorageRepository({List<Project>? initialProjects}) 
-      : _projects = initialProjects ?? [];
-  
-  @override
-  List<Project> getProjects() => _projects;
-
-  @override
-  Future<void> saveProject(Project project) async {
-    final index = _projects.indexWhere((p) => p.id == project.id);
-    if (index >= 0) {
-      _projects[index] = project;
-    } else {
-      _projects.add(project);
-    }
-    _controller.add(null);
-  }
-
-  @override
-  Future<void> saveTask(Task task) async {
-    if (task.projectId == null) return;
-    final pIndex = _projects.indexWhere((p) => p.id == task.projectId);
-    if (pIndex != -1) {
-      final project = _projects[pIndex];
-      final tIndex = project.tasks.indexWhere((t) => t.id == task.id);
-      
-      List<Task> newTasks;
-      if (tIndex != -1) {
-        newTasks = List<Task>.from(project.tasks);
-        newTasks[tIndex] = task;
-      } else {
-        newTasks = List<Task>.from(project.tasks)..add(task);
-      }
-      _projects[pIndex] = project.copyWith(tasks: newTasks);
-      _controller.add(null);
-    }
-  }
-
-  @override
-  Future<void> saveSubtask(Subtask subtask) async {}
-  @override
-  Future<void> updateTitle(String id, String newTitle) async {}
-  
-  @override
-  Future<void> setItemStatus(String id, bool isCompleted) async {
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      // Check tasks
-      for (var j = 0; j < project.tasks.length; j++) {
-        final task = project.tasks[j];
-        if (task.id == id) {
-          final newTask = task.copyWith(isCompleted: isCompleted);
-          final newTasks = List<Task>.from(project.tasks);
-          newTasks[j] = newTask;
-          _projects[i] = project.copyWith(tasks: newTasks);
-          _controller.add(null);
-          return;
-        }
-      }
-    }
-  }
-
-  @override
-  Future<void> deleteItem(String id) async {}
-  @override
-  Future<void> reorderProjects(int oldIndex, int newIndex) async {}
-  @override
-  Future<void> reorderTasks(String projectId, int oldIndex, int newIndex) async {}
-  @override
-  Future<void> reorderSubtasks(String taskId, int oldIndex, int newIndex) async {}
-  @override
-  Future<void> deleteProject(String projectId) async {}
-  @override
-  Future<void> saveChatMessage(ChatMessage message, String mode) async {}
-  @override
-  Future<List<ChatMessage>> getChatHistory(String mode) async => [];
-  @override
-  Future<void> clearChatHistory(String mode) async {}
-  @override
-  Future<void> saveKnowledge(Knowledge knowledge) async {}
-  @override
-  Future<List<Knowledge>> getAllKnowledge() async => [];
-  @override
-  Future<void> deleteKnowledge(String id) async {}
-  @override
-  Future<void> deleteTask(String taskId) async {}
-  @override
-  Future<List<Project>> getAllProjects() async => _projects;
-  @override
-  Future<void> init() async {}
-  @override
-  Stream<void> get onDataChanged => _controller.stream;
 }
 
 void main() {
@@ -158,21 +61,17 @@ void main() {
     );
     expect(taskItemFinder, findsOneWidget);
 
-    final checkboxFinder = find.descendant(
+    // Find the checkbox gesture detector within it. 
+    final gestureDetectors = find.descendant(
       of: taskItemFinder,
-      matching: find.byWidgetPredicate(
-        (widget) => widget is Container && 
-                    widget.decoration is BoxDecoration && 
-                    (widget.decoration as BoxDecoration).shape == BoxShape.circle
-      )
+      matching: find.byType(GestureDetector)
     );
-    expect(checkboxFinder, findsOneWidget);
+    // The checkbox is the last one (nested inside main one) or checking structure
+    // Structure: Main GestureDetector -> ... -> Checkbox GestureDetector
+    final checkbox = gestureDetectors.last; 
     
-    final checkboxSize = tester.getSize(checkboxFinder);
-    final checkboxCenter = tester.getCenter(checkboxFinder);
-
     // 4. Tap the checkbox to check it
-    await tester.tapAt(checkboxCenter);
+    await tester.tap(checkbox);
     await tester.pumpAndSettle();
 
     // Verify checked (Icon check appears)
