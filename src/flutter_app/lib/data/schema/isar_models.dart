@@ -95,6 +95,8 @@ class IsarConversation {
   late String title;
 
   late DateTime lastModified;
+
+  String? notes;
 }
 
 @collection

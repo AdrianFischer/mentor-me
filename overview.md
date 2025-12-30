@@ -40,6 +40,11 @@
 | **design_ui_concepts**<br>Design 10 innovative UI/UX concepts for the keyboard-driven interface | Completed | Design Completed |
 | **marco_strategic_discussion**<br>Prepare strategic discussion points for conversation with Marco (Chris's boss) | Preparing | Podcast rehearsal |
 | **glt_release_preparation**<br>Prepare release for GLT | Optimization & Profiling | Snapshot implementation for caching |
+| **implement_tagging_system**<br>Allow tagging of projects, tasks, and subtasks for cross-cutting views. | Completed | Done |
+| **ai_agent_button**<br>Add AI Assistant button to header to switch to Chat mode. | Completed | Done |
+| **mcp_integration_basic**<br>Basic MCP Server and Client integration for Agent-App communication. | Completed | Done |
+| **display_artifacts_pretty**<br>Render Markdown artifacts nicely in the Assistant Screen. | Pending | Implementation |
+| **multi_select_actions**<br>Allow multi-selection of tasks for bulk agent actions ("Start Work"). | Pending | Design & Implementation |
 
 ## System Capabilities
 
@@ -55,6 +60,9 @@
         -   `POST /items/<itemId>/status`: Update the completion status of any item (project, task, or subtask).
     -   **Discovery:** Exposes capabilities via `/mcp/tools`.
 - **State Management:** Riverpod for reactive, testable state.
+- **Selection & Navigation Architecture:**
+    -   **SelectionProvider (Riverpod):** Centralized state management for all selection logic (projects, tasks, conversations, tags). Encapsulates navigation rules and auto-cleanup of empty items.
+    -   **Shortcuts & Actions:** Uses Flutter's native Intent/Action system to handle keyboard navigation globally, decoupling input events from specific widget focus.
 - **AI Integration:** Google Gemini API for generating task structures and chat responses.
 
-Last updated: 2025-12-20
+Last updated: 2025-12-30
