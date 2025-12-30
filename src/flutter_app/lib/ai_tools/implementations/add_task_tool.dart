@@ -23,7 +23,7 @@ class AddTaskTool implements AiTool {
        return {'result': 'error', 'message': 'Missing project_id or title'};
     }
 
-    final id = dataService.addTask(projectId as String, title as String);
+    final id = await dataService.addTask(projectId as String, title as String);
     if (id != null) {
       return {'result': 'success', 'task_id': id};
     } else {

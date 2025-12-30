@@ -16,7 +16,7 @@ class AddProjectTool implements AiTool {
   @override
   Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
     final title = args['title'] as String;
-    final id = dataService.addProject(title);
+    final id = await dataService.addProject(title);
     return {'result': 'success', 'project_id': id};
   }
 }
