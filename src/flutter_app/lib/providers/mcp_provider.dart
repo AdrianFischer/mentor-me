@@ -5,7 +5,8 @@ import 'data_provider.dart';
 import 'ai_provider.dart'; // For toolRegistryProvider
 
 final mcpServerProvider = Provider<McpServerService>((ref) {
-  final dataService = ref.watch(dataServiceProvider);
+  // Use ref.read to avoid rebuilding (and restarting server) when DataService notifies
+  final dataService = ref.read(dataServiceProvider);
   final toolRegistry = ref.watch(toolRegistryProvider);
   final service = McpServerService(dataService, toolRegistry);
   
