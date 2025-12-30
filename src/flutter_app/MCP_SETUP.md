@@ -43,6 +43,7 @@ In your project `.cursor/mcp.json`:
 {
   "mcpServers": {
     "flutterApp": {
+      "type": "stdio",
       "command": "dart",
       "args": ["run", "src/flutter_app/bin/mcp_bridge.dart", "http://localhost:8081/mcp"]
     }

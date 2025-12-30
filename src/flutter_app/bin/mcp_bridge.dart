@@ -3,13 +3,15 @@ import 'dart:convert';
 import 'dart:io';
 
 void main(List<String> args) async {
-  // Default URL or from args
   final baseUrl = args.isNotEmpty ? args[0] : 'http://localhost:8081/mcp';
   
   stderr.writeln('[Bridge] Connecting to $baseUrl...');
 
+  final client = HttpClient();
+  String? postEndpoint;
+  final List<String> pendingMessages = [];
+
   try {
-    final client = HttpClient();
     final request = await client.getUrl(Uri.parse(baseUrl));
     request.headers.set('Accept', 'text/event-stream');
     
@@ -19,7 +21,6 @@ void main(List<String> args) async {
       exit(1);
     }
 
-    String? postEndpoint;
     String? currentEvent;
 
     // Handle SSE Stream (Server -> Bridge -> Cursor)
@@ -36,8 +37,16 @@ void main(List<String> args) async {
         if (currentEvent == 'endpoint') {
            postEndpoint = data.trim();
            stderr.writeln('[Bridge] Endpoint discovered: $postEndpoint');
+           
+           // Process buffered messages
+           if (pendingMessages.isNotEmpty) {
+             stderr.writeln('[Bridge] Processing ${pendingMessages.length} buffered messages.');
+             for (final msg in pendingMessages) {
+               _sendToApp(client, baseUrl, postEndpoint!, msg);
+             }
+             pendingMessages.clear();
+           }
         } else if (currentEvent == 'message') {
-           // Write to Stdout for Cursor to read
            stdout.writeln(data); 
         }
       }
@@ -50,40 +59,49 @@ void main(List<String> args) async {
     });
 
     // Handle Stdin (Cursor -> Bridge -> Server)
-    stdin.transform(utf8.decoder).transform(const LineSplitter()).listen((line) async {
+    stdin.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
+       if (line.trim().isEmpty) return;
+
        if (postEndpoint == null) {
-         // Buffer or warn? Warn for now.
-         stderr.writeln('[Bridge] Warning: Received input before endpoint discovery.');
+         stderr.writeln('[Bridge] Buffering message until connection established.');
+         pendingMessages.add(line);
          return;
        }
        
-       if (line.trim().isEmpty) return;
-
-       // POST to App
-       try {
-         // Resolve endpoint against base
-         final uri = Uri.parse(baseUrl).resolve(postEndpoint!);
-         final postReq = await client.postUrl(uri);
-         postReq.headers.contentType = ContentType.json;
-         postReq.write(line);
-         
-         final postRes = await postReq.close();
-         if (postRes.statusCode != 202) {
-             // 202 Accepted is expected for JSON-RPC
-             // Read error body if any
-            final body = await postRes.transform(utf8.decoder).join();
-            stderr.writeln('[Bridge] POST Failed: ${postRes.statusCode} - $body');
-         } else {
-             // Success, drain response to avoid leak
-             await postRes.drain();
-         }
-       } catch (e) {
-         stderr.writeln('[Bridge] POST Error: $e');
-       }
+       _sendToApp(client, baseUrl, postEndpoint!, line);
     });
 
   } catch (e) {
     stderr.writeln('[Bridge] Fatal Error: $e');
     exit(1);
+  }
+}
+
+Future<void> _sendToApp(HttpClient client, String baseUrl, String endpoint, String message) async {
+  try {
+    // Ensure we don't double up /mcp/mcp
+    Uri uri;
+    if (endpoint.startsWith('http')) {
+      uri = Uri.parse(endpoint);
+    } else {
+      final base = Uri.parse(baseUrl);
+      // If endpoint starts with /, it's relative to host.
+      // If not, it's relative to the path.
+      uri = base.resolve(endpoint);
+    }
+
+    final postReq = await client.postUrl(uri);
+    postReq.headers.contentType = ContentType.json;
+    postReq.write(message);
+    
+    final postRes = await postReq.close();
+    if (postRes.statusCode != 202 && postRes.statusCode != 200) {
+       final body = await postRes.transform(utf8.decoder).join();
+       stderr.writeln('[Bridge] POST Failed: ${postRes.statusCode} - $body');
+    } else {
+       await postRes.drain();
+    }
+  } catch (e) {
+    stderr.writeln('[Bridge] POST Error: $e');
   }
 }
