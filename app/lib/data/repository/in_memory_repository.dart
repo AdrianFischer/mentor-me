@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:io';
+import '../../config.dart';
+import '../../utils/markdown_parser.dart';
 import '../../models/models.dart';
 import '../../models/ai_models.dart';
 import 'storage_repository.dart';
@@ -18,7 +21,31 @@ class InMemoryRepository implements StorageRepository {
 
   @override
   Future<void> init() async {
-    // No initialization needed for memory
+    _projects.clear();
+    final dataDir = Config.dataDir;
+    if (dataDir == null) return;
+
+    final dir = Directory('$dataDir/todos');
+    if (!await dir.exists()) return;
+
+    try {
+      await for (final entity in dir.list(recursive: true)) {
+        if (entity is File && entity.path.endsWith('.md')) {
+          if (entity.path.endsWith('README.md')) continue;
+          
+          try {
+            final content = await entity.readAsString();
+            final project = MarkdownParser.parseProject(content);
+            _projects.add(project);
+          } catch (e) {
+            print('Error parsing file ${entity.path}: $e');
+          }
+        }
+      }
+      print('InMemoryRepository loaded ${_projects.length} projects from $dataDir');
+    } catch (e) {
+      print('Error scanning directory $dataDir: $e');
+    }
   }
 
   // --- Projects ---
