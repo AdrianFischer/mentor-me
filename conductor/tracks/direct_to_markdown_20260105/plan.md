@@ -24,7 +24,7 @@ Goal: Move application state to Riverpod and implement the in-memory repository.
 Goal: Connect the in-memory state to the file system with robust change detection.
 
 - [x] Task: Implement `FileSystemWatcher` to listen for external changes. [5ad5727]
-- [ ] Task: Implement "Write-Behind" logic with loop prevention (e.g., using file modification timestamps or internal versioning).
+- [x] Task: Implement "Write-Behind" logic with loop prevention (e.g., using file modification timestamps or internal versioning). [9aaa2c5]
 - [ ] Task: Implement debouncing for UI updates triggered by file system events.
 - [ ] Task: Write Tests: Integration test for "Edit in App -> File Updated" and "Edit File -> App Updated".
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: File System Integration & Loop Prevention' (Protocol in workflow.md)
