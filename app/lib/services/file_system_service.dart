@@ -10,8 +10,7 @@ class FileSystemService implements FilePersistenceService {
   final _projectController = StreamController<List<Project>>.broadcast();
   
   // Track internal writes to prevent loops
-  // Map<ProjectId, LastWriteTime>
-  final Map<String, DateTime> _lastWriteTimes = {};
+  final Map<String, DateTime> _recentInternalWrites = {};
 
   FileSystemService({String? baseDir}) : _baseDir = baseDir ?? Config.dataDir;
 
@@ -25,11 +24,20 @@ class FileSystemService implements FilePersistenceService {
     final dir = Directory('$_baseDir/todos');
     if (!await dir.exists()) return projects;
 
+    final seenIds = <String>{};
+
     await for (final entity in dir.list(recursive: true)) {
       if (entity is File && entity.path.endsWith('.md') && !entity.path.endsWith('README.md')) {
         try {
           final content = await entity.readAsString();
-          projects.add(MarkdownParser.parseProject(content));
+          final project = MarkdownParser.parseProject(content);
+          
+          if (!seenIds.contains(project.id)) {
+            projects.add(project);
+            seenIds.add(project.id);
+          } else {
+             print('Duplicate project ID found: ${project.id} in ${entity.path}. Skipping.');
+          }
         } catch (e) {
           print('Error loading file ${entity.path}: $e');
         }
@@ -42,11 +50,14 @@ class FileSystemService implements FilePersistenceService {
   Future<void> saveProject(Project project) async {
     if (!isEnabled) return;
     
-    _lastWriteTimes[project.id] = DateTime.now();
-
     final category = _getCategory(project);
     final fileName = _generateFileName(project.title);
     final filePath = '$_baseDir/todos/$category/$fileName.md';
+    
+    // Normalize path for consistency
+    final normalizedPath = File(filePath).absolute.path;
+    _recentInternalWrites[normalizedPath] = DateTime.now();
+
     final file = File(filePath);
 
     // TODO: Handle renaming (if title changed, old file needs deletion)
@@ -93,8 +104,18 @@ class FileSystemService implements FilePersistenceService {
       .transform(_debounce(const Duration(milliseconds: 200)))
       .asyncMap((event) async {
       if (event.path.endsWith('.md')) {
-         // Loop Prevention: Check if we just wrote this file?
-         // ...
+         final absolutePath = File(event.path).absolute.path;
+         final lastWrite = _recentInternalWrites[absolutePath];
+         
+         if (lastWrite != null) {
+            final difference = DateTime.now().difference(lastWrite);
+            if (difference.inSeconds < 2) {
+               print("[DEBUG] FileSystemService: Ignoring internal write event for $absolutePath (diff: ${difference.inMilliseconds}ms)");
+               return <Project>[];
+            }
+         }
+
+         print("[DEBUG] FileSystemService: External change detected for ${event.path}. Reloading...");
          final projects = await loadAllProjects();
          return projects;
       }
