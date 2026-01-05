@@ -2,16 +2,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/services/data_service.dart';
 import 'package:flutter_app/data/repository/in_memory_repository.dart';
 import 'package:flutter_app/services/markdown_persistence_service.dart';
+import 'package:flutter_app/services/file_persistence_service.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockMarkdownPersistence extends Mock implements MarkdownPersistenceService {}
+class MockFilePersistence extends Mock implements FilePersistenceService {}
 class FakeProject extends Fake implements Project {}
 
 void main() {
   group('DataService with InMemoryRepository', () {
     late InMemoryRepository repository;
     late MockMarkdownPersistence markdownPersistence;
+    late MockFilePersistence filePersistence;
     late DataService dataService;
 
     setUpAll(() {
@@ -19,7 +22,12 @@ void main() {
     });
 
     setUp(() {
-      repository = InMemoryRepository();
+      filePersistence = MockFilePersistence();
+      when(() => filePersistence.watchProjects()).thenAnswer((_) => Stream.empty());
+      when(() => filePersistence.loadAllProjects()).thenAnswer((_) async => []);
+      when(() => filePersistence.saveProject(any())).thenAnswer((_) async {});
+
+      repository = InMemoryRepository(filePersistence);
       markdownPersistence = MockMarkdownPersistence();
       when(() => markdownPersistence.saveProject(any())).thenAnswer((_) async {});
       
