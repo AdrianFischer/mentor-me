@@ -4,16 +4,6 @@ import 'package:flutter_app/models/models.dart';
 import 'package:flutter_app/models/ai_models.dart';
 import 'package:flutter_app/services/data_service.dart';
 import 'helpers/fake_storage_repository.dart';
-import 'package:flutter_app/services/markdown_persistence_service.dart';
-
-class FakeMarkdownPersistence implements MarkdownPersistenceService {
-  @override
-  bool get isEnabled => true;
-  @override
-  Future<void> saveProject(Project project) async {}
-  @override
-  Future<void> deleteProject(Project project) async {}
-}
 
 void main() {
   group('Goal Tracking Tests', () {
@@ -22,7 +12,7 @@ void main() {
 
     setUp(() async {
       repository = FakeStorageRepository();
-      dataService = DataService(repository, FakeMarkdownPersistence());
+      dataService = DataService(repository);
       await dataService.initData();
     });
 
