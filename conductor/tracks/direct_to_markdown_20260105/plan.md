@@ -15,7 +15,7 @@ Goal: Prepare the codebase for the removal of Isar and define the new `DataServi
 Goal: Move application state to Riverpod and implement the in-memory repository.
 
 - [x] Task: Create `InMemoryRepository` to hold the collection of projects and tasks. [a402446]
-- [ ] Task: Update Riverpod providers to use `InMemoryRepository` instead of `IsarService`.
+- [x] Task: Update Riverpod providers to use `InMemoryRepository` instead of `IsarService`. [2484e51]
 - [ ] Task: Implement "Bootstrap" logic to load all files from `data/` into `InMemoryRepository` on startup.
 - [ ] Task: Write Tests: Verify that state updates correctly in memory and triggers the `FilePersistenceService`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: State Management Transition' (Protocol in workflow.md)
