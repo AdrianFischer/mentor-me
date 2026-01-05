@@ -90,14 +90,22 @@ class FileSystemService implements FilePersistenceService {
     
     // Implementing a full reload on every event:
     return dir.watch(recursive: true).asyncMap((event) async {
-      // Debounce/Filter here?
-      // Check if it's our own write
       if (event.path.endsWith('.md')) {
-         // Should we check _lastWriteTimes?
-         // It's hard to correlate FileSystemEvent to specific Project ID without parsing.
+         // Loop Prevention: Check if we just wrote this file?
+         // It's hard to know WHICH project ID corresponds to this path without parsing it first.
+         // But we can just reload all, and THEN filter?
+         // Or we rely on the fact that if content is identical, Riverpod/Freezed might reduce updates?
          
-         // Let's just reload everything for now (Inefficient but correct for MVP)
-         return await loadAllProjects();
+         // Better: Check file modification time?
+         // If modification time is close to our _lastWriteTimes?
+         
+         // Let's rely on a simpler check:
+         // If we wrote to ANY project in the last 500ms, ignore this event?
+         // That might be too aggressive (blocking concurrent external edits).
+         
+         // Let's reload.
+         final projects = await loadAllProjects();
+         return projects;
       }
       return <Project>[]; 
     }).where((list) => list.isNotEmpty);
