@@ -33,7 +33,7 @@ Implement the `Right Arrow` shortcut to navigate to children or create a new chi
 ## Phase 4: Persistence and Regression
 Ensure all actions are correctly persisted to Isar and no regressions in standard navigation.
 
-- [ ] Task: Verify all keyboard actions correctly trigger Isar persistence.
+- [~] Task: Verify all keyboard actions correctly trigger Isar persistence.
 - [ ] Task: Run full suite of existing navigation tests.
 - [ ] Task: Ensure code coverage for new logic is > 80%.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Persistence and Regression' (Protocol in workflow.md)

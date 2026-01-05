@@ -154,7 +154,8 @@ class DataService extends ChangeNotifier {
       _projects[pIndex] = newProject;
       notifyListeners();
       
-      // await _repository.saveTask(task); // Saved in loop
+      _cancelDebounce(project.id);
+      await _repository.saveProject(newProject); // Ensure project fields (title) are synced
       await _saveToMarkdown(newProject);
 
       return task.id;

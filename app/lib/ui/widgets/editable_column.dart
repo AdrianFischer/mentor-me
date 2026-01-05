@@ -189,12 +189,11 @@ class _EditableColumnState extends State<EditableColumn> {
                 },
                 buildDefaultDragHandles: false, // We use custom handles
                 itemBuilder: (context, index) {
-                  final item = widget.items[index];
-                  final isSelected = widget.selectedIndex == index;
-                  final isEditing = widget.editingItemId == item.id;
-  
-                  return EditableItemWidget(
-                      key: ValueKey(item.id),
+                                                  final item = widget.items[index];
+                                                  final isSelected = widget.selectedIndex == index;
+                                                  final isEditing = widget.editingItemId == item.id;
+                                  
+                                                  return EditableItemWidget(                      key: ValueKey(item.id),
                       item: item,
                       index: index,
                       isSelected: isSelected,

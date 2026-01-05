@@ -121,8 +121,7 @@ void main() {
     Task? newTask;
     for (int i=0; i<10; i++) {
       try {
-        // The last project added is our target
-        final p = dataService.projects.last;
+        final p = dataService.projects.firstWhere((p) => p.title == "New Project Test");
         newTask = p.tasks.firstWhere((t) => t.title == "New Task Test");
         if (newTask != null) break;
       } catch (_) {}
@@ -149,7 +148,7 @@ void main() {
     bool subtaskCreated = false;
     for (int i=0; i<30; i++) {
       try {
-        final p = dataService.projects.last;
+        final p = dataService.projects.firstWhere((p) => p.title == "New Project Test");
         final t = p.tasks.firstWhere((t) => t.title == "New Task Test");
         if (t.subtasks.isNotEmpty) {
           subtaskCreated = true;
