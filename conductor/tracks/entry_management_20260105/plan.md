@@ -11,14 +11,16 @@ Implement the logic to delete empty entries and move focus to the item above.
 - [x] Task: Verify tests pass (Green Phase). [eab8eb4]
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Backspace Deletion and Focus Logic' (Protocol in workflow.md) [5f9081f]
 
-## Phase 2: Space Addition and Edit Mode Protection
+## Phase 2: Space Addition and Edit Mode Protection [checkpoint: 68b318c]
 Implement the `Space` shortcut for adding entries with insertion logic and edit-mode checks.
 
-- [~] Task: Create TDD tests for `Space` addition scenarios including Edit Mode exception (Test Cases 3, 4, & 5).
-- [ ] Task: Implement `Space` handler with insertion logic (after selected or at end).
-- [ ] Task: Implement "Edit Mode" check to prevent accidental entry creation while typing.
-- [ ] Task: Verify tests pass (Green Phase).
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Space Addition and Edit Mode Protection' (Protocol in workflow.md)
+- [x] Task: Create TDD tests for `Space` addition scenarios including Edit Mode exception (Test Cases 3, 4, & 5). [c0f209a]
+- [x] Task: Update `DataService` to support insertion at index (currently only appends). [c0f209a]
+- [x] Task: Implement `Space` handler in keyboard listener, ensuring it invokes `AddNewItemAction`. [c0f209a]
+- [x] Task: Update `AddNewItemAction` to determine insertion index based on current selection. [c0f209a]
+- [x] Task: Ensure `Space` is ignored if currently in Edit Mode (editing text). [c0f209a]
+- [x] Task: Verify tests pass (Green Phase). [c0f209a]
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Space Addition and Edit Mode Protection' (Protocol in workflow.md) [68b318c]
 
 ## Phase 3: Right Arrow Navigation and Creation
 Enhance the `Right Arrow` to navigate deeper or create child entries if none exist.
