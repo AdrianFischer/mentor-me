@@ -25,11 +25,11 @@ USAGE:
 ======
 
 As a command-line script:
-  python3 src/scripts/nano_banana.py "a futuristic cityscape at sunset"
-  python3 src/scripts/nano_banana.py "a diagram showing data flow" --output custom_name.png
+  python3 scripts/nano_banana.py "a futuristic cityscape at sunset"
+  python3 scripts/nano_banana.py "a diagram showing data flow" --output custom_name.png
 
 As a Python module:
-  from src.scripts.nano_banana import generate_image
+  from scripts.nano_banana import generate_image
   image_path = generate_image("a beautiful landscape", output_path="landscape.png")
 
 TROUBLESHOOTING:

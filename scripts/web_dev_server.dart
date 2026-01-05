@@ -11,6 +11,7 @@ void main() async {
     'flutter',
     ['run', '-d', 'web-server', '--web-port=3000'],
     runInShell: true,
+    workingDirectory: 'app',
   );
 
   // Stream stdout and stderr
@@ -21,8 +22,8 @@ void main() async {
     stderr.write(data);
   });
 
-  // 2. Watch lib/ for changes to trigger Hot Restart
-  var libDir = Directory('lib');
+  // 2. Watch app/lib/ for changes to trigger Hot Restart
+  var libDir = Directory('app/lib');
   if (await libDir.exists()) {
     print('Watching lib/ directory for changes...');
     
