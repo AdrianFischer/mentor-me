@@ -1,0 +1,308 @@
+## Information about User
+- User Name: Adi
+- Role: Senior Software Engineer (shall be Team Lead of Team DC in 2026)
+- Status: Fast Track (high potential)
+- Reporting Structure:
+    - Boss: Chris - Team Lead Team DC (leads team user works in, will be CTO in 2026)
+    - Boss's Boss: Marco - CEO and CTO (Focused on Leads/Top of Funnel, Strategic Vision)
+- books:
+    - refer to content of books to increase learning
+    - books finished reading (refer to content of books to increase learning):
+        - Beyond Entrepreneurship 2.0 (Jim Collins & Bill Lazier)
+            - Key Contents:
+                - The "Map": A framework for defining Vision, Mission, and Values.
+                - Leadership Style: Moving from functionary to visionary leader.
+                - Strategy: How to make good decisions and stick to them.
+                - Innovation: Creating a culture that systematically innovates.
+                - Tactical Excellence: Executing with discipline and precision.
+            - Attributes to Strive For:
+                - Visionary Leadership: Inspiring others with a clear future picture.
+                - Authenticity: Leading with true character and integrity.
+                - Decisiveness: Making hard calls with incomplete information.
+                - People-First Mindset: Prioritizing "who" over "what".
+                - Persistence: Sticking to the vision despite obstacles.
+        - Think and Grow Rich (Napoleon Hill)
+            - Key Contents:
+                - The Power of Thought: Thoughts are things and can be transmuted into reality.
+                - Desire: The starting point of all achievement (burning desire).
+                - Auto-suggestion: Programming the subconscious mind for success.
+                - Specialized Knowledge: General knowledge is useless; specialized is power.
+                - The Master Mind: Leveraging the brainpower of others.
+            - Attributes to Strive For:
+                - Unwavering Faith: Believing in the outcome before it happens.
+                - Persistence: refusing to quit when facing temporary defeat.
+                - Decisiveness: Reaching decisions quickly and changing them slowly.
+                - Self-Discipline: Controlling thoughts and actions.
+                - Imagination: Visualizing success and new ideas.
+        - Effective Python (Brett Slatkin)
+            - Key Contents:
+                - Pythonic Thinking: Adhering to the "Zen of Python" (PEP 8).
+                - Functions: Writing clear, reusable, and side-effect-free code.
+                - Classes & Interfaces: Correct usage of inheritance and mixins.
+                - Concurrency & Parallelism: Understanding async, threads, and subprocesses.
+                - Robustness: Testing, debugging, and optimizing for performance.
+            - Attributes to Strive For:
+                - Readability: Writing code that others can understand easily.
+                - Efficiency: Optimizing for speed and memory usage where it counts.
+                - Idiomatic Style: Writing "Pythonic" code, not just translating from C/Java.
+                - Maintainability: Structuring code for long-term health.
+                - Pragmatism: Choosing the right tool and pattern for the job.
+        - Leaders Eat Last (Simon Sinek)
+            - Key Contents:
+                - The Circle of Safety: Creating an environment where people feel safe.
+                - Leadership Chemicals: Endorphins, Dopamine (Selfish) vs. Serotonin, Oxytocin (Social).
+                - Abstraction: The danger of managing numbers instead of people.
+                - Servant Leadership: Leaders serve those in their charge.
+                - Long-term Vision: Prioritizing infinite games over short-term wins.
+            - Attributes to Strive For:
+                - Empathy: Truly understanding and feeling for your team.
+                - Selflessness: Prioritizing the needs of others above your own comfort.
+                - Integrity: Doing the right thing even when no one is watching.
+                - Trustworthiness: Building deep, reliable relationships.
+                - Patience: Understanding that culture and trust take time to build.
+        - The Lean Startup (Eric Ries)
+            - Key Contents:
+                - MVP (Minimum Viable Product): Building the smallest thing to learn.
+                - Build-Measure-Learn: The fundamental feedback loop of innovation.
+                - Validated Learning: Testing hypotheses scientifically.
+                - Pivot or Persevere: Deciding when to change strategy based on data.
+                - Innovation Accounting: Measuring progress in a chaotic environment.
+            - Attributes to Strive For:
+                - Agility: responding to change and feedback instantly.
+                - Scientific Mindset: Treating business ideas as hypotheses to be tested.
+                - Customer-Centricity: solving real problems for real people.
+                - Adaptability: Being willing to kill your darlings (ideas) if they fail.
+                - Efficiency: Eliminating waste in the development process.
+        - The 7 Habits Of Highly Effective People (Stephen R. Covey)
+            - Key Contents:
+                - Be Proactive: Taking responsibility for your life.
+                - Begin with the End in Mind: Define your mission and goals.
+                - Put First Things First: Prioritize the important over the urgent.
+                - Think Win-Win: Seeking mutual benefit in all interactions.
+                - Sharpen the Saw: Continuous self-renewal (physical, mental, spiritual, social).
+            - Attributes to Strive For:
+                - Proactivity: Acting rather than being acted upon.
+                - Integrity: Living in alignment with your values.
+                - Empathy: Seeking first to understand, then to be understood.
+                - Synergistic Thinking: Valuing differences to create better solutions.
+                - Discipline: organizing and executing around priorities.
+        - Nie wieder keine Ahnung (Tim Schreder & Jennifer Sieglar)
+            - Key Contents:
+                - Political Systems: Understanding democracy, federalism, and voting.
+                - Economic Basics: How markets, taxes, and social systems work.
+                - International Relations: The role of EU, UN, NATO, and global conflicts.
+                - Media Literacy: How to consume news critically and spot fake news.
+                - Current Affairs: Context for major global and national discussions.
+            - Attributes to Strive For:
+                - Informed Citizenship: Participating in society with knowledge.
+                - Critical Thinking: Questioning sources and narratives.
+                - Global Perspective: Seeing the bigger picture beyond national borders.
+                - Economic Literacy: Understanding the financial forces at play.
+                - Social Responsibility: caring about the impact of politics on people.
+        - Scrum. Schnelleinstieg (Dr. Andreas Wintersteiger)
+            - Key Contents:
+                - Scrum Roles: Product Owner, Scrum Master, Development Team.
+                - Artifacts: Product Backlog, Sprint Backlog, Increment.
+                - Events: Sprint Planning, Daily Scrum, Sprint Review, Sprint Retrospective.
+                - Agile Values: Individuals and interactions over processes and tools.
+                - Estimation: Story points, planning poker, and velocity.
+            - Attributes to Strive For:
+                - Transparency: Making work and progress visible to all.
+                - Inspection: Regularly checking the product and process.
+                - Adaptation: Adjusting course based on feedback.
+                - Collaboration: Working together intensely to solve problems.
+                - Focus: Committing to a clear goal for a short period.
+        - 12 Rules For Life (Jordan B. Peterson)
+            - Key Contents:
+                - Hierarchy & Posture: Stand up straight with your shoulders back.
+                - Self-Care: Treat yourself like someone you are responsible for helping.
+                - Friendship: Make friends with people who want the best for you.
+                - Comparison: Compare yourself to who you were yesterday, not to who someone else is today.
+                - Truth: Tell the truth – or, at least, don’t lie.
+            - Attributes to Strive For:
+                - Responsibility: Taking ownership of your life and suffering.
+                - Honesty: Speaking truth to yourself and others.
+                - Self-Respect: Valuing your own potential and well-being.
+                - Courage: Facing chaos and difficult conversations.
+                - Discipline: Ordering your life against entropy.
+        - The Richest Man in Babylon (George S. Clason)
+            - Key Contents:
+                - Pay Yourself First: Save at least 10% of all you earn.
+                - Control Thy Expenditures: Don't confuse necessary expenses with desires.
+                - Make Thy Gold Multiply: Invest wisely so money works for you.
+                - Guard Thy Treasures: Consult with experts, avoid get-rich-quick schemes.
+                - Increase Thy Ability to Earn: Invest in your own skills and wisdom.
+            - Attributes to Strive For:
+                - Frugality: Living within your means.
+                - Financial Discipline: Consistent saving and budgeting.
+                - Prudence: Careful management of risk.
+                - Foresight: Planning for retirement and future needs.
+                - Industriousness: Working hard to increase value.
+        - Unlimited Power / Grenzenlose Energie (Tony Robbins)
+            - Key Contents:
+                - Modeling: Duplicating the success of others by copying their beliefs and physiology.
+                - State Management: Controlling your emotional state instantly.
+                - Belief Systems: Identifying and changing limiting beliefs.
+                - Reframing: Changing the meaning of events to empower yourself.
+                - Rapport: Building instant connection with anyone.
+            - Attributes to Strive For:
+                - Vitality: Maintaining high physical and mental energy.
+                - Mastery: Control over your own mind and emotions.
+                - Optimism: Seeing opportunity in every difficulty.
+                - Influence: The ability to move and inspire others.
+                - Action-Orientation: Taking massive action towards goals.
+        - Schattenjahre (Christian Lindner)
+            - Key Contents:
+                - Political Failure: Dealing with the FDP's exit from the Bundestag.
+                - Rebuilding: The strategy and work behind the party's comeback.
+                - Liberalism: The core values of freedom and individual responsibility.
+                - German Politics: Insights into the mechanics of Berlin's political scene.
+                - Personal Resilience: How to keep going when public opinion is against you.
+            - Attributes to Strive For:
+                - Resilience: Bouncing back from public failure.
+                - Conviction: Standing by your principles even when unpopular.
+                - Strategic Patience: Playing the long game.
+                - Rhetorical Skill: Articulating ideas clearly and persuasively.
+                - Leadership: Rallying a demoralized team towards a comeback.
+        - Designing Your Life (Bill Burnett & Dave Evans)
+            - Key Contents:
+                - Life Design: Applying design thinking to career and life choices.
+                - Reframing: Turning "gravity problems" (unsolvable) into actionable ones.
+                - Wayfinding: Following joy and engagement to find your path.
+                - Prototyping: Testing life paths with small experiments (conversations, internships).
+                - Odyssey Plans: Mapping out multiple potential future lives.
+            - Attributes to Strive For:
+                - Curiosity: Always asking "what if" and exploring.
+                - Bias to Action: Building and doing instead of just thinking.
+                - Radical Collaboration: Asking for help and insights.
+                - Mindfulness: Being aware of what gives you energy.
+                - Adaptability: Iterating on your life path continuously.
+        - Existenzgründung - Schritt für Schritt (Thomas Plümer & Martin Niemann)
+            - Key Contents:
+                - Business Plan: Structuring the idea, market analysis, and financial plan.
+                - Legal Forms: Choosing between GmbH, GbR, Einzelunternehmen, etc.
+                - Financing: Bank loans, grants, VC, and bootstrapping.
+                - Taxes & Law: Understanding VAT, income tax, and liability.
+                - Marketing: Basics of finding and keeping customers.
+            - Attributes to Strive For:
+                - Thoroughness: paying attention to legal and financial details.
+                - Risk Awareness: Understanding and mitigating business risks.
+                - Planning: translating dreams into concrete steps.
+                - Compliance: Adhering to rules and regulations.
+                - Entrepreneurial Spirit: Taking initiative to build something.
+        - The Millionaire Fastlane (MJ DeMarco)
+            - Key Contents:
+                - The Slowlane: The trap of "get rich slow" (job + 401k).
+                - The Fastlane: Wealth = Net Profit + Asset Value.
+                - The Commandment of Need: Solves a problem or fills a need.
+                - The Commandment of Entry: High barrier to entry = less competition.
+                - The Commandment of Scale: Affecting millions to make millions.
+            - Attributes to Strive For:
+                - Producer Mindset: Creating value rather than just consuming.
+                - Control: Owning your business and income stream.
+                - Scale-Thinking: Thinking big and automated.
+                - Value-Focus: Obsessing over the customer's needs.
+                - Speed: Executing ideas quickly.
+        - Elon Musk (Ashlee Vance)
+            - Key Contents:
+                - First Principles Thinking: Boiling things down to fundamental truths.
+                - The PayPal Mafia: The network of talent from his early days.
+                - SpaceX: The impossible task of building rockets privately.
+                - Tesla: Transforming an industry against all odds.
+                - Integration: Vertical integration as a competitive advantage.
+            - Attributes to Strive For:
+                - Relentlessness: Never giving up, even at the brink of bankruptcy.
+                - Vision: Thinking on a planetary/interplanetary scale.
+                - Hardcore Work Ethic: Willingness to outwork everyone.
+                - Risk Tolerance: Putting everything on the line for the mission.
+                - Detail Orientation: Knowing every screw and line of code.
+        - Illuminati / Angels & Demons (Dan Brown)
+            - Key Contents:
+                - Science vs. Religion: The conflict and intersection of faith and reason.
+                - Symbolism: The hidden meanings in art and architecture.
+                - The Vatican: Inner workings of the conclave and church history.
+                - Antimatter: The destructive power of scientific discovery.
+                - The Path of Illumination: Solving riddles under extreme time pressure.
+            - Attributes to Strive For:
+                - Critical Thinking: Analyzing clues and separating fact from fiction.
+                - Historical Curiosity: Learning from the past.
+                - Open-Mindedness: Considering opposing viewpoints (Science/Faith).
+                - Urgency: Acting decisively when time is running out.
+                - Knowledge Seeking: Valuing libraries and archives.
+        - Ohne Worte (Thorsten Havener)
+            - Key Contents:
+                - Body Language: Reading posture, gestures, and facial expressions.
+                - Observation: Noticing details that others miss.
+                - Suggestion: How to plant ideas in people's minds.
+                - Lie Detection: Spotting inconsistencies in behavior.
+                - Influence: Using non-verbal cues to guide interactions.
+            - Attributes to Strive For:
+                - Observational Sharpness: Seeing what isn't said.
+                - Emotional Intelligence: Reading the room accurately.
+                - Empathy: Connecting with others' states.
+                - Self-Control: Mastering your own non-verbal signals.
+                - Confidence: Projecting certainty without words.
+        - Die Gesetze der Gewinner (Bodo Schäfer)
+            - Key Contents:
+                - Decision Making: Be a "doer", not a "drifter".
+                - Constant Learning: Read and grow every day.
+                - Time Management: Focus on income-producing activities.
+                - Handling Fear: doing it afraid.
+                - Giving: The law of giving and receiving.
+            - Attributes to Strive For:
+                - Proactivity: Taking charge of every situation.
+                - Growth Mindset: Believing you can improve at anything.
+                - Optimism: Choosing a positive interpretation of events.
+                - Responsibility: Owning your results, good or bad.
+                - Generosity: Creating value for others.
+        - Wie Sie andere dazu bringen, das zu tun, was Sie wollen (Kishor Sridhar)
+            - Key Contents:
+                - Psychological Triggers: What motivates people to say yes.
+                - Framing: Setting the context to influence perception.
+                - Status Games: Understanding high vs. low status behaviors.
+                - Negotiation: Win-win strategies and dealing with difficult people.
+                - Resistance: How to bypass defense mechanisms.
+            - Attributes to Strive For:
+                - Persuasiveness: effectively convincing others.
+                - Tactical Empathy: Understanding the other's view to influence them.
+                - Assertiveness: Stating needs clearly and firmly.
+                - Adaptability: Changing approach based on the personality type.
+                - Goal-Orientation: Keeping the objective in mind during conflict.
+
+
+    - Currently Reading: 
+        - The 48 Laws Of Power (Robert Greene)
+            - Key Contents:
+                - Power Dynamics: Power is a game that is always being played.
+                - Concealment: Never reveal your true intentions.
+                - Reputation: Guard it with your life.
+                - Courtier: The art of navigating social hierarchies.
+                - Strategy: Planning all the way to the end.
+            - Attributes to Strive For:
+                - Strategic Thinking: Always thinking several moves ahead.
+                - Emotional Control: Never letting anger or emotion dictate actions.
+                - Observation: Watching everyone, seeing everything.
+                - Adaptability: Being formless like water.
+                - Caution: Trusting no one completely.
+        - Thinking, Fast and Slow (Daniel Kahneman)
+            - Key Contents:
+                - System 1 vs. System 2: Fast, intuitive vs. slow, deliberate thinking.
+                - Cognitive Biases: Anchoring, availability, confirmation bias.
+                - Prospect Theory: Loss aversion (losses hurt more than gains feel good).
+                - Overconfidence: The illusion of understanding and validity.
+                - Framing Effects: How the presentation of choices affects decisions.
+            - Attributes to Strive For:
+                - Self-Awareness: Knowing when your brain is taking shortcuts.
+                - Critical Thinking: Actively engaging System 2 for important decisions.
+                - Humility: Recognizing the limits of your own judgment.
+                - Rationality: Striving for logic over emotion in decision making.
+                - Statistical Literacy: Understanding base rates and probability.
+
+
+## Goals for 2026 (current year)
+To be defined
+
+
+
+
+

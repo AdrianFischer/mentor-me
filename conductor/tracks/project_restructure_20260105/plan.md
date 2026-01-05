@@ -14,6 +14,9 @@
 - [x] Task: Consolidate Scripts to `scripts/` [913fe33]
     - [x] Write Tests: N/A (File move)
     - [x] Implement Feature: Move scripts from root `scripts/`, `src/scripts/`, and `src/flutter_app/src/scripts/` to the new top-level `scripts/` directory, removing duplicates.
+- [x] Task: Fix 'checked_persistence_test.dart' failure
+    - [x] Write Tests: Ensure 'checked_persistence_test.dart' passes by targeting the correct widget (Checkbox) instead of assuming 'gestureDetectors.last'.
+    - [x] Implement Feature: Update the test finder logic and fixed a race condition in DataService.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Directory Reorganization' (Protocol in workflow.md)
 
 ## Phase 2: Markdown-First Implementation

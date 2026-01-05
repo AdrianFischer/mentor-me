@@ -8,9 +8,11 @@ import 'package:flutter_app/data/repository/storage_repository.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:flutter_app/models/ai_models.dart';
 import 'package:flutter_app/providers/data_provider.dart';
+import 'package:flutter_app/providers/selection_provider.dart';
 import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_app/providers/mcp_provider.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:flutter_app/ui/widgets/editable_column.dart';
 import 'package:flutter_app/ui/widgets/editable_item_widget.dart'; // Import EditableItemWidget
 import 'helpers/fake_storage_repository.dart';
 
@@ -43,15 +45,56 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
+    final container = ProviderScope.containerOf(tester.element(find.byType(MyApp)));
+
+    // Ensure root focus
+    Focus.of(tester.element(find.byKey(const ValueKey('rootFocus')))).requestFocus();
+    await tester.pumpAndSettle();
+
     // 2. Select "Inbox" Project
-    await tester.tap(find.text('Inbox'));
+    container.read(selectionProvider.notifier).selectProject('p1');
     await tester.pumpAndSettle();
 
     // Create a task "Check Me"
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    container.read(dataServiceProvider).addTask('p1', '').then((id) {
+       if (id != null) {
+          container.read(selectionProvider.notifier).selectTask(id);
+          container.read(selectionProvider.notifier).setEditingItem(id);
+       }
+    });
+    
+    // Debug: show what's on screen
+    debugPrint("--- WIDGET TREE ---");
+    for (var widget in find.byType(EditableColumn).evaluate().map((e) => e.widget)) {
+       debugPrint("Column Found: ${(widget as EditableColumn).title}");
+    }
+    
+    // Wait for TextField to appear
+    Finder? titleField;
+    for (int i=0; i<50; i++) {
+      final taskColumn = find.ancestor(of: find.text('Tasks'), matching: find.byType(EditableColumn));
+      titleField = find.descendant(
+        of: taskColumn,
+        matching: find.byType(TextField)
+      );
+      if (titleField.evaluate().isNotEmpty) {
+        titleField = titleField.first;
+        break;
+      }
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    
+    if (titleField == null || titleField.evaluate().isEmpty) fail("Title TextField not found after clicking add");
+    
+    await tester.enterText(titleField, "Check Me");
     await tester.pumpAndSettle();
     
-    await tester.enterText(find.byType(TextField).last, "Check Me");
+    // Explicitly select the task
+    await tester.tap(find.text("Check Me"));
+    await tester.pumpAndSettle();
+
+    // Exit Edit Mode
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
 
     // 3. Find the checkbox
@@ -61,14 +104,11 @@ void main() {
     );
     expect(taskItemFinder, findsOneWidget);
 
-    // Find the checkbox gesture detector within it. 
-    final gestureDetectors = find.descendant(
+    // Find the checkbox by key
+    final checkbox = find.descendant(
       of: taskItemFinder,
-      matching: find.byType(GestureDetector)
+      matching: find.byKey(const Key('item_checkbox'))
     );
-    // The checkbox is the last one (nested inside main one) or checking structure
-    // Structure: Main GestureDetector -> ... -> Checkbox GestureDetector
-    final checkbox = gestureDetectors.last; 
     
     // 4. Tap the checkbox to check it
     await tester.tap(checkbox);
