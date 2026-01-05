@@ -14,7 +14,7 @@ Implement the logic to delete empty entries and move focus to the item above.
 ## Phase 2: Space Addition and Edit Mode Protection
 Implement the `Space` shortcut for adding entries with insertion logic and edit-mode checks.
 
-- [ ] Task: Create TDD tests for `Space` addition scenarios including Edit Mode exception (Test Cases 3, 4, & 5).
+- [~] Task: Create TDD tests for `Space` addition scenarios including Edit Mode exception (Test Cases 3, 4, & 5).
 - [ ] Task: Implement `Space` handler with insertion logic (after selected or at end).
 - [ ] Task: Implement "Edit Mode" check to prevent accidental entry creation while typing.
 - [ ] Task: Verify tests pass (Green Phase).
