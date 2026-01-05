@@ -8,10 +8,9 @@ bool isRestarting = false;
 void main(List<String> args) async {
   // Define paths
   final projectRoot = Directory.current.path;
-  final appDirPath = args.isNotEmpty 
-      ? args[0] 
-      : 'src/flutter_app';
-  final appDir = Directory('$projectRoot/$appDirPath');
+    final String flutterDir = arguments.isNotEmpty
+        ? arguments[0]
+        : 'app';  final appDir = Directory('$projectRoot/$appDirPath');
   final libDir = Directory('${appDir.path}/lib');
   final testDir = Directory('${appDir.path}/test');
   final outputDir = Directory('$projectRoot/knowledge_base/design_specs_2025_12_13');

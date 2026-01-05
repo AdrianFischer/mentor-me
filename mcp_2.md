@@ -12,7 +12,7 @@
 ### Issues & Gaps
 1.  **Violation of Unified Interface**: Tools are defined in two places: `ToolRegistry` (for internal AI) and `McpServerService` (for external MCP). They have different schemas and implementations.
 2.  **Missing Functionality**: `delete_item` is implemented in `ToolRegistry` but not exposed by `McpServerService`.
-3.  **Broken Tests**: `src/flutter_app/test/mcp_server_test.dart` tests non-existent REST endpoints (`/projects`, `/tasks`). It effectively tests nothing of the current implementation.
+3.  **Broken Tests**: `app/test/mcp_server_test.dart` tests non-existent REST endpoints (`/projects`, `/tasks`). It effectively tests nothing of the current implementation.
 4.  **Testing Strategy**: No automated test verifies that the MCP server actually exposes the same tools as the internal AI.
 
 ## High-Level Plan
@@ -57,7 +57,7 @@
 5.  **[DONE]** **Self-Test**: Verifed via code inspection and build.
 
 ### Step 5: Cursor Compatibility (Stdio-to-SSE Adapter)
-*   **[DONE]** Implement `src/flutter_app/bin/mcp_bridge.dart`.
+*   **[DONE]** Implement `app/bin/mcp_bridge.dart`.
 *   **[DONE]** Verify with manual test (or implicit in Step 3).
 
 ### Step 3: Comprehensive E2E Testing Strategy
@@ -91,7 +91,7 @@ Phase 2 is complete.
         *   Initialize `DataService` with `MemoryStorageRepository`. This ensures real business logic runs without touching disk/DB.
         *   Start `McpServerService` on a random localhost port (e.g., 8099).
     2.  **Bridge Execution**:
-        *   Spawn the `src/flutter_app/bin/mcp_bridge.dart` script as a subprocess (`Process.start`).
+        *   Spawn the `app/bin/mcp_bridge.dart` script as a subprocess (`Process.start`).
         *   Pass the HTTP endpoint (e.g., `http://localhost:8099/mcp`) to the bridge (via args or env var) to ensure it hits the test server.
     3.  **Protocol Traffic (The "User" Simulation)**:
         *   Write JSON-RPC messages to the Bridge's **Stdin**:
@@ -112,7 +112,7 @@ Phase 2 is complete.
 
 ### Step 5: Cursor Compatibility (Stdio-to-SSE Adapter)
 *   **Context**: Cursor explicitly requires "command-based servers" and does not natively support HTTP/SSE endpoints for MCP.
-*   **Deliverable**: `src/flutter_app/bin/mcp_bridge.dart` (The Adapter)
+*   **Deliverable**: `app/bin/mcp_bridge.dart` (The Adapter)
 *   **Implementation**:
     *   A standalone Dart script inside the flutter package.
     *   **Input**: Standard Input (Stdin) receiving JSON-RPC 2.0 messages.
@@ -126,7 +126,7 @@ Phase 2 is complete.
           "mcpServers": {
             "flutterApp": {
               "command": "dart",
-              "args": ["run", "src/flutter_app/bin/mcp_bridge.dart"]
+              "args": ["run", "app/bin/mcp_bridge.dart"]
             }
           }
         }
@@ -146,7 +146,7 @@ Phase 2 is complete.
 5.  **Self-Test**: Full flow verification.
 
 ## Critique & Refinement
-*   **Self-Testing in Step 3**: Writing a robust SSE Client for testing might be non-trivial if `mcp_dart` doesn't provide one out of the box. *Mitigation*: Inspect `mcp_dart` package exports in `src/flutter_app/pubspec.lock` or imports to see what client transports are available. If none for SSE, testing might be harder.
+*   **Self-Testing in Step 3**: Writing a robust SSE Client for testing might be non-trivial if `mcp_dart` doesn't provide one out of the box. *Mitigation*: Inspect `mcp_dart` package exports in `app/pubspec.lock` or imports to see what client transports are available. If none for SSE, testing might be harder.
 *   **Wait**: `mcp_server.dart` implements `_SseTransport`. The client needs a matching one.
 *   **Plan Update**: Step 3 must include "Implement `SseClientTransport` for testing" if it doesn't exist.
 *   **Constraint Check**: The Bridge is unavoidable for Cursor. We will frame it as an "Adapter" to align with engineering terminology.

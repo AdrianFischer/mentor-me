@@ -40,12 +40,12 @@ void main() {
 
     test('Full Flow: Bridge -> Server -> DataService', () async {
       // 2. Spawn Bridge
-      // We assume we are running from project root or src/flutter_app depending on context.
-      // Since `flutter test` runs from `src/flutter_app`, the bin path is `bin/mcp_bridge.dart`.
+      // We assume we are running from project root or app depending on context.
+      // Since `flutter test` runs from `app`, the bin path is `bin/mcp_bridge.dart`.
       
       final bridgeScript = 'bin/mcp_bridge.dart';
       if (!File(bridgeScript).existsSync()) {
-        fail('Bridge script not found at $bridgeScript. Run from src/flutter_app.');
+        fail('Bridge script not found at $bridgeScript. Run from app.');
       }
 
       bridgeProcess = await Process.start(

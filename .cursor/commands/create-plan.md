@@ -178,3 +178,4 @@ description: You are tasked with creating detailed implementation plans through 
 - Focus on incremental, testable phases; avoid scope creep.
 - If information is missing, pause and ask for clarification before drafting the plan.
 
+
