@@ -30,10 +30,10 @@ Implement the `Right Arrow` shortcut to navigate to children or create a new chi
 - [x] Task: Verify tests pass (Green Phase). [08b36f5]
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Right Arrow Navigation and Creation' (Protocol in workflow.md) [81b929c]
 
-## Phase 4: Persistence and Regression
+## Phase 4: Persistence and Regression [checkpoint: 1ee681e]
 Ensure all actions are correctly persisted to Isar and no regressions in standard navigation.
 
-- [~] Task: Verify all keyboard actions correctly trigger Isar persistence.
-- [ ] Task: Run full suite of existing navigation tests.
-- [ ] Task: Ensure code coverage for new logic is > 80%.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Persistence and Regression' (Protocol in workflow.md)
+- [x] Task: Verify all keyboard actions correctly trigger Isar persistence. [75e5f51]
+- [x] Task: Run full suite of existing navigation tests. [75e5f51]
+- [x] Task: Ensure code coverage for new logic is > 80%. [75e5f51]
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Persistence and Regression' (Protocol in workflow.md) [1ee681e]
