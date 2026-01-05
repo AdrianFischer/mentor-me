@@ -22,14 +22,13 @@ Implement the `Space` shortcut for adding entries with insertion logic and edit-
 - [x] Task: Verify tests pass (Green Phase). [c0f209a]
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Space Addition and Edit Mode Protection' (Protocol in workflow.md) [68b318c]
 
-## Phase 3: Right Arrow Navigation and Creation
-Enhance the `Right Arrow` to navigate deeper or create child entries if none exist.
+## Phase 3: Right Arrow Navigation and Creation [checkpoint: 81b929c]
+Implement the `Right Arrow` shortcut to navigate to children or create a new child if none exist.
 
-- [ ] Task: Create TDD tests for `Right Arrow` creation (Test Case 6).
-- [ ] Task: Update `Right Arrow` handler to check for child existence.
-- [ ] Task: Implement sub-entry creation and focus logic for empty hierarchies.
-- [ ] Task: Verify tests pass (Green Phase).
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Right Arrow Navigation and Creation' (Protocol in workflow.md)
+- [x] Task: Create TDD tests for `Right Arrow` navigation and creation (Test Cases 6 & 7). [08b36f5]
+- [x] Task: Implement `Right Arrow` handler (or verify existing logic). [08b36f5]
+- [x] Task: Verify tests pass (Green Phase). [08b36f5]
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Right Arrow Navigation and Creation' (Protocol in workflow.md) [81b929c]
 
 ## Phase 4: Persistence and Regression
 Ensure all actions are correctly persisted to Isar and no regressions in standard navigation.
