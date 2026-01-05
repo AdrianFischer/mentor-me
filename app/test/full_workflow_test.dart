@@ -155,7 +155,7 @@ void main() {
     await tester.pump();
     
     // Wait for file write
-    await Future.delayed(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 1100));
     final updatedContent = files.first.readAsStringSync();
     expect(updatedContent, contains("my new notes"));
 
@@ -166,7 +166,7 @@ void main() {
     expect(find.text("my new notes"), findsOneWidget);
     
     final finalContent = files.first.readAsStringSync();
-    expect(finalContent, contains("title: My new Project"));
+    expect(finalContent, contains("# My new Project"));
     expect(finalContent, contains("my new notes"));
 
     // 8) In Task Column: Press "Add Item" / plus button
@@ -175,16 +175,10 @@ void main() {
 
     // Navigate Right
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 1100)); // Wait for auto-create debounce/async
     
     expect(find.text('Tasks'), findsOneWidget);
 
-    // Add Item
-    await tester.sendKeyDownEvent(LogicalKeyboardKey.meta);
-    await tester.sendKeyEvent(LogicalKeyboardKey.keyN);
-    await tester.sendKeyUpEvent(LogicalKeyboardKey.meta);
-    await tester.pump(const Duration(milliseconds: 500));
-    
     // 9) Enter "My new Task" -> Verify persistence
     // Note: Use ValueKey with variable in test requires removing const or building key properly
     final taskInputFinder = find.descendant(
@@ -200,7 +194,7 @@ void main() {
     expect(find.text("My new Task"), findsOneWidget);
     
     // Verify File
-    await Future.delayed(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 1100));
     final taskContent = files.first.readAsStringSync();
     expect(taskContent, contains("- [ ] My new Task"));
 
@@ -218,7 +212,7 @@ void main() {
     expect(find.text("My new Task"), findsNothing);
     
     // Verify removal in File
-    await Future.delayed(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 1100));
     final afterDeleteContent = files.first.readAsStringSync();
     expect(afterDeleteContent, isNot(contains("My new Task")));
     
@@ -228,7 +222,7 @@ void main() {
     expect(afterDeleteState.selectedTaskId, isNull); // Task deleted
     
     // Verify Notes and Title unchanged
-    expect(afterDeleteContent, contains("title: My new Project"));
+    expect(afterDeleteContent, contains("# My new Project"));
     expect(afterDeleteContent, contains("my new notes"));
   });
 }

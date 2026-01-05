@@ -418,9 +418,9 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
           return KeyEventResult.handled;
        }
        
-       if (event.logicalKey == LogicalKeyboardKey.enter) {
+       if (event.logicalKey == LogicalKeyboardKey.enter || event.logicalKey == LogicalKeyboardKey.tab) {
           if (!HardwareKeyboard.instance.isShiftPressed) {
-             // Enter in Title -> Focus Notes?
+             // Enter or Tab in Title -> Focus Notes?
              if (widget.isEditing) {
                _notesFocusNode.requestFocus();
                return KeyEventResult.handled;

@@ -5,13 +5,10 @@ import 'dart:io';
 import 'package:flutter_app/ai_tools/tool_registry.dart';
 import 'package:flutter_app/data/repository/memory_storage_repository.dart';
 import 'package:flutter_app/services/data_service.dart';
-import 'package:flutter_app/services/markdown_persistence_service.dart';
 import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-
-class MockMarkdownPersistenceService extends Mock implements MarkdownPersistenceService {}
 
 void main() {
   group('MCP Full Stack Test', () {
@@ -24,14 +21,8 @@ void main() {
     setUp(() async {
       // 1. Setup Server & Data
       final repository = MemoryStorageRepository();
-      final markdownService = MockMarkdownPersistenceService();
       
-      registerFallbackValue(Project(id: 'any', title: 'any'));
-      when(() => markdownService.saveProject(any())).thenAnswer((_) async {});
-      when(() => markdownService.deleteProject(any())).thenAnswer((_) async {});
-      when(() => markdownService.isEnabled).thenReturn(true);
-
-      dataService = DataService(repository, markdownService);
+      dataService = DataService(repository);
       await dataService.initData();
       
       toolRegistry = ToolRegistry(dataService);

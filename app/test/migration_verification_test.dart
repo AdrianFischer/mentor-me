@@ -1,17 +1,17 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/services/markdown_persistence_service.dart';
+import 'package:flutter_app/services/file_system_service.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:path/path.dart' as path;
 
 void main() {
-  group('MarkdownPersistenceService Migration', () {
+  group('FileSystemService Migration', () {
     late Directory tempDir;
-    late MarkdownPersistenceService service;
+    late FileSystemService service;
 
     setUp(() async {
       tempDir = await Directory.systemTemp.createTemp('ai_migration_test');
-      service = MarkdownPersistenceService(baseDir: tempDir.path);
+      service = FileSystemService(baseDir: tempDir.path);
     });
 
     tearDown(() async {

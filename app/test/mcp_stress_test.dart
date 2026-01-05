@@ -5,14 +5,11 @@ import 'dart:io';
 import 'package:flutter_app/ai_tools/tool_registry.dart';
 import 'package:flutter_app/data/repository/memory_storage_repository.dart';
 import 'package:flutter_app/services/data_service.dart';
-import 'package:flutter_app/services/markdown_persistence_service.dart';
 import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:flutter_app/models/models.dart';
-
-class MockMarkdownPersistenceService extends Mock implements MarkdownPersistenceService {}
 
 void main() {
   group('MCP Stress Test', () {
@@ -20,7 +17,6 @@ void main() {
     late ToolRegistry toolRegistry;
     late McpServerService serverService;
     late Process bridgeProcess;
-    late MockMarkdownPersistenceService markdownService;
     final int port = 8092; // Use a distinct port
 
     setUp(() async {
@@ -30,13 +26,8 @@ void main() {
 
       // 1. Setup Server & Data
       final repository = MemoryStorageRepository();
-      markdownService = MockMarkdownPersistenceService();
       
-      // Stub saveProject
-      when(() => markdownService.saveProject(any())).thenAnswer((_) async {});
-      when(() => markdownService.deleteProject(any())).thenAnswer((_) async {});
-
-      dataService = DataService(repository, markdownService);
+      dataService = DataService(repository);
       await dataService.initData();
       
       // Create a default project
