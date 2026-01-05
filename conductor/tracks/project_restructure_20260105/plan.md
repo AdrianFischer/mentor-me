@@ -8,12 +8,12 @@
 - [x] Task: Move Flutter app to `app/` [985fe22]
     - [x] Write Tests: N/A (File move)
     - [x] Implement Feature: Move all contents of `src/flutter_app/` to `app/` and update any relative paths in root config files.
-- [~] Task: Extract Firebase Functions to `backend/`
-    - [ ] Write Tests: N/A (File move)
-    - [ ] Implement Feature: Move `src/flutter_app/functions/` to `backend/` and verify build/config integrity.
-- [ ] Task: Consolidate Scripts to `scripts/`
-    - [ ] Write Tests: N/A (File move)
-    - [ ] Implement Feature: Move scripts from root `scripts/`, `src/scripts/`, and `src/flutter_app/src/scripts/` to the new top-level `scripts/` directory, removing duplicates.
+- [x] Task: Extract Firebase Functions to `backend/` [e633e39]
+    - [x] Write Tests: N/A (File move)
+    - [x] Implement Feature: Move `app/functions/` to `backend/` and verify build/config integrity.
+- [x] Task: Consolidate Scripts to `scripts/` [913fe33]
+    - [x] Write Tests: N/A (File move)
+    - [x] Implement Feature: Move scripts from root `scripts/`, `src/scripts/`, and `src/flutter_app/src/scripts/` to the new top-level `scripts/` directory, removing duplicates.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Directory Reorganization' (Protocol in workflow.md)
 
 ## Phase 2: Markdown-First Implementation
