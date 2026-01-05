@@ -89,26 +89,55 @@ class FileSystemService implements FilePersistenceService {
     // Stream<List<Project>> watchProjects();
     
     // Implementing a full reload on every event:
-    return dir.watch(recursive: true).asyncMap((event) async {
+    return dir.watch(recursive: true)
+      .transform(_debounce(const Duration(milliseconds: 200)))
+      .asyncMap((event) async {
       if (event.path.endsWith('.md')) {
          // Loop Prevention: Check if we just wrote this file?
-         // It's hard to know WHICH project ID corresponds to this path without parsing it first.
-         // But we can just reload all, and THEN filter?
-         // Or we rely on the fact that if content is identical, Riverpod/Freezed might reduce updates?
-         
-         // Better: Check file modification time?
-         // If modification time is close to our _lastWriteTimes?
-         
-         // Let's rely on a simpler check:
-         // If we wrote to ANY project in the last 500ms, ignore this event?
-         // That might be too aggressive (blocking concurrent external edits).
-         
-         // Let's reload.
+         // ...
          final projects = await loadAllProjects();
          return projects;
       }
       return <Project>[]; 
     }).where((list) => list.isNotEmpty);
+  }
+
+  // Simple debounce transformer
+  StreamTransformer<T, T> _debounce<T>(Duration duration) {
+    return StreamTransformer<T, T>((input, cancelOnError) {
+      StreamController<T>? controller;
+      StreamSubscription<T>? subscription;
+      Timer? timer;
+
+      controller = StreamController<T>(
+        onListen: () {
+          subscription = input.listen(
+            (event) {
+              timer?.cancel();
+              timer = Timer(duration, () {
+                if (!controller!.isClosed) {
+                  controller.add(event);
+                }
+              });
+            },
+            onError: controller?.addError,
+            onDone: () {
+               timer?.cancel();
+               controller?.close();
+            },
+            cancelOnError: cancelOnError,
+          );
+        },
+        onPause: () => subscription?.pause(),
+        onResume: () => subscription?.resume(),
+        onCancel: () {
+          timer?.cancel();
+          return subscription?.cancel();
+        },
+      );
+
+      return controller.stream.listen(null);
+    });
   }
 
   // --- Helpers ---
