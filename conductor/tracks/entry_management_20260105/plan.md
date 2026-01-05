@@ -5,10 +5,10 @@ This plan implements intuitive keyboard shortcuts for deleting (`Backspace`), ad
 ## Phase 1: Backspace Deletion and Focus Logic
 Implement the logic to delete empty entries and move focus to the item above.
 
-- [ ] Task: Create TDD tests for `Backspace` deletion scenarios (Test Cases 1 & 2).
-- [ ] Task: Implement `Backspace` handler in keyboard listener to detect empty entries.
-- [ ] Task: Update focus management to move selection to the element above or clear selection if first.
-- [ ] Task: Verify tests pass (Green Phase).
+- [x] Task: Create TDD tests for `Backspace` deletion scenarios (Test Cases 1 & 2). [eab8eb4]
+- [x] Task: Implement `Backspace` handler in keyboard listener to detect empty entries. [eab8eb4]
+- [x] Task: Update focus management to move selection to the element above or clear selection if first. [eab8eb4]
+- [x] Task: Verify tests pass (Green Phase). [eab8eb4]
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Backspace Deletion and Focus Logic' (Protocol in workflow.md)
 
 ## Phase 2: Space Addition and Edit Mode Protection
