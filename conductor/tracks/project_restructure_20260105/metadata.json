@@ -1,0 +1,8 @@
+{
+  "track_id": "project_restructure_20260105",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-01-05T13:45:00Z",
+  "updated_at": "2026-01-05T13:45:00Z",
+  "description": "I would like to rethink the file structure of the project. It got somewhat messy and we should fix this before adding any new features"
+}
