@@ -32,7 +32,7 @@
     },
     "flutterApp": {
       "command": "dart",
-      "args": ["run", "/Users/adi/dev/AssistedIntelligence/src/flutter_app/bin/mcp_bridge.dart", "http://localhost:8081/mcp"]
+      "args": ["run", "/Users/adi/dev/AssistedIntelligence/app/bin/mcp_bridge.dart", "http://localhost:8081/mcp"]
     }
   }
 }
@@ -64,12 +64,12 @@ data: /mcp?sessionId=9dd74a90-99b7-4a58-a3bb-e516135ff462
 ✅ **MCP server responds with SSE endpoint event**
 
 ### 3. Bridge Script Location
-- **Path:** `/Users/adi/dev/AssistedIntelligence/src/flutter_app/bin/mcp_bridge.dart`
+- **Path:** `/Users/adi/dev/AssistedIntelligence/app/bin/mcp_bridge.dart`
 - **Status:** File exists and is readable
 - **Dependencies:** Uses `dart:io` for HTTP client and stdio
 
 ### 4. Bridge Process Status
-- ✅ **Bridge process IS running** (PID 26967): `/opt/homebrew/share/flutter/bin/cache/dart-sdk/bin/dart run /Users/adi/dev/AssistedIntelligence/src/flutter_app/bin/mcp_bridge.dart http://localhost:8081/mcp`
+- ✅ **Bridge process IS running** (PID 26967): `/opt/homebrew/share/flutter/bin/cache/dart-sdk/bin/dart run /Users/adi/dev/AssistedIntelligence/app/bin/mcp_bridge.dart http://localhost:8081/mcp`
 - Bridge process started by Cursor and is active
 - However, MCP tools are still not available in Cursor
 - This suggests the bridge is running but not successfully completing the MCP protocol handshake with Cursor
@@ -109,7 +109,7 @@ If `baseUrl` is `http://localhost:8081/mcp` and `postEndpoint` is `/mcp?sessionI
 ```json
 "flutterApp": {
   "command": "dart",
-  "args": ["run", "/Users/adi/dev/AssistedIntelligence/src/flutter_app/bin/mcp_bridge.dart", "http://localhost:8081/mcp"]
+  "args": ["run", "/Users/adi/dev/AssistedIntelligence/app/bin/mcp_bridge.dart", "http://localhost:8081/mcp"]
 }
 ```
 
@@ -132,14 +132,14 @@ If `baseUrl` is `http://localhost:8081/mcp` and `postEndpoint` is `/mcp?sessionI
 "flutterApp": {
   "type": "stdio",
   "command": "dart",
-  "args": ["run", "/Users/adi/dev/AssistedIntelligence/src/flutter_app/bin/mcp_bridge.dart", "http://localhost:8081/mcp"]
+  "args": ["run", "/Users/adi/dev/AssistedIntelligence/app/bin/mcp_bridge.dart", "http://localhost:8081/mcp"]
 }
 ```
 
 ### Fix 2: Test bridge manually
 ```bash
 cd /Users/adi/dev/AssistedIntelligence
-dart run src/flutter_app/bin/mcp_bridge.dart http://localhost:8081/mcp
+dart run app/bin/mcp_bridge.dart http://localhost:8081/mcp
 ```
 Then manually send JSON-RPC messages via stdin to verify bridge works.
 
@@ -176,9 +176,9 @@ In `mcp_bridge.dart`, ensure the POST endpoint URL is correctly constructed:
 
 ## Related Files
 
-- MCP Server: `src/flutter_app/lib/services/mcp_server.dart`
-- Bridge Script: `src/flutter_app/bin/mcp_bridge.dart`
+- MCP Server: `app/lib/services/mcp_server.dart`
+- Bridge Script: `app/bin/mcp_bridge.dart`
 - Cursor Config: `~/.cursor/mcp.json`
-- Setup Docs: `src/flutter_app/MCP_SETUP.md`
+- Setup Docs: `app/MCP_SETUP.md`
 
 

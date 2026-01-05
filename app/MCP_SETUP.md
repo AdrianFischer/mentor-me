@@ -45,12 +45,12 @@ In your project `.cursor/mcp.json`:
     "flutterApp": {
       "type": "stdio",
       "command": "dart",
-      "args": ["run", "src/flutter_app/bin/mcp_bridge.dart", "http://localhost:8081/mcp"]
+      "args": ["run", "app/bin/mcp_bridge.dart", "http://localhost:8081/mcp"]
     }
   }
 }
 ```
-*Note: Ensure the path to `src/flutter_app/bin/mcp_bridge.dart` is correct relative to your workspace root, or use an absolute path.*
+*Note: Ensure the path to `app/bin/mcp_bridge.dart` is correct relative to your workspace root, or use an absolute path.*
 
 ## 4. Verify Connection
 
@@ -76,4 +76,4 @@ The app exposes the following tools to Gemini:
 
 *   **Port Conflict:** If port 8081 is in use, the app tries 8082, 8083, etc. Check the Flutter app's console logs for: `MCP Server listening on http://localhost:xxxx/mcp` and update your `settings.json` accordingly.
 *   **Connection Refused:** Ensure the Flutter app is actually running.
-*   **Cursor Connection:** If Cursor fails to connect, ensure `dart` is in your PATH and the bridge script path is correct. You can test the bridge manually: `dart run src/flutter_app/bin/mcp_bridge.dart` and paste a JSON-RPC message.
+*   **Cursor Connection:** If Cursor fails to connect, ensure `dart` is in your PATH and the bridge script path is correct. You can test the bridge manually: `dart run app/bin/mcp_bridge.dart` and paste a JSON-RPC message.

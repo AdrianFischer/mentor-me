@@ -10,7 +10,7 @@ void main(List<String> args) async {
   final projectRoot = Directory.current.path;
   final appDirPath = args.isNotEmpty 
       ? args[0] 
-      : 'src/flutter_app';
+      : 'app';
   final appDir = Directory('$projectRoot/$appDirPath');
   final libDir = Directory('${appDir.path}/lib');
   final testDir = Directory('${appDir.path}/test');
