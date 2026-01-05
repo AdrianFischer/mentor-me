@@ -9,17 +9,15 @@ void main() {
     final service = MarkdownPersistenceService(baseDir: tempDir.path);
     
     // Setup Task
-    final project = Project(id: 'p_handover', title: 'Handover Project');
-    final task = Task(id: 't_handover', title: "Handover Test Task");
+    final task = Task(id: 't1', title: 'New Task', isCompleted: false);
+    final project = Project(id: 'p1', title: 'Test Project', tasks: [task]);
     
-    // Simulate handover
-    await service.saveTask(task, project);
+    await service.saveProject(project);
+    
+    final file = File('${tempDir.path}/todos/unsorted/test_project.md');
     
     // Verify file creation
-    final todoDir = Directory('${tempDir.path}/to_dos');
-    expect(await todoDir.exists(), isTrue);
-    final files = await todoDir.list().toList();
-    expect(files, isNotEmpty);
+    expect(await file.exists(), isTrue);
     
     // Cleanup
     await tempDir.delete(recursive: true);

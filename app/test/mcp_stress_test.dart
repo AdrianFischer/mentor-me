@@ -32,8 +32,9 @@ void main() {
       final repository = MemoryStorageRepository();
       markdownService = MockMarkdownPersistenceService();
       
-      // Stub saveTask
-      when(() => markdownService.saveTask(any(), any())).thenAnswer((_) async {});
+      // Stub saveProject
+      when(() => markdownService.saveProject(any())).thenAnswer((_) async {});
+      when(() => markdownService.deleteProject(any())).thenAnswer((_) async {});
 
       dataService = DataService(repository, markdownService);
       await dataService.initData();

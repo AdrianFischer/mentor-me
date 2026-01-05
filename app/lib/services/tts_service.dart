@@ -3,8 +3,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:just_audio/just_audio.dart';
 
 class TtsService {
-  final _functions = FirebaseFunctions.instance;
-  final _storage = FirebaseStorage.instance;
+  FirebaseFunctions get _functions => FirebaseFunctions.instance;
+  FirebaseStorage get _storage => FirebaseStorage.instance;
   final player = AudioPlayer();
 
   Future<String> generateAndGetUrl({

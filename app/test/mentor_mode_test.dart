@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_app/services/assistant_service.dart';
+import 'package:flutter_app/services/tts_service.dart';
 import 'package:flutter_app/services/data_service.dart';
 import 'package:flutter_app/services/ai_wrapper.dart';
 import 'package:flutter_app/ai_tools/tool_registry.dart';
@@ -20,27 +21,26 @@ class MockChatSessionWrapper extends Mock implements ChatSessionWrapper {}
 
 class FakeChatMessage extends Fake implements ChatMessage {}
 
+class MockTtsService extends Mock implements TtsService {
+  @override
+  Future<void> dispose() async {}
+  @override
+  Future<void> stop() async {}
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   
   setUpAll(() {
     registerFallbackValue(FakeChatMessage());
     registerFallbackValue(Content.text(''));
-    // We might need to register fallback for Content if used in any() matcher
-    // But Content is final, so we can't extend Fake implements Content easily?
-    // Wait, earlier error said Content is final.
-    // So FakeContent definition above might fail if Content is final!
-    // I should check if Content is final.
-    // If Content is final, I cannot mock/fake it.
-    // But I can instantiate it! Content.text('foo').
-    // So for registerFallbackValue, I can pass a real instance.
     registerFallbackValue(Content.text(''));
     
     const MethodChannel channel = MethodChannel('flutter_tts');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
-        return 1; // Simplify
+        return 1;
       },
     );
   });
@@ -51,16 +51,28 @@ void main() {
     late ToolRegistry registry;
     late MockAIModelWrapper mockModelWrapper;
     late MockChatSessionWrapper mockChatSession;
+    late MockTtsService mockTtsService;
 
     setUp(() {
       mockDataService = MockDataService();
       mockModelWrapper = MockAIModelWrapper();
       mockChatSession = MockChatSessionWrapper();
+      mockTtsService = MockTtsService();
+
+      // Stub TtsService
+      when(() => mockTtsService.generateAndGetUrl(
+        text: any(named: 'text'),
+        languageCode: any(named: 'languageCode'),
+      )).thenAnswer((_) async => "http://mock.url");
+      when(() => mockTtsService.playUrl(any())).thenAnswer((_) async {});
 
       // Stub chat history methods
-      when(() => mockDataService.getChatHistory(any())).thenAnswer((_) async => []);
+      when(() => mockDataService.getChatHistory(any(), conversationId: any(named: 'conversationId')))
+          .thenAnswer((_) async => []);
       when(() => mockDataService.saveChatMessage(any(), any())).thenAnswer((_) async {});
-      when(() => mockDataService.clearChatHistory(any())).thenAnswer((_) async {});
+      when(() => mockDataService.clearChatHistory(any(), conversationId: any(named: 'conversationId')))
+          .thenAnswer((_) async {});
+      when(() => mockDataService.createConversation(any())).thenReturn('conv_id');
       
       // Stub Knowledge methods
       when(() => mockDataService.getAllKnowledge()).thenAnswer((_) async => []);
@@ -79,8 +91,8 @@ void main() {
 
       registry = ToolRegistry(mockDataService);
       
-      // Inject Mock Wrapper
-      service = AssistantService(mockDataService, registry, mockModelWrapper);
+      // Inject Mock Wrapper and Mock TtsService
+      service = AssistantService(mockDataService, registry, mockModelWrapper, ttsService: mockTtsService);
     });
 
     test('starts in Standard Mode', () {

@@ -1,1 +1,54 @@
 
+# Git & Config
+.git/
+.gitignore
+.geminiignore
+worktrees/
+.gemini/
+
+# Dependencies
+node_modules/
+.venv/
+
+# Build & Dist
+build/
+dist/
+coverage/
+.dart_tool/
+__pycache__/
+
+# IDE
+.idea/
+.vscode/
+.cursor/
+.DS_Store
+
+# Assets & Media
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.ttf
+*.otf
+*.woff
+*.woff2
+*.eot
+*.mp4
+*.mov
+*.mp3
+
+# Lock files (High token cost, low value for logic)
+package-lock.json
+yarn.lock
+pubspec.lock
+Podfile.lock
+composer.lock
+Gemfile.lock
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

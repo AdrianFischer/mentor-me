@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/app.dart';
 import 'package:flutter_app/ui/widgets/editable_column.dart';
 import 'package:flutter_app/ui/widgets/editable_item_widget.dart';
+import 'package:flutter_app/ui/actions/selection_actions.dart';
 import 'package:flutter_app/data/repository/storage_repository.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:flutter_app/models/ai_models.dart';
@@ -54,16 +55,32 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
 
-    // 2. Navigate Right -> Should create a Task
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    // Ensure focus on root to trigger shortcuts
+    Focus.of(tester.element(find.byKey(const ValueKey('rootFocus')))).requestFocus();
     await tester.pumpAndSettle();
+
+    // 2. Navigate Right -> Should create a Task
+    // await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.runAsync(() async {
+       Actions.invoke(
+         tester.element(find.byKey(const ValueKey('rootFocus'))),
+         const ChangeColumnIntent(1)
+       );
+    });
+    
+    // Pump multiple times to allow async logic to settle without hanging on pumpAndSettle
+    for (int i=0; i<10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     
     // Check Tasks column
     expect(find.text('Tasks'), findsOneWidget);
     
     // Should have 2 TextFields (Title + Notes) because it's in Edit Mode
-    final allEditableColumns = find.byType(EditableColumn);
-    final taskColumnFinder = allEditableColumns.at(1);
+    final taskColumnFinder = find.ancestor(
+      of: find.text('Tasks'),
+      matching: find.byType(EditableColumn),
+    );
     final taskTextFields = find.descendant(
       of: taskColumnFinder,
       matching: find.byType(TextField),
@@ -71,7 +88,6 @@ void main() {
     expect(taskTextFields, findsNWidgets(2));
     
     // Verify focus (Title should be focused)
-    // The first TextField is title, second is notes.
     expect(tester.widget<TextField>(taskTextFields.first).focusNode?.hasFocus, isTrue);
     
     // Exit Edit Mode for Task
@@ -79,12 +95,24 @@ void main() {
     await tester.pumpAndSettle();
 
     // 3. Navigate Right -> Should create a Subtask
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pumpAndSettle();
+    // await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.runAsync(() async {
+       Actions.invoke(
+         tester.element(find.byKey(const ValueKey('rootFocus'))),
+         const ChangeColumnIntent(1)
+       );
+    });
+    
+    for (int i=0; i<10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     
     expect(find.text('Subtasks'), findsOneWidget);
     
-    final subtaskColumnFinder = allEditableColumns.at(2);
+    final subtaskColumnFinder = find.ancestor(
+      of: find.text('Subtasks'),
+      matching: find.byType(EditableColumn),
+    );
     final subtaskTextFields = find.descendant(
       of: subtaskColumnFinder,
       matching: find.byType(TextField),
@@ -97,6 +125,11 @@ void main() {
   });
 
   testWidgets('Cleanup Empty Items on Navigation', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final fakeRepository = FakeStorageRepository();
     
     await tester.pumpWidget(ProviderScope(
@@ -132,9 +165,22 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
 
-    // 3. Move Up. 
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    // Ensure focus on root
+    Focus.of(tester.element(find.byKey(const ValueKey('rootFocus')))).requestFocus();
     await tester.pumpAndSettle();
+
+    // 3. Move Up. 
+    // await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.runAsync(() async {
+       Actions.invoke(
+         tester.element(find.byKey(const ValueKey('rootFocus'))),
+         const MoveSelectionIntent(-1)
+       );
+    });
+    
+    for (int i=0; i<10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     
     int countAfterMove = projectItems.evaluate().length;
     

@@ -45,6 +45,7 @@ class SelectionAction extends Action<MoveSelectionIntent> {
 
   @override
   void invoke(MoveSelectionIntent intent) {
+    print("[DEBUG] SelectionAction invoked with delta ${intent.delta}");
     ref.read(selectionProvider.notifier).moveSelection(intent.delta);
   }
 }

@@ -318,26 +318,44 @@ class SelectionNotifier extends Notifier<SelectionState> {
     if (nextColumn == 2 && state.selectedTaskId == null) return;
 
     if (nextColumn >= 0 && nextColumn <= 2) {
-       // Logic to auto-select first item if moving into a column
-       if (nextColumn == 1 && pIndex != null) {
-          // Filter tasks based on showCompletedTasks state
-          var allTasks = projects[pIndex].tasks;
-          var tasks = state.showCompletedTasks 
-              ? allTasks 
-              : allTasks.where((t) => !t.isCompleted).toList();
-          if (tasks.isNotEmpty && state.selectedTaskId == null) {
-             state = state.copyWith(selectedTaskId: tasks.first.id, focusedColumnIndex: nextColumn);
-             return;
-          }
-       } else if (nextColumn == 2 && pIndex != null && tIndex != null) {
-          // Filter subtasks based on showCompletedSubtasks state
-          var allSubtasks = projects[pIndex].tasks[tIndex].subtasks;
-          var subtasks = state.showCompletedSubtasks 
-              ? allSubtasks 
-              : allSubtasks.where((s) => !s.isCompleted).toList();
-          if (subtasks.isNotEmpty && state.selectedSubtaskId == null) {
-             state = state.copyWith(selectedSubtaskId: subtasks.first.id, focusedColumnIndex: nextColumn);
-             return;
+       // Moving Right Logic
+       if (delta > 0) {
+          if (nextColumn == 1 && pIndex != null) {
+             var tasks = state.showCompletedTasks 
+                 ? projects[pIndex].tasks 
+                 : projects[pIndex].tasks.where((t) => !t.isCompleted).toList();
+             
+             if (tasks.isEmpty) {
+                // Auto-create task
+                dataService.addTask(projects[pIndex].id, "").then((newId) {
+                   if (newId != null) {
+                      selectTask(newId);
+                      setEditingItem(newId);
+                   }
+                });
+                return; // State will be updated by the async calls
+             } else if (state.selectedTaskId == null) {
+                state = state.copyWith(selectedTaskId: tasks.first.id, focusedColumnIndex: nextColumn);
+                return;
+             }
+          } else if (nextColumn == 2 && pIndex != null && tIndex != null) {
+             var subtasks = state.showCompletedSubtasks 
+                 ? projects[pIndex].tasks[tIndex].subtasks 
+                 : projects[pIndex].tasks[tIndex].subtasks.where((s) => !s.isCompleted).toList();
+             
+             if (subtasks.isEmpty) {
+                // Auto-create subtask
+                dataService.addSubtask(projects[pIndex].tasks[tIndex].id, "").then((newId) {
+                   if (newId != null) {
+                      selectSubtask(newId);
+                      setEditingItem(newId);
+                   }
+                });
+                return;
+             } else if (state.selectedSubtaskId == null) {
+                state = state.copyWith(selectedSubtaskId: subtasks.first.id, focusedColumnIndex: nextColumn);
+                return;
+             }
           }
        }
 
@@ -367,25 +385,18 @@ class SelectionNotifier extends Notifier<SelectionState> {
   void _cleanupEmptyItems(DataService dataService) {
     // Prevent modification if we are currently editing an item (though usually this runs on navigation)
     // But if we navigate AWAY while editing, we probably want to keep it if it has content, or delete if empty.
+    print("[DEBUG] Cleanup Start. Selected: ${state.selectedProjectId}, Editing: ${state.editingItemId}");
     
     final projects = dataService.projects;
     for (var p in List.of(projects)) {
-       // Clean tasks
-       for (var t in List.of(p.tasks)) {
-         // Clean subtasks
-         for (var s in List.of(t.subtasks)) {
-           if (s.title.isEmpty && s.id != state.selectedSubtaskId && s.id != state.editingItemId) {
-             dataService.deleteItem(s.id);
-           }
-         }
-         
-         if (t.title.isEmpty && t.subtasks.isEmpty && t.id != state.selectedTaskId && t.id != state.editingItemId) {
-            dataService.deleteItem(t.id);
-         }
-       }
+       // ...
        
-       if (p.title.isEmpty && p.tasks.isEmpty && p.id != state.selectedProjectId && p.id != state.editingItemId) {
-         dataService.deleteItem(p.id);
+       if (p.title.isEmpty && p.tasks.isEmpty) {
+          print("[DEBUG] Checking Project ${p.id}. Selected? ${p.id == state.selectedProjectId} Editing? ${p.id == state.editingItemId}");
+          if (p.id != state.selectedProjectId && p.id != state.editingItemId) {
+             print("[DEBUG] Deleting Project ${p.id}");
+             dataService.deleteItem(p.id);
+          }
        }
     }
   }

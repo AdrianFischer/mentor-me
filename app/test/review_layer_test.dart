@@ -9,6 +9,8 @@ import 'package:flutter_app/models/ai_models.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:firebase_ai/firebase_ai.dart';
 
+import 'package:flutter_app/services/tts_service.dart';
+
 class MockDataService extends Mock implements DataService {
   @override
   List<Project> get projects => [];
@@ -16,6 +18,12 @@ class MockDataService extends Mock implements DataService {
 
 class MockAIModelWrapper extends Mock implements AIModelWrapper {}
 class MockChatSessionWrapper extends Mock implements ChatSessionWrapper {}
+class MockTtsService extends Mock implements TtsService {
+  @override
+  Future<void> dispose() async {}
+  @override
+  Future<void> stop() async {}
+}
 
 class FakeChatMessage extends Fake implements ChatMessage {}
 class FakeProposedAction extends Fake implements ProposedAction {}
@@ -45,27 +53,39 @@ void main() {
     late ToolRegistry registry;
     late MockAIModelWrapper mockModelWrapper;
     late MockChatSessionWrapper mockChatSession;
+    late MockTtsService mockTtsService;
 
     setUp(() {
       mockDataService = MockDataService();
       mockModelWrapper = MockAIModelWrapper();
       mockChatSession = MockChatSessionWrapper();
+      mockTtsService = MockTtsService();
+
+      // Stub TtsService
+      when(() => mockTtsService.generateAndGetUrl(
+        text: any(named: 'text'),
+        languageCode: any(named: 'languageCode'),
+      )).thenAnswer((_) async => "http://mock.url");
+      when(() => mockTtsService.playUrl(any())).thenAnswer((_) async {});
 
       // Stub history and knowledge
-      when(() => mockDataService.getChatHistory(any())).thenAnswer((_) async => []);
+      when(() => mockDataService.getChatHistory(any(), conversationId: any(named: 'conversationId')))
+          .thenAnswer((_) async => []);
       when(() => mockDataService.saveChatMessage(any(), any())).thenAnswer((_) async {});
-      when(() => mockDataService.clearChatHistory(any())).thenAnswer((_) async {});
+      when(() => mockDataService.clearChatHistory(any(), conversationId: any(named: 'conversationId')))
+          .thenAnswer((_) async {});
       when(() => mockDataService.getAllKnowledge()).thenAnswer((_) async => []);
       
       // Stub tool execution (add_project)
       when(() => mockDataService.addProject(any())).thenAnswer((_) async => 'proj_id');
+      when(() => mockDataService.createConversation(any())).thenReturn('conv_id');
 
       // Stub Wrapper
       when(() => mockModelWrapper.startChat(history: any(named: 'history'))).thenReturn(mockChatSession);
       when(() => mockChatSession.history).thenReturn([]);
 
       registry = ToolRegistry(mockDataService);
-      service = AssistantService(mockDataService, registry, mockModelWrapper);
+      service = AssistantService(mockDataService, registry, mockModelWrapper, ttsService: mockTtsService);
     });
 
     test('Modification request adds to pendingActions instead of executing', () async {
