@@ -260,4 +260,93 @@ void main() {
     // Note: checking text might fail if sendKeyEvent doesn't drive text input in test env
     // expect(tester.widget<TextField>(textField).controller?.text, 'A ');
   });
+
+  testWidgets('Right Arrow: Navigate to existing child', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final fakeRepository = FakeStorageRepository(initialProjects: [
+        Project(id: 'p1', title: 'A', tasks: [
+          Task(id: 't1', title: 'T1', projectId: 'p1')
+        ]),
+    ]);
+    
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        storageRepositoryProvider.overrideWithValue(fakeRepository),
+        mcpServerProvider.overrideWith((ref) => MockMcpServerService()),
+      ],
+      child: const MyApp()
+    ));
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(tester.element(find.byType(MyApp)));
+
+    // Select 'A'
+    await tester.tap(find.text('A'));
+    await tester.pumpAndSettle();
+
+    // Ensure focus is on the column/list
+    await tester.tap(find.byKey(const ValueKey('projects')));
+    await tester.pumpAndSettle();
+
+    // Press Right Arrow
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pumpAndSettle();
+
+    // Verify: Selection moved to T1
+    expect(container.read(selectionProvider).selectedProjectId, 'p1');
+    expect(container.read(selectionProvider).selectedTaskId, 't1');
+    expect(container.read(selectionProvider).focusedColumnIndex, 1);
+  });
+
+  testWidgets('Right Arrow: Create new child if none exist', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final fakeRepository = FakeStorageRepository(initialProjects: [
+        Project(id: 'p1', title: 'A', tasks: []), // No tasks
+    ]);
+    
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        storageRepositoryProvider.overrideWithValue(fakeRepository),
+        mcpServerProvider.overrideWith((ref) => MockMcpServerService()),
+      ],
+      child: const MyApp()
+    ));
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(tester.element(find.byType(MyApp)));
+
+    // Select 'A'
+    await tester.tap(find.text('A'));
+    await tester.pumpAndSettle();
+
+    // Ensure focus is on the column/list
+    await tester.tap(find.byKey(const ValueKey('projects')));
+    await tester.pumpAndSettle();
+
+    // Press Right Arrow
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pumpAndSettle();
+
+    // Verify: New task created
+    final projects = container.read(dataServiceProvider).projects;
+    expect(projects[0].tasks.length, 1);
+    expect(projects[0].tasks[0].title, '');
+    
+    // Verify: Selection moved to new task
+    final newTaskId = projects[0].tasks[0].id;
+    expect(container.read(selectionProvider).selectedProjectId, 'p1');
+    expect(container.read(selectionProvider).selectedTaskId, newTaskId);
+    expect(container.read(selectionProvider).focusedColumnIndex, 1);
+    
+    // Verify: Edit mode enabled for new task
+    expect(container.read(selectionProvider).editingItemId, newTaskId);
+  });
 }
