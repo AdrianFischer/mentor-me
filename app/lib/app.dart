@@ -78,7 +78,6 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   Widget build(BuildContext context) {
     ref.watch(mcpServerProvider); // Keep MCP alive
-    ref.watch(startWatcherProvider); // Keep Markdown Watcher alive
     final dataService = ref.watch(dataServiceProvider);
     final selectionState = ref.watch(selectionProvider);
     final projects = dataService.projects;
