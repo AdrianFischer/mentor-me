@@ -2,11 +2,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/data_service.dart';
 import '../services/markdown_persistence_service.dart';
 import '../services/markdown_watcher_service.dart';
+import '../services/file_system_service.dart';
 import '../data/repository/storage_repository.dart';
 import '../data/repository/in_memory_repository.dart';
 
+final fileSystemServiceProvider = Provider<FileSystemService>((ref) {
+  return FileSystemService();
+});
+
 final storageRepositoryProvider = Provider<StorageRepository>((ref) {
-  return InMemoryRepository();
+  final fileService = ref.watch(fileSystemServiceProvider);
+  return InMemoryRepository(fileService);
 });
 
 final markdownPersistenceProvider = Provider<MarkdownPersistenceService>((ref) {
@@ -15,15 +21,17 @@ final markdownPersistenceProvider = Provider<MarkdownPersistenceService>((ref) {
 
 final markdownWatcherProvider = Provider<MarkdownWatcherService>((ref) {
   final dataService = ref.watch(dataServiceProvider);
-  final watcher = MarkdownWatcherService(dataService);
-  return watcher;
+  // DISABLED for migration
+  // final watcher = MarkdownWatcherService(dataService);
+  // return watcher;
+  return MarkdownWatcherService(dataService); // Placeholder
 });
 
 final startWatcherProvider = Provider<void>((ref) {
-  final service = ref.watch(dataServiceProvider);
-  final watcher = ref.watch(markdownWatcherProvider);
-  service.setWatcher(watcher);
-  watcher.start();
+  // final service = ref.watch(dataServiceProvider);
+  // final watcher = ref.watch(markdownWatcherProvider);
+  // service.setWatcher(watcher);
+  // watcher.start();
 });
 
 final dataServiceProvider = ChangeNotifierProvider<DataService>((ref) {

@@ -1,51 +1,57 @@
 import 'dart:async';
-import 'dart:io';
-import '../../config.dart';
-import '../../utils/markdown_parser.dart';
 import '../../models/models.dart';
 import '../../models/ai_models.dart';
+import '../../services/file_persistence_service.dart';
 import 'storage_repository.dart';
 
 /// A non-persistent, in-memory implementation of StorageRepository.
-/// This serves as the "source of truth" loaded from files on startup.
+/// Acts as a cache that delegates persistence to FilePersistenceService.
 class InMemoryRepository implements StorageRepository {
+  final FilePersistenceService _fileService;
   final List<Project> _projects = [];
   final List<Conversation> _conversations = [];
   final List<ChatMessage> _chatHistory = [];
   final List<Knowledge> _knowledgeBase = [];
   
   final _dataChangeController = StreamController<void>.broadcast();
+  StreamSubscription? _watcherSubscription;
+
+  InMemoryRepository(this._fileService);
 
   @override
   Stream<void> get onDataChanged => _dataChangeController.stream;
 
   @override
   Future<void> init() async {
-    _projects.clear();
-    final dataDir = Config.dataDir;
-    if (dataDir == null) return;
-
-    final dir = Directory('$dataDir/todos');
-    if (!await dir.exists()) return;
-
+    // 1. Initial Load
     try {
-      await for (final entity in dir.list(recursive: true)) {
-        if (entity is File && entity.path.endsWith('.md')) {
-          if (entity.path.endsWith('README.md')) continue;
-          
-          try {
-            final content = await entity.readAsString();
-            final project = MarkdownParser.parseProject(content);
-            _projects.add(project);
-          } catch (e) {
-            print('Error parsing file ${entity.path}: $e');
-          }
-        }
-      }
-      print('InMemoryRepository loaded ${_projects.length} projects from $dataDir');
+      final loadedProjects = await _fileService.loadAllProjects();
+      _projects.clear();
+      _projects.addAll(loadedProjects);
+      print('InMemoryRepository loaded ${_projects.length} projects.');
     } catch (e) {
-      print('Error scanning directory $dataDir: $e');
+      print('InMemoryRepository init error: $e');
     }
+
+    // 2. Start Watcher
+    _watcherSubscription = _fileService.watchProjects().listen((updatedProjects) {
+       // Simple Strategy: Replace all?
+       // Ideally we merge, but "File First" means File is Truth.
+       // If we replace all, we might lose in-memory cursor/state if not careful.
+       // But Project objects are immutable (Freezed).
+       
+       // Optimization: Only update if changed?
+       _projects.clear();
+       _projects.addAll(updatedProjects);
+       
+       // Notify app to redraw
+       _dataChangeController.add(null); 
+    });
+  }
+  
+  void dispose() {
+    _watcherSubscription?.cancel();
+    _dataChangeController.close();
   }
 
   // --- Projects ---
@@ -63,22 +69,21 @@ class InMemoryRepository implements StorageRepository {
     } else {
       _projects.add(project);
     }
+    
+    // Write-Through
+    await _fileService.saveProject(project);
   }
 
   @override
   Future<void> deleteProject(String projectId) async {
     _projects.removeWhere((p) => p.id == projectId);
+    await _fileService.deleteProject(projectId);
   }
 
-  // --- Tasks (Helper methods, usually part of Project) ---
+  // --- Tasks ---
 
   @override
   Future<void> saveTask(Task task) async {
-    // In Isar, tasks were separate collections. Here they are embedded in Projects.
-    // If the caller saves a task, we must find the project and update it.
-    // However, DataService usually saves the Project after saving the Task.
-    // If DataService calls saveTask, we technically need to update the project in _projects.
-    
     if (task.projectId == null) return;
 
     final pIndex = _projects.indexWhere((p) => p.id == task.projectId);
@@ -94,7 +99,11 @@ class InMemoryRepository implements StorageRepository {
       newTasks.add(task);
     }
 
-    _projects[pIndex] = project.copyWith(tasks: newTasks);
+    final newProject = project.copyWith(tasks: newTasks);
+    _projects[pIndex] = newProject;
+    
+    // Write-Through
+    await _fileService.saveProject(newProject);
   }
 
   @override
@@ -104,13 +113,18 @@ class InMemoryRepository implements StorageRepository {
       final tIndex = project.tasks.indexWhere((t) => t.id == taskId);
       if (tIndex != -1) {
         final newTasks = List<Task>.from(project.tasks)..removeAt(tIndex);
-        _projects[i] = project.copyWith(tasks: newTasks);
+        final newProject = project.copyWith(tasks: newTasks);
+        _projects[i] = newProject;
+        
+        // Write-Through
+        await _fileService.saveProject(newProject);
         return;
       }
     }
   }
-
-  // --- Conversations ---
+  
+  // ... Rest of the methods (Conversations, Chat, Knowledge) remain in-memory for now ...
+  // (Assuming file persistence is only for Projects currently)
 
   @override
   Future<List<Conversation>> getAllConversations() async {
@@ -133,8 +147,6 @@ class InMemoryRepository implements StorageRepository {
     _chatHistory.removeWhere((m) => m.conversationId == conversationId);
   }
 
-  // --- Chat History ---
-
   @override
   Future<void> saveChatMessage(ChatMessage message, String mode) async {
     _chatHistory.add(message);
@@ -145,8 +157,6 @@ class InMemoryRepository implements StorageRepository {
     if (conversationId != null) {
       return _chatHistory.where((m) => m.conversationId == conversationId).toList();
     }
-    // Legacy global mode support if needed, or return all
-    // Assuming mode is unused in new conversation-centric model or filtered by it
     return _chatHistory.toList(); 
   }
 
@@ -159,8 +169,6 @@ class InMemoryRepository implements StorageRepository {
     }
   }
 
-  // --- Knowledge Base ---
-
   @override
   Future<List<Knowledge>> getAllKnowledge() async {
     return List.unmodifiable(_knowledgeBase);
@@ -168,19 +176,11 @@ class InMemoryRepository implements StorageRepository {
 
   @override
   Future<void> saveKnowledge(Knowledge knowledge) async {
-     // Check for ID? Knowledge model usually has ID.
-     // Assuming simple add for now or strict replacement.
-     // If Knowledge has ID:
-     // final index = _knowledgeBase.indexWhere((k) => k.id == knowledge.id);
-     // if (index != -1) _knowledgeBase[index] = knowledge; else _knowledgeBase.add(knowledge);
-     
-     // For now, just add as we don't have full Knowledge model context in this file snippet, 
-     // but following pattern:
      _knowledgeBase.add(knowledge);
   }
 
   @override
   Future<void> deleteKnowledge(String id) async {
-    // _knowledgeBase.removeWhere((k) => k.id == id);
+     // _knowledgeBase.removeWhere((k) => k.id == id);
   }
 }
