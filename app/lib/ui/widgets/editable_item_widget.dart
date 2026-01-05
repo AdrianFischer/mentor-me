@@ -172,6 +172,7 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
 
                   // Checkbox
                   GestureDetector(
+                    key: const Key('item_checkbox'),
                     onTap: widget.onToggleCheck,
                     child: Container(
                       width: 18,
@@ -398,14 +399,18 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyDownEvent) {
-       // If editing, standard text navigation applies (unless meta pressed maybe)
-       // But we want to support Up/Down to escape field if at boundary? 
-       // For now, let's keep it simple: Arrow keys navigate text.
+       if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+          if (_controller.selection.isCollapsed && _controller.selection.baseOffset == 0) {
+             widget.onNavigateLeft?.call();
+             return KeyEventResult.handled;
+          }
+       }
        
-       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-          // If we are at the end, maybe move to notes?
-          // Or just let user tab?
-          // For now, let standard behavior happen.
+       if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+          if (_controller.selection.isCollapsed && _controller.selection.baseOffset == _controller.text.length) {
+             widget.onNavigateRight?.call();
+             return KeyEventResult.handled;
+          }
        }
        
        if (event.logicalKey == LogicalKeyboardKey.escape) {

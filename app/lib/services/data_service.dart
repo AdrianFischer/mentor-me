@@ -20,7 +20,7 @@ class TaggedItem {
 class DataService extends ChangeNotifier {
   final StorageRepository _repository;
   final MarkdownPersistenceService _markdownPersistence;
-  final List<Project> _projects = [];
+  List<Project> _projects = [];
   final Map<String, Timer> _debounceTimers = {};
   
   // Conversations Cache
@@ -83,6 +83,11 @@ class DataService extends ChangeNotifier {
     
     final tags = _extractTags(title);
     final project = Project(id: uuid.v4(), title: title, order: newOrder, tags: tags);
+    
+    // Ensure we can add to the list
+    if (_projects is! List<Project>) {
+      _projects = List.from(_projects);
+    }
     _projects.add(project);
     notifyListeners();
     await _repository.saveProject(project);
@@ -108,6 +113,9 @@ class DataService extends ChangeNotifier {
       final newTasks = List<Task>.from(project.tasks)..add(task);
       final newProject = project.copyWith(tasks: newTasks);
       
+      if (_projects is! List<Project>) {
+        _projects = List.from(_projects);
+      }
       _projects[index] = newProject;
       notifyListeners();
       
@@ -325,7 +333,17 @@ class DataService extends ChangeNotifier {
     }
   }
 
+  void _cancelDebounce(String taskId) {
+    if (_debounceTimers.containsKey(taskId)) {
+      _debounceTimers[taskId]!.cancel();
+      _debounceTimers.remove(taskId);
+    }
+  }
+
   Future<void> setItemStatus(String itemId, bool isCompleted) async {
+    // Cancel any pending debounce saves to prevent overwriting
+    _cancelDebounce(itemId);
+
     for (var i = 0; i < _projects.length; i++) {
       final project = _projects[i];
       for (var j = 0; j < project.tasks.length; j++) {
@@ -368,6 +386,9 @@ class DataService extends ChangeNotifier {
   }
 
   Future<void> setAiStatus(String itemId, AiStatus status) async {
+    // Cancel any pending debounce saves to prevent overwriting
+    _cancelDebounce(itemId);
+    
     // If status is done, also mark as completed
     final shouldComplete = status == AiStatus.done;
     
@@ -550,15 +571,13 @@ class DataService extends ChangeNotifier {
   
   Future<void> _reloadProjects() async {
     final projects = await _repository.getAllProjects();
-    _projects.clear();
-    _projects.addAll(projects);
+    _projects = List.from(projects);
     notifyListeners();
   }
 
   Future<void> _reloadConversations() async {
     final list = await _repository.getAllConversations();
-    _conversations.clear();
-    _conversations.addAll(list);
+    _conversations = List.from(list);
     notifyListeners();
   }
 
