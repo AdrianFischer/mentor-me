@@ -90,18 +90,21 @@ class DataService extends ChangeNotifier {
       _projects.insert(index, project);
     }
 
-    final updatedProjects = List<Project>.from(_projects);
-
-    // Update orders for all projects and save
-    for (int i = 0; i < updatedProjects.length; i++) {
-      updatedProjects[i] = updatedProjects[i].copyWith(order: i.toDouble());
-      await _repository.saveProject(updatedProjects[i]);
-    }
-
+    // Optimistic UI: Notify immediately
     notifyListeners();
-    // Persistence is handled by repository
+
+    // Persist in background
+    _persistProjectList();
     
     return project.id;
+  }
+
+  Future<void> _persistProjectList() async {
+    final updatedProjects = List<Project>.from(_projects);
+    for (int i = 0; i < updatedProjects.length; i++) {
+      final p = updatedProjects[i].copyWith(order: i.toDouble());
+      await _repository.saveProject(p);
+    }
   }
 
   Future<String?> addTask(String projectId, String title) async {
@@ -139,10 +142,17 @@ class DataService extends ChangeNotifier {
         _projects = List.from(_projects);
       }
       _projects[pIndex] = newProject;
+      
+      // Optimistic UI
       notifyListeners();
       
       _cancelDebounce(project.id);
-      await _repository.saveProject(newProject);
+      
+      // Persist in background
+      _repository.saveProject(newProject);
+      for (final t in newTasks) {
+        _repository.saveTask(t);
+      }
 
       return task.id;
     } catch (e) {
@@ -191,9 +201,11 @@ class DataService extends ChangeNotifier {
         final newProject = project.copyWith(tasks: newTasksList);
         _projects[i] = newProject;
         
+        // Optimistic UI
         notifyListeners();
         
-        await _repository.saveTask(newTask);
+        // Persist in background
+        _repository.saveTask(newTask);
         
         return subtask.id;
       }
@@ -389,9 +401,8 @@ class DataService extends ChangeNotifier {
           
           final newProject = project.copyWith(tasks: newTasksList);
           _projects[i] = newProject;
-          
-          await _repository.saveTask(newTask);
           notifyListeners();
+          _repository.saveTask(newTask);
           return;
         }
         
@@ -407,12 +418,10 @@ class DataService extends ChangeNotifier {
             newTasksList[j] = newTask;
             
             final newProject = project.copyWith(tasks: newTasksList);
-            _projects[i] = newProject;
-            
-            await _repository.saveTask(newTask);
-            notifyListeners();
-            return;
-          }
+                      _projects[i] = newProject;
+                      notifyListeners();
+                      _repository.saveTask(newTask);
+                      return;          }
         }
       }
     }
@@ -440,9 +449,8 @@ class DataService extends ChangeNotifier {
           
           final newProject = project.copyWith(tasks: newTasksList);
           _projects[i] = newProject;
-          
-          await _repository.saveTask(newTask);
           notifyListeners();
+          _repository.saveTask(newTask);
           return;
         }
         
@@ -461,12 +469,10 @@ class DataService extends ChangeNotifier {
             newTasksList[j] = newTask;
             
             final newProject = project.copyWith(tasks: newTasksList);
-            _projects[i] = newProject;
-            
-            await _repository.saveTask(newTask);
-            notifyListeners();
-            return;
-          }
+                      _projects[i] = newProject;
+                      notifyListeners();
+                      _repository.saveTask(newTask);
+                      return;          }
         }
       }
     }
