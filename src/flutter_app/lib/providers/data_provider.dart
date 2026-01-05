@@ -2,10 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/data_service.dart';
 import '../services/markdown_persistence_service.dart';
 import '../data/repository/storage_repository.dart';
-import '../data/repository/isar_storage_repository.dart';
+import '../data/repository/firebase_storage_repository.dart';
 
 final storageRepositoryProvider = Provider<StorageRepository>((ref) {
-  return IsarStorageRepository();
+  return FirebaseStorageRepository();
 });
 
 final markdownPersistenceProvider = Provider<MarkdownPersistenceService>((ref) {

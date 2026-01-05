@@ -13,7 +13,6 @@ class FakeStorageRepository implements StorageRepository {
   FakeStorageRepository({List<Project>? initialProjects}) 
       : _projects = initialProjects ?? [];
 
-  @override
   List<Project> getProjects() => _projects;
 
   @override
@@ -47,12 +46,10 @@ class FakeStorageRepository implements StorageRepository {
     }
   }
 
-  @override
   Future<void> updateTitle(String id, String newTitle) async {
     // Basic implementation for testing if needed
   }
 
-  @override
   Future<void> setItemStatus(String id, bool isCompleted) async {
     for (var i = 0; i < _projects.length; i++) {
       var project = _projects[i];
@@ -88,7 +85,6 @@ class FakeStorageRepository implements StorageRepository {
     }
   }
 
-  @override
   Future<void> deleteItem(String id) async {
     // Try delete project
     int pIndex = _projects.indexWhere((p) => p.id == id);
@@ -126,11 +122,8 @@ class FakeStorageRepository implements StorageRepository {
     }
   }
 
-  @override
   Future<void> reorderProjects(int oldIndex, int newIndex) async {}
-  @override
   Future<void> reorderTasks(String projectId, int oldIndex, int newIndex) async {}
-  @override
   Future<void> reorderSubtasks(String taskId, int oldIndex, int newIndex) async {}
   
   @override
