@@ -120,9 +120,23 @@ class _EditableColumnState extends State<EditableColumn> {
                child: widget.header!,
              ),
 
-          // List
+  // List
           Expanded(
-            child: ReorderableListView.builder(
+            child: Focus(
+              onKeyEvent: (node, event) {
+                if (event is KeyDownEvent && widget.isActiveColumn && widget.editingItemId == null) {
+                  if (event.logicalKey == LogicalKeyboardKey.arrowLeft && widget.onNavigateLeft != null) {
+                    widget.onNavigateLeft!();
+                    return KeyEventResult.handled;
+                  }
+                  if (event.logicalKey == LogicalKeyboardKey.arrowRight && widget.onNavigateRight != null) {
+                    widget.onNavigateRight!();
+                    return KeyEventResult.handled;
+                  }
+                }
+                return KeyEventResult.ignored;
+              },
+              child: ReorderableListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               itemCount: widget.items.length,
               onReorder: (oldIndex, newIndex) {
@@ -178,8 +192,9 @@ class _EditableColumnState extends State<EditableColumn> {
               },
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }

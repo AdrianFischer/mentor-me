@@ -137,7 +137,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                   ChangeColumnIntent: ColumnAction(ref),
                   StartEditIntent: StartEditAction(ref),
                   ToggleCompletionIntent: ToggleCompletionAction(ref),
-                  StopEditIntent: StopEditAction(ref),
+                  StopEditIntent: StopEditAction(ref, rootFocusNode: _rootFocusNode),
                   AddNewItemIntent: AddNewItemAction(ref),
                   DeleteItemIntent: DeleteItemAction(ref),
                 },
@@ -295,7 +295,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       onNotesUpdate: (index, val) {
         dataService.updateNotes(projects[index].id, val);
       },
-      onExitEdit: () => ref.read(selectionProvider.notifier).setEditingItem(null),
+      onExitEdit: () => Actions.invoke(context, const StopEditIntent()),
       onItemSelected: (index) {
         ref.read(selectionProvider.notifier).selectProject(projects[index].id);
         if (isMobile) {
@@ -340,7 +340,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       onNotesUpdate: (index, val) {
         dataService.updateConversationNotes(conversations[index].id, val);
       },
-      onExitEdit: () => ref.read(selectionProvider.notifier).setEditingItem(null),
+      onExitEdit: () => Actions.invoke(context, const StopEditIntent()),
       onItemSelected: (index) {
         ref.read(selectionProvider.notifier).selectConversation(conversations[index].id);
       },
@@ -436,7 +436,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       onNotesUpdate: (index, val) {
         dataService.updateNotes(visibleTasks[index].id, val);
       },
-      onExitEdit: () => ref.read(selectionProvider.notifier).setEditingItem(null),
+      onExitEdit: () => Actions.invoke(context, const StopEditIntent()),
       onCheckChanged: (index, isChecked) {
         dataService.setItemStatus(visibleTasks[index].id, isChecked);
       },
@@ -507,7 +507,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       onNotesUpdate: (index, val) {
         dataService.updateNotes(visibleSubtasks[index].id, val);
       },
-      onExitEdit: () => ref.read(selectionProvider.notifier).setEditingItem(null),
+      onExitEdit: () => Actions.invoke(context, const StopEditIntent()),
       onCheckChanged: (index, isChecked) {
         dataService.setItemStatus(visibleSubtasks[index].id, isChecked);
       },
