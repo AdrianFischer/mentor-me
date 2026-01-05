@@ -334,8 +334,11 @@ class SelectionNotifier extends Notifier<SelectionState> {
                    }
                 });
                 return; // State will be updated by the async calls
-             } else if (state.selectedTaskId == null) {
-                state = state.copyWith(selectedTaskId: tasks.first.id, focusedColumnIndex: nextColumn);
+             } else {
+                // BUG FIX: Even if state.selectedTaskId is already set, we MUST ensure 
+                // focusedColumnIndex is updated. If NOT set, we pick first.
+                final targetId = state.selectedTaskId ?? tasks.first.id;
+                state = state.copyWith(selectedTaskId: targetId, focusedColumnIndex: nextColumn);
                 return;
              }
           } else if (nextColumn == 2 && pIndex != null && tIndex != null) {
@@ -352,8 +355,10 @@ class SelectionNotifier extends Notifier<SelectionState> {
                    }
                 });
                 return;
-             } else if (state.selectedSubtaskId == null) {
-                state = state.copyWith(selectedSubtaskId: subtasks.first.id, focusedColumnIndex: nextColumn);
+             } else {
+                // BUG FIX: Ensure focusedColumnIndex is updated and subtask is selected.
+                final targetId = state.selectedSubtaskId ?? subtasks.first.id;
+                state = state.copyWith(selectedSubtaskId: targetId, focusedColumnIndex: nextColumn);
                 return;
              }
           }

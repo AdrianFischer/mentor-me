@@ -13,10 +13,10 @@ In this phase, we will establish failing tests that reproduce the reported bug a
 ## Phase 2: Logic Implementation and Fix
 In this phase, we will implement the fix in the navigation/focus management logic to ensure single-press hierarchy jumping.
 
-- [ ] Task: Analyze existing focus and navigation providers (Riverpod) to identify why state requires double-press.
-- [ ] Task: Implement fix to ensure focus state is correctly restored to the item on `Esc`.
-- [ ] Task: Implement fix to ensure hierarchy navigation logic handles the "just-escaped" state correctly.
-- [ ] Task: Verify all tests pass (Green Phase).
+- [x] Task: Analyze existing focus and navigation providers (Riverpod) to identify why state requires double-press. cd0f2df
+- [x] Task: Implement fix to ensure focus state is correctly restored to the item on `Esc`. cd0f2df
+- [x] Task: Implement fix to ensure hierarchy navigation logic handles the "just-escaped" state correctly. cd0f2df
+- [x] Task: Verify all tests pass (Green Phase). cd0f2df
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Logic Implementation and Fix' (Protocol in workflow.md)
 
 ## Phase 3: Regression and Polish

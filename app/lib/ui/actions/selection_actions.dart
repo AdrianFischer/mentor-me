@@ -45,7 +45,6 @@ class SelectionAction extends Action<MoveSelectionIntent> {
 
   @override
   void invoke(MoveSelectionIntent intent) {
-    print("[DEBUG] SelectionAction invoked with delta ${intent.delta}");
     ref.read(selectionProvider.notifier).moveSelection(intent.delta);
   }
 }
@@ -132,11 +131,13 @@ class StartEditAction extends Action<StartEditIntent> {
 
 class StopEditAction extends Action<StopEditIntent> {
   final WidgetRef ref;
-  StopEditAction(this.ref);
+  final FocusNode? rootFocusNode;
+  StopEditAction(this.ref, {this.rootFocusNode});
 
   @override
   void invoke(StopEditIntent intent) {
     ref.read(selectionProvider.notifier).setEditingItem(null);
+    rootFocusNode?.requestFocus();
   }
 }
 
