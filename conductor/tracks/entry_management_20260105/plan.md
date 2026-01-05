@@ -2,14 +2,14 @@
 
 This plan implements intuitive keyboard shortcuts for deleting (`Backspace`), adding (`Space`), and navigating/creating child entries (`Right Arrow`).
 
-## Phase 1: Backspace Deletion and Focus Logic
+## Phase 1: Backspace Deletion and Focus Logic [checkpoint: 5f9081f]
 Implement the logic to delete empty entries and move focus to the item above.
 
 - [x] Task: Create TDD tests for `Backspace` deletion scenarios (Test Cases 1 & 2). [eab8eb4]
 - [x] Task: Implement `Backspace` handler in keyboard listener to detect empty entries. [eab8eb4]
 - [x] Task: Update focus management to move selection to the element above or clear selection if first. [eab8eb4]
 - [x] Task: Verify tests pass (Green Phase). [eab8eb4]
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Backspace Deletion and Focus Logic' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Backspace Deletion and Focus Logic' (Protocol in workflow.md) [5f9081f]
 
 ## Phase 2: Space Addition and Edit Mode Protection
 Implement the `Space` shortcut for adding entries with insertion logic and edit-mode checks.
