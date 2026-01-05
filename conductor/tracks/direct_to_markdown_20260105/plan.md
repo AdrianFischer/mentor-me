@@ -7,7 +7,7 @@ Goal: Prepare the codebase for the removal of Isar and define the new `DataServi
 
 - [x] Task: Define `FilePersistenceService` interface for direct Markdown I/O. [6ee48e5]
 - [x] Task: Implement `MarkdownParser` utility to handle frontmatter and content bi-directionally. [2bab170]
-- [ ] Task: Refactor `Project` and `Task` models to be pure Dart classes (remove Isar annotations).
+- [x] Task: Refactor `Project` and `Task` models to be pure Dart classes (remove Isar annotations). [17faed9]
 - [ ] Task: Write Tests: Verify `MarkdownParser` handles various edge cases (empty files, malformed frontmatter).
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Model Refactoring' (Protocol in workflow.md)
 
