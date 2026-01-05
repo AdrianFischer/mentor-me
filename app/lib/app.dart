@@ -78,6 +78,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   Widget build(BuildContext context) {
     ref.watch(mcpServerProvider); // Keep MCP alive
+    ref.watch(startWatcherProvider); // Keep Markdown Watcher alive
     final dataService = ref.watch(dataServiceProvider);
     final selectionState = ref.watch(selectionProvider);
     final projects = dataService.projects;
@@ -129,91 +130,144 @@ class _MyAppState extends ConsumerState<MyApp> {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      home: DebugOverlay(
-        child: Shortcuts(
-          shortcuts: <LogicalKeySet, Intent>{
-            LogicalKeySet(LogicalKeyboardKey.arrowDown): const MoveSelectionIntent(1),
-            LogicalKeySet(LogicalKeyboardKey.arrowUp): const MoveSelectionIntent(-1),
-            LogicalKeySet(LogicalKeyboardKey.arrowRight): const ChangeColumnIntent(1),
-            LogicalKeySet(LogicalKeyboardKey.arrowLeft): const ChangeColumnIntent(-1),
-            LogicalKeySet(LogicalKeyboardKey.enter): const StartEditIntent(),
-            LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.enter): const ToggleCompletionIntent(),
-            LogicalKeySet(LogicalKeyboardKey.escape): const StopEditIntent(),
-            LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyN): const AddNewItemIntent(),
-            LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.backspace): const DeleteItemIntent(),
-          },
-          child: Actions(
-            actions: <Type, Action<Intent>>{
-              MoveSelectionIntent: SelectionAction(ref),
-              ChangeColumnIntent: ColumnAction(ref),
-              StartEditIntent: StartEditAction(ref),
-              ToggleCompletionIntent: ToggleCompletionAction(ref),
-              StopEditIntent: StopEditAction(ref),
-              AddNewItemIntent: AddNewItemAction(ref),
-              DeleteItemIntent: DeleteItemAction(ref),
-            },
-            child: Focus(
-              focusNode: _rootFocusNode,
-              autofocus: true,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isMobile = constraints.maxWidth < 1260;
-                  
-                  if (isMobile) {
-                    return _buildMobileLayout(context, isMobile, dataService, selectionState, projects, pIndex, tIndex, sIndex, aiAssistantWidget);
-                  }
-
-                  return Scaffold(
-                    bottomNavigationBar: Container(
-                      height: 30,
-                      alignment: Alignment.center,
-                      child: const Text("Built with Assisted Intelligence", style: TextStyle(color: Colors.grey, fontSize: 10)),
-                    ),
-                    body: Row(
-                      children: [
-                        // Col 1: Projects (Fixed)
-                        Expanded(
-                          flex: 1,
-                          child: _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget, isMobile: false),
-                        ),
-                        
-                        // Col 2: Tasks OR Conversations OR Tags
-                        Expanded(
-                          flex: 2,
-                          child: selectionState.isAssistantActive
-                            ? _buildConversationColumn(dataService, selectionState)
-                            : (selectionState.selectedTag != null 
-                                 ? _buildTagResultsColumn(dataService, selectionState)
-                                 : (pIndex != null 
-                                    ? _buildTaskColumn(dataService, projects, pIndex, tIndex, selectionState)
-                                    : Container(color: Colors.white, child: const Center(child: Text('Select a Project')))
-                                   )
-                              ),
-                        ),
-                        
-                        // Col 3: Subtasks OR Chat OR Tag Details
-                        Expanded(
-                          flex: 2,
-                          child: selectionState.isAssistantActive
-                            ? (selectionState.selectedConversationId != null
-                                ? AssistantScreen(conversationId: selectionState.selectedConversationId!)
-                                : Container(color: const Color(0xFFFAFAFA), child: const Center(child: Text('Select a Conversation')))
-                              )
-                            : (selectionState.selectedTag != null
-                                 ? _buildTaggedItemContext(dataService, projects, selectionState)
-                                 : ((pIndex != null && tIndex != null)
-                                    ? _buildSubtaskColumn(dataService, projects, pIndex, tIndex, sIndex, selectionState)
-                                    : Container(color: const Color(0xFFFAFAFA), child: const Center(child: Text('Select a Task')))
-                                   )
-                              ),
-                        ),
-                      ],
-                    ),
-                  );
+            home: DebugOverlay(
+              child: Actions(
+                actions: <Type, Action<Intent>>{
+                  MoveSelectionIntent: SelectionAction(ref),
+                  ChangeColumnIntent: ColumnAction(ref),
+                  StartEditIntent: StartEditAction(ref),
+                  ToggleCompletionIntent: ToggleCompletionAction(ref),
+                  StopEditIntent: StopEditAction(ref),
+                  AddNewItemIntent: AddNewItemAction(ref),
+                  DeleteItemIntent: DeleteItemAction(ref),
                 },
-              ),
-            ),
-          ),
+                child: Shortcuts(
+                  shortcuts: <LogicalKeySet, Intent>{
+                    LogicalKeySet(LogicalKeyboardKey.arrowDown): const MoveSelectionIntent(1),
+                    LogicalKeySet(LogicalKeyboardKey.arrowUp): const MoveSelectionIntent(-1),
+                    LogicalKeySet(LogicalKeyboardKey.arrowRight): const ChangeColumnIntent(1),
+                    LogicalKeySet(LogicalKeyboardKey.arrowLeft): const ChangeColumnIntent(-1),
+                    LogicalKeySet(LogicalKeyboardKey.enter): const StartEditIntent(),
+                    LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.enter): const ToggleCompletionIntent(),
+                    LogicalKeySet(LogicalKeyboardKey.escape): const StopEditIntent(),
+                    LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyN): const AddNewItemIntent(),
+                    LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.backspace): const DeleteItemIntent(),
+                  },
+                              child: Focus(
+                                key: const ValueKey('rootFocus'),
+                                focusNode: _rootFocusNode,
+                                autofocus: true,
+                  
+                        child: Builder(
+                          builder: (context) => LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isMobile = constraints.maxWidth < 1260;
+                              
+                              if (isMobile) {
+                                return _buildMobileLayout(context, isMobile, dataService, selectionState, projects, pIndex, tIndex, sIndex, aiAssistantWidget);
+                              }
+          
+                                                return Scaffold(
+          
+                                                  bottomNavigationBar: Container(
+          
+                                                    height: 30,
+          
+                                                    alignment: Alignment.center,
+          
+                                                    child: const Text("Built with Assisted Intelligence", style: TextStyle(color: Colors.grey, fontSize: 10)),
+          
+                                                  ),
+          
+                                                  body: Row(
+          
+                                                    children: [
+          
+                                                      // Col 1: Projects (Fixed)
+          
+                                                      Expanded(
+          
+                                                        flex: 1,
+          
+                                                        child: _buildProjectColumn(context, dataService, projects, pIndex, aiAssistantWidget, isMobile: false),
+          
+                                                      ),
+          
+                                                      
+          
+                                                      // Col 2: Tasks OR Conversations OR Tags
+          
+                                                      Expanded(
+          
+                                                        flex: 2,
+          
+                                                        child: selectionState.isAssistantActive
+          
+                                                          ? _buildConversationColumn(context, dataService, selectionState)
+          
+                                                          : (selectionState.selectedTag != null 
+          
+                                                               ? _buildTagResultsColumn(context, dataService, selectionState)
+          
+                                                               : (pIndex != null 
+          
+                                                                  ? _buildTaskColumn(context, dataService, projects, pIndex, tIndex, selectionState)
+          
+                                                                  : Container(color: Colors.white, child: const Center(child: Text('Select a Project')))
+          
+                                                                 )
+          
+                                                            ),
+          
+                                                      ),
+          
+                                                      
+          
+                                                      // Col 3: Subtasks OR Chat OR Tag Details
+          
+                                                      Expanded(
+          
+                                                        flex: 2,
+          
+                                                        child: selectionState.isAssistantActive
+          
+                                                          ? (selectionState.selectedConversationId != null
+          
+                                                              ? AssistantScreen(conversationId: selectionState.selectedConversationId!)
+          
+                                                              : Container(color: const Color(0xFFFAFAFA), child: const Center(child: Text('Select a Conversation')))
+          
+                                                            )
+          
+                                                          : (selectionState.selectedTag != null
+          
+                                                               ? _buildTaggedItemContext(context, dataService, projects, selectionState)
+          
+                                                               : ((pIndex != null && tIndex != null)
+          
+                                                                  ? _buildSubtaskColumn(context, dataService, projects, pIndex, tIndex, sIndex, selectionState)
+          
+                                                                  : Container(color: const Color(0xFFFAFAFA), child: const Center(child: Text('Select a Task')))
+          
+                                                                 )
+          
+                                                            ),
+          
+                                                      ),
+          
+                                                    ],
+          
+                                                  ),
+          
+                                                );
+          
+                              
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+          
         ),
       ),
     );
@@ -221,7 +275,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   
   // --- Column Builders ---
 
-  Widget _buildProjectColumn(DataService dataService, List<Project> projects, int? pIndex, Widget aiAssistantWidget, {VoidCallback? onBack, required bool isMobile}) {
+  Widget _buildProjectColumn(BuildContext context, DataService dataService, List<Project> projects, int? pIndex, Widget aiAssistantWidget, {VoidCallback? onBack, required bool isMobile}) {
     final state = ref.read(selectionProvider);
     return EditableColumn(
       key: const ValueKey('projects'),
@@ -267,7 +321,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     );
   }
 
-  Widget _buildConversationColumn(DataService dataService, SelectionState state) {
+  Widget _buildConversationColumn(BuildContext context, DataService dataService, SelectionState state) {
     final conversations = dataService.conversations;
     int? selectedIndex;
     if (state.selectedConversationId != null) {
@@ -305,7 +359,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     );
   }
 
-  Widget _buildTaskColumn(DataService dataService, List<Project> projects, int pIndex, int? tIndex, SelectionState state, {VoidCallback? onBack}) {
+  Widget _buildTaskColumn(BuildContext context, DataService dataService, List<Project> projects, int pIndex, int? tIndex, SelectionState state, {VoidCallback? onBack}) {
     final project = projects[pIndex];
     // Filter tasks based on showCompletedTasks state
     final visibleTasks = state.showCompletedTasks 
@@ -419,7 +473,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     );
   }
 
-  Widget _buildSubtaskColumn(DataService dataService, List<Project> projects, int pIndex, int tIndex, int? sIndex, SelectionState state, {VoidCallback? onBack}) {
+  Widget _buildSubtaskColumn(BuildContext context, DataService dataService, List<Project> projects, int pIndex, int tIndex, int? sIndex, SelectionState state, {VoidCallback? onBack}) {
     final task = projects[pIndex].tasks[tIndex];
     // Filter subtasks based on showCompletedSubtasks state
     final visibleSubtasks = state.showCompletedSubtasks 
@@ -489,7 +543,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     );
   }
 
-  Widget _buildTagResultsColumn(DataService dataService, SelectionState state) {
+  Widget _buildTagResultsColumn(BuildContext context, DataService dataService, SelectionState state) {
     final items = dataService.getItemsWithTag(state.selectedTag!);
     
     // Convert TaggedItems to EditableItems for display
@@ -608,14 +662,14 @@ class _MyAppState extends ConsumerState<MyApp> {
     );
   }
 
-  Widget _buildTaggedItemContext(DataService dataService, List<Project> projects, SelectionState state) {
+  Widget _buildTaggedItemContext(BuildContext context, DataService dataService, List<Project> projects, SelectionState state) {
     if (state.selectedTaggedItem == null) return Container(color: const Color(0xFFFAFAFA));
     
     // If Project, show Tasks
     if (state.selectedTaggedItem!.type == 'project') {
        final pIdx = projects.indexWhere((p) => p.id == state.selectedTaggedItem!.id);
        if (pIdx == -1) return const Center(child: Text("Project not found"));
-       return _buildTaskColumn(dataService, projects, pIdx, null, state);
+       return _buildTaskColumn(context, dataService, projects, pIdx, null, state);
     }
     
     // If Task, show Subtasks
@@ -624,7 +678,7 @@ class _MyAppState extends ConsumerState<MyApp> {
        for (int i=0; i<projects.length; i++) {
           final tIdx = projects[i].tasks.indexWhere((t) => t.id == state.selectedTaggedItem!.id);
           if (tIdx != -1) {
-             return _buildSubtaskColumn(dataService, projects, i, tIdx, null, state);
+             return _buildSubtaskColumn(context, dataService, projects, i, tIdx, null, state);
           }
        }
        return const Center(child: Text("Task not found"));
@@ -641,7 +695,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                leading: IconButton(icon: Icon(Icons.close), onPressed: () => ref.read(selectionProvider.notifier).setAssistantActive(false)),
                title: Text("Conversations"),
              ),
-             body: _buildConversationColumn(dataService, state),
+             body: _buildConversationColumn(context, dataService, state),
              floatingActionButton: FloatingActionButton(
                onPressed: () {
                   Actions.invoke(context, const AddNewItemIntent());
@@ -662,14 +716,14 @@ class _MyAppState extends ConsumerState<MyApp> {
      
      Widget mobileBody;
      if (state.focusedColumnIndex == 0) {
-       mobileBody = _buildProjectColumn(dataService, projects, pIndex, aiAssistantWidget, isMobile: true);
+       mobileBody = _buildProjectColumn(context, dataService, projects, pIndex, aiAssistantWidget, isMobile: true);
      } else if (state.focusedColumnIndex == 1) {
        mobileBody = pIndex != null 
-         ? _buildTaskColumn(dataService, projects, pIndex, tIndex, state, onBack: () => ref.read(selectionProvider.notifier).setFocusedColumn(0))
+         ? _buildTaskColumn(context, dataService, projects, pIndex, tIndex, state, onBack: () => ref.read(selectionProvider.notifier).setFocusedColumn(0))
          : const Center(child: Text('Select a Project'));
      } else {
        mobileBody = (pIndex != null && tIndex != null)
-         ? _buildSubtaskColumn(dataService, projects, pIndex, tIndex, sIndex, state, onBack: () => ref.read(selectionProvider.notifier).setFocusedColumn(1))
+         ? _buildSubtaskColumn(context, dataService, projects, pIndex, tIndex, sIndex, state, onBack: () => ref.read(selectionProvider.notifier).setFocusedColumn(1))
          : const Center(child: Text('Select a Task'));
      }
      

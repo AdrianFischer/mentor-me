@@ -7,7 +7,7 @@
 - **Riverpod:** Used for reactive, testable, and robust state management across the application.
 
 ## Data Persistence
-- **Isar Database:** A high-performance, local NoSQL database used for storing structured data like Projects, Tasks, and Chat histories.
+- **Isar Database & Markdown Sync:** A high-performance, local NoSQL database for application state, synchronized bidirectionally with local Markdown files for human-readable, AI-accessible data persistence.
 - **Firebase:** Utilized for cloud-based features including Authentication, Firestore (sync), Storage, and Cloud Functions.
 
 ## AI & Agent Infrastructure

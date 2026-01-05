@@ -1,0 +1,28 @@
+# Implementation Plan: Fix Hierarchy Navigation Focus Bug
+
+This plan addresses the double-press bug in hierarchical navigation after using `Enter` and `Esc` on an entry.
+
+## Phase 1: Reproduction and Base Verification
+In this phase, we will establish failing tests that reproduce the reported bug and ensure the testing infrastructure is ready.
+
+- [x] Task: Create reproduction test for upward navigation (Task -> Project) as described in Spec.
+- [x] Task: Create reproduction test for downward navigation (Task -> Subtask) as described in Spec.
+- [x] Task: Verify tests fail as expected (Red Phase).
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Reproduction and Base Verification' (Protocol in workflow.md)
+
+## Phase 2: Logic Implementation and Fix
+In this phase, we will implement the fix in the navigation/focus management logic to ensure single-press hierarchy jumping.
+
+- [ ] Task: Analyze existing focus and navigation providers (Riverpod) to identify why state requires double-press.
+- [ ] Task: Implement fix to ensure focus state is correctly restored to the item on `Esc`.
+- [ ] Task: Implement fix to ensure hierarchy navigation logic handles the "just-escaped" state correctly.
+- [ ] Task: Verify all tests pass (Green Phase).
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Logic Implementation and Fix' (Protocol in workflow.md)
+
+## Phase 3: Regression and Polish
+Ensuring no other navigation features were broken and finalizing the code.
+
+- [ ] Task: Run existing navigation tests to ensure no regressions.
+- [ ] Task: Refactor navigation logic for clarity if necessary.
+- [ ] Task: Verify code coverage for the fix exceeds 80%.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Regression and Polish' (Protocol in workflow.md)

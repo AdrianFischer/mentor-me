@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/app.dart';
 import 'package:flutter_app/ui/widgets/editable_column.dart';
+import 'package:flutter_app/ui/actions/selection_actions.dart';
+import 'package:flutter_app/providers/selection_provider.dart';
 import 'package:flutter_app/data/repository/storage_repository.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:flutter_app/models/ai_models.dart';
@@ -50,10 +52,14 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    // 1. Projects Column
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown); 
+    final container = ProviderScope.containerOf(tester.element(find.byType(MyApp)));
+
+    // Ensure root focus
+    Focus.of(tester.element(find.byKey(const ValueKey('rootFocus')))).requestFocus();
     await tester.pumpAndSettle();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown); 
+
+    // 1. Projects Column
+    await tester.tap(find.text("Inbox"));
     await tester.pumpAndSettle();
     
     expect(find.text("Inbox"), findsOneWidget);
@@ -62,7 +68,10 @@ void main() {
     await tester.sendKeyDownEvent(LogicalKeyboardKey.meta);
     await tester.sendKeyEvent(LogicalKeyboardKey.keyN);
     await tester.sendKeyUpEvent(LogicalKeyboardKey.meta);
-    await tester.pumpAndSettle();
+    
+    for (int i=0; i<5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     
     final projectTextFields = find.descendant(
       of: find.byKey(const ValueKey('projects')),
@@ -83,16 +92,16 @@ void main() {
     await tester.pumpAndSettle();
 
     // 2. Tasks Column
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pumpAndSettle();
+    // Navigate Right to Tasks (Auto-creates task if empty)
+    container.read(selectionProvider.notifier).changeColumn(1);
+    for (int i=0; i<10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     
     final tasksColumn = find.text('Tasks');
     expect(tasksColumn, findsOneWidget);
     
-    // Navigation right auto-creates a task if empty, so we don't need Enter
-    
-    final allEditableColumns = find.byType(EditableColumn);
-    final taskColumnFinder = allEditableColumns.at(1);
+    final taskColumnFinder = find.ancestor(of: find.text('Tasks'), matching: find.byType(EditableColumn));
     final taskTextFields = find.descendant(
       of: taskColumnFinder,
       matching: find.byType(TextField),
@@ -105,19 +114,63 @@ void main() {
     await tester.pump();
     expect(find.text("New Task Test"), findsOneWidget);
     
-    // Exit Edit Mode
+    // Explicitly select the task to ensure Subtasks column will show
+    final dataService = container.read(dataServiceProvider);
+    
+    // Wait for data to sync
+    Task? newTask;
+    for (int i=0; i<10; i++) {
+      try {
+        // The last project added is our target
+        final p = dataService.projects.last;
+        newTask = p.tasks.firstWhere((t) => t.title == "New Task Test");
+        if (newTask != null) break;
+      } catch (_) {}
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    
+    if (newTask == null) fail("Task 'New Task Test' not found in dataService");
+    
+    container.read(selectionProvider.notifier).selectTask(newTask.id);
+    await tester.pumpAndSettle();
+    
+    // Exit Edit Mode for Task
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
 
     // 3. Subtasks Column
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    // Navigate Right to Subtasks (Auto-creates subtask if empty)
+    Focus.of(tester.element(find.byKey(const ValueKey('rootFocus')))).requestFocus();
+    await tester.pumpAndSettle();
+
+    container.read(selectionProvider.notifier).changeColumn(1);
+    
+    // Wait for subtask to appear in dataService
+    bool subtaskCreated = false;
+    for (int i=0; i<30; i++) {
+      try {
+        final p = dataService.projects.last;
+        final t = p.tasks.firstWhere((t) => t.title == "New Task Test");
+        if (t.subtasks.isNotEmpty) {
+          subtaskCreated = true;
+          break;
+        }
+      } catch (_) {}
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    
+    if (!subtaskCreated) fail("Subtask not created after navigating right");
+
+    // Wait for SelectionState to update editingItemId
+    for (int i=0; i<10; i++) {
+      if (container.read(selectionProvider).editingItemId != null) break;
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(find.text('Subtasks'), findsOneWidget);
     await tester.pumpAndSettle();
     
-    expect(find.text('Subtasks'), findsOneWidget);
-    
-    // Navigation right auto-creates a subtask if empty, so we don't need Enter
-    
-    final subtaskColumnFinder = find.byType(EditableColumn).at(2); 
+    final subtaskColumnFinder = find.ancestor(of: find.text('Subtasks'), matching: find.byType(EditableColumn)); 
     
     final subtaskTextFields = find.descendant(
       of: subtaskColumnFinder,

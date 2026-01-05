@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../models/ai_models.dart';
 import '../data/repository/storage_repository.dart';
 import 'markdown_persistence_service.dart';
+import 'markdown_watcher_service.dart';
 
 const uuid = Uuid();
 
@@ -20,6 +21,7 @@ class TaggedItem {
 class DataService extends ChangeNotifier {
   final StorageRepository _repository;
   final MarkdownPersistenceService _markdownPersistence;
+  MarkdownWatcherService? _markdownWatcher;
   List<Project> _projects = [];
   final Map<String, Timer> _debounceTimers = {};
   
@@ -27,6 +29,10 @@ class DataService extends ChangeNotifier {
   List<Conversation> _conversations = [];
 
   DataService(this._repository, this._markdownPersistence);
+
+  void setWatcher(MarkdownWatcherService watcher) {
+    _markdownWatcher = watcher;
+  }
 
   List<Project> get projects => _projects;
   List<Conversation> get conversations => _conversations;
@@ -72,6 +78,11 @@ class DataService extends ChangeNotifier {
 
   // --- AI / UI Tool Interface ---
 
+  Future<void> _saveToMarkdown(Project project) async {
+    _markdownWatcher?.recordSelfWrite();
+    await _markdownPersistence.saveProject(project);
+  }
+
   Future<String> addProject(String title) async {
     print("[VERIFY_FLOW] Data Update: addProject($title)");
     // Determine order: Last + 1.0
@@ -91,6 +102,7 @@ class DataService extends ChangeNotifier {
     _projects.add(project);
     notifyListeners();
     await _repository.saveProject(project);
+    await _saveToMarkdown(project);
     return project.id;
   }
 
@@ -120,7 +132,7 @@ class DataService extends ChangeNotifier {
       notifyListeners();
       
       await _repository.saveTask(task);
-      _markdownPersistence.saveTask(task, newProject);
+      await _saveToMarkdown(newProject);
 
       return task.id;
     } catch (e) {
@@ -157,6 +169,7 @@ class DataService extends ChangeNotifier {
         notifyListeners();
         
         await _repository.saveTask(newTask);
+        await _saveToMarkdown(newProject);
         
         return subtask.id;
       }
@@ -180,6 +193,7 @@ class DataService extends ChangeNotifier {
         
         notifyListeners();
         _repository.saveTask(newTask);
+        _markdownPersistence.saveProject(newProject);
         return;
       }
     }
@@ -234,6 +248,7 @@ class DataService extends ChangeNotifier {
            
            notifyListeners();
            _repository.saveTask(newTask);
+           _markdownPersistence.saveProject(newProject);
         }
         return;
       }
@@ -284,12 +299,13 @@ class DataService extends ChangeNotifier {
   }
 
   void deleteItem(String itemId) {
-    // ... (Existing implementation) ...
     // Check if it is a Project
     int projectIndex = _projects.indexWhere((p) => p.id == itemId);
     if (projectIndex != -1) {
+       final project = _projects[projectIndex];
        _projects.removeAt(projectIndex);
        _repository.deleteProject(itemId);
+       _markdownPersistence.deleteProject(project);
        notifyListeners();
        return;
     }
@@ -306,6 +322,7 @@ class DataService extends ChangeNotifier {
         _projects[i] = newProject;
         
         _repository.deleteTask(task.id);
+        _markdownPersistence.saveProject(newProject);
         notifyListeners();
         return;
       }
@@ -326,6 +343,7 @@ class DataService extends ChangeNotifier {
            _projects[i] = newProject;
            
            _repository.saveTask(newTask);
+           _markdownPersistence.saveProject(newProject);
            notifyListeners();
            return;
         }
@@ -358,6 +376,7 @@ class DataService extends ChangeNotifier {
           _projects[i] = newProject;
           
           await _repository.saveTask(newTask);
+          await _markdownPersistence.saveProject(newProject);
           notifyListeners();
           return;
         }
@@ -377,6 +396,7 @@ class DataService extends ChangeNotifier {
             _projects[i] = newProject;
             
             await _repository.saveTask(newTask);
+            await _markdownPersistence.saveProject(newProject);
             notifyListeners();
             return;
           }
@@ -409,6 +429,7 @@ class DataService extends ChangeNotifier {
           _projects[i] = newProject;
           
           await _repository.saveTask(newTask);
+          await _markdownPersistence.saveProject(newProject);
           notifyListeners();
           return;
         }
@@ -431,6 +452,7 @@ class DataService extends ChangeNotifier {
             _projects[i] = newProject;
             
             await _repository.saveTask(newTask);
+            await _markdownPersistence.saveProject(newProject);
             notifyListeners();
             return;
           }
@@ -449,7 +471,7 @@ class DataService extends ChangeNotifier {
         final newProject = project.copyWith(title: newTitle, tags: tags);
         _projects[i] = newProject;
         notifyListeners();
-        _repository.saveProject(newProject);
+        _debounceSave(newProject);
         return;
       }
       
@@ -465,7 +487,7 @@ class DataService extends ChangeNotifier {
           _projects[i] = newProject;
           
           notifyListeners();
-          _debounceSave(newTask);
+          _debounceSave(newProject, task: newTask);
           return;
         }
         
@@ -485,7 +507,7 @@ class DataService extends ChangeNotifier {
             _projects[i] = newProject;
             
             notifyListeners();
-            _debounceSave(newTask);
+            _debounceSave(newProject, task: newTask);
             return;
           }
         }
@@ -501,7 +523,7 @@ class DataService extends ChangeNotifier {
         final newProject = project.copyWith(notes: newNotes);
         _projects[i] = newProject;
         notifyListeners();
-        _repository.saveProject(newProject);
+        _debounceSave(newProject);
         return;
       }
       
@@ -517,7 +539,7 @@ class DataService extends ChangeNotifier {
           _projects[i] = newProject;
           
           notifyListeners();
-          _debounceSave(newTask);
+          _debounceSave(newProject, task: newTask);
           return;
         }
         
@@ -537,7 +559,7 @@ class DataService extends ChangeNotifier {
             _projects[i] = newProject;
             
             notifyListeners();
-            _debounceSave(newTask);
+            _debounceSave(newProject, task: newTask);
             return;
           }
         }
@@ -545,13 +567,19 @@ class DataService extends ChangeNotifier {
     }
   }
   
-  void _debounceSave(Task task) {
-    if (_debounceTimers.containsKey(task.id)) {
-      _debounceTimers[task.id]!.cancel();
+  void _debounceSave(Project project, {Task? task}) {
+    final id = task?.id ?? project.id;
+    if (_debounceTimers.containsKey(id)) {
+      _debounceTimers[id]!.cancel();
     }
-    _debounceTimers[task.id] = Timer(const Duration(milliseconds: 1000), () {
-      _repository.saveTask(task);
-      _debounceTimers.remove(task.id);
+    _debounceTimers[id] = Timer(const Duration(milliseconds: 1000), () {
+      if (task != null) {
+        _repository.saveTask(task);
+      } else {
+        _repository.saveProject(project);
+      }
+      _markdownPersistence.saveProject(project);
+      _debounceTimers.remove(id);
     });
   }
   
@@ -630,6 +658,7 @@ class DataService extends ChangeNotifier {
     for (int i = 0; i < _projects.length; i++) {
         _projects[i] = _projects[i].copyWith(order: i.toDouble());
         _repository.saveProject(_projects[i]);
+        _markdownPersistence.saveProject(_projects[i]);
     }
 
     notifyListeners();
@@ -656,6 +685,7 @@ class DataService extends ChangeNotifier {
 
     final newProject = project.copyWith(tasks: newTasks);
     _projects[pIndex] = newProject;
+    _markdownPersistence.saveProject(newProject);
     notifyListeners();
   }
 
@@ -686,8 +716,9 @@ class DataService extends ChangeNotifier {
         final newProject = project.copyWith(tasks: newTasks);
         _projects[i] = newProject;
         
-        notifyListeners();
         _repository.saveTask(newTask);
+        _markdownPersistence.saveProject(newProject);
+        notifyListeners();
         return;
       }
     }

@@ -21,6 +21,7 @@ void main() {
               item: EditableItem(id: '1', text: 'Task'),
               isSelected: true,
               isActiveColumn: true,
+              isEditing: true,
               index: 0,
               onChanged: (_) {},
               onTap: () {},
@@ -36,11 +37,11 @@ void main() {
       );
 
       // Focus the widget
-      await tester.tap(find.byType(TextField));
+      await tester.tap(find.byType(TextField).first);
       await tester.pump();
 
       // Ensure cursor is at start
-      final TextField textField = tester.widget(find.byType(TextField));
+      final TextField textField = tester.widget(find.byType(TextField).first);
       textField.controller!.selection = const TextSelection.collapsed(offset: 0);
       await tester.pump();
 
@@ -62,6 +63,7 @@ void main() {
               item: EditableItem(id: '1', text: text),
               isSelected: true,
               isActiveColumn: true,
+              isEditing: true,
               index: 0,
               onChanged: (_) {},
               onTap: () {},
@@ -77,11 +79,11 @@ void main() {
       );
 
       // Focus
-      await tester.tap(find.byType(TextField));
+      await tester.tap(find.byType(TextField).first);
       await tester.pump();
 
       // Ensure cursor is at end
-      final TextField textField = tester.widget(find.byType(TextField));
+      final TextField textField = tester.widget(find.byType(TextField).first);
       textField.controller!.selection = const TextSelection.collapsed(offset: text.length);
       await tester.pump();
 
@@ -104,6 +106,7 @@ void main() {
               item: EditableItem(id: '1', text: text),
               isSelected: true,
               isActiveColumn: true,
+              isEditing: true,
               index: 0,
               onChanged: (_) {},
               onTap: () {},
@@ -117,11 +120,11 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(TextField));
+      await tester.tap(find.byType(TextField).first);
       await tester.pump();
 
       // Cursor in middle
-      final TextField textField = tester.widget(find.byType(TextField));
+      final TextField textField = tester.widget(find.byType(TextField).first);
       textField.controller!.selection = const TextSelection.collapsed(offset: 2);
       await tester.pump();
 

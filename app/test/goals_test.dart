@@ -3,99 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/models/models.dart';
 import 'package:flutter_app/models/ai_models.dart';
 import 'package:flutter_app/services/data_service.dart';
-import 'package:flutter_app/data/repository/storage_repository.dart';
+import 'helpers/fake_storage_repository.dart';
 import 'package:flutter_app/services/markdown_persistence_service.dart';
-
-class FakeStorageRepository implements StorageRepository {
-  final List<Project> _projects = [];
-  final StreamController<void> _controller = StreamController.broadcast();
-
-  FakeStorageRepository({List<Project>? initialProjects}) {
-    if (initialProjects != null) {
-      _projects.addAll(initialProjects);
-    }
-  }
-
-  @override
-  Stream<void> get onDataChanged => _controller.stream;
-
-  @override
-  Future<void> init() async {}
-
-  @override
-  Future<List<Project>> getAllProjects() async => List.from(_projects);
-
-  @override
-  Future<void> saveProject(Project project) async {
-    final index = _projects.indexWhere((p) => p.id == project.id);
-    if (index != -1) {
-      _projects[index] = project;
-    } else {
-      _projects.add(project);
-    }
-    _controller.add(null);
-  }
-
-  @override
-  Future<void> saveTask(Task task) async {
-    if (task.projectId == null) return;
-    final pIndex = _projects.indexWhere((p) => p.id == task.projectId);
-    if (pIndex != -1) {
-      final project = _projects[pIndex];
-      final tIndex = project.tasks.indexWhere((t) => t.id == task.id);
-      
-      List<Task> newTasks = List.from(project.tasks);
-      if (tIndex != -1) {
-        newTasks[tIndex] = task;
-      } else {
-        newTasks.add(task);
-      }
-      _projects[pIndex] = project.copyWith(tasks: newTasks);
-      _controller.add(null);
-    }
-  }
-
-  @override
-  Future<void> deleteTask(String taskId) async {
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      final newTasks = project.tasks.where((t) => t.id != taskId).toList();
-      if (newTasks.length != project.tasks.length) {
-        _projects[i] = project.copyWith(tasks: newTasks);
-        _controller.add(null);
-      }
-    }
-  }
-  
-  // Stubs for other methods
-  @override
-  Future<void> deleteProject(String projectId) async {}
-  @override
-  Future<void> saveConversation(Conversation conversation) async {}
-  @override
-  Future<List<Conversation>> getAllConversations() async => [];
-  @override
-  Future<void> deleteConversation(String conversationId) async {}
-  @override
-  Future<void> saveChatMessage(ChatMessage message, String mode) async {}
-  @override
-  Future<List<ChatMessage>> getChatHistory(String mode, {String? conversationId}) async => [];
-  @override
-  Future<void> clearChatHistory(String mode, {String? conversationId}) async {}
-  @override
-  Future<void> saveKnowledge(Knowledge knowledge) async {}
-  @override
-  Future<List<Knowledge>> getAllKnowledge() async => [];
-  @override
-  Future<void> deleteKnowledge(String id) async {}
-}
 
 class FakeMarkdownPersistence implements MarkdownPersistenceService {
   @override
-  bool get isEnabled => false;
-
+  bool get isEnabled => true;
   @override
-  Future<void> saveTask(Task task, Project project) async {}
+  Future<void> saveProject(Project project) async {}
+  @override
+  Future<void> deleteProject(Project project) async {}
 }
 
 void main() {

@@ -1,122 +1,90 @@
 import 'dart:io';
-import 'package:intl/intl.dart';
+import 'dart:convert';
 import '../config.dart';
 import '../models/models.dart';
+import 'markdown_converter.dart';
 
 class MarkdownPersistenceService {
   final String? _baseDir;
+  final MarkdownConverter _converter = MarkdownConverter();
 
   MarkdownPersistenceService({String? baseDir}) : _baseDir = baseDir ?? Config.dataDir;
 
   bool get isEnabled => _baseDir != null;
 
-  Future<void> saveTask(Task task, Project project) async {
-    if (!isEnabled) return;
+  Future<void> saveProject(Project project) async {
+    if (!isEnabled) {
+      print('[MarkdownPersistence] Service disabled: No data directory configured.');
+      return;
+    }
     
-    // Generate slug from title
-    final slug = _generateSlug(task.title);
-    final timestamp = DateFormat('yyyy_MM_dd_HHmm').format(DateTime.now());
-    final filename = '${timestamp}_$slug.md';
-    // Use path separator
-    final filePath = '$_baseDir/to_dos/$filename';
+    // 1. Find existing file for this project ID to handle renaming
+    await _deleteFileForProjectId(project.id);
     
-    final file = File(filePath);
+    final markdown = _converter.projectToMarkdown(project);
     
-    // Check if a file with this slug already exists to avoid duplicates?
-    // For now, timestamp ensures uniqueness.
+    // Determine category from first tag
+    String category = 'unsorted';
+    if (project.tags.isNotEmpty) {
+      category = project.tags.first.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    }
     
-    final content = '''${task.title}
-$slug
-Task created from Flutter App in Project "${project.title}"
-
-Summary
-State: ${task.isCompleted ? 'Completed' : 'Pending'}
-Focus: Creation
-
-Log Book
-- ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}: Created by App in Project "${project.title}".
-''';
-
+    final fileName = _generateFileName(project.title);
+    final filePath = '$_baseDir/todos/$category/$fileName.md';
+    
     try {
-      final parentDir = Directory('$_baseDir/to_dos');
-      if (!await parentDir.exists()) {
-        await parentDir.create(recursive: true);
+      final file = File(filePath);
+      if (!await file.parent.exists()) {
+        await file.parent.create(recursive: true);
       }
       
-      await file.writeAsString(content);
-      await _updateOverview();
+      await file.writeAsString(markdown);
+      print('[MarkdownPersistence] Saved project "${project.title}" to $filePath');
     } catch (e) {
-      print('[MarkdownPersistence] Error saving task: $e');
+      print('[MarkdownPersistence] Error saving project: $e');
     }
   }
-  
-  Future<void> _updateOverview() async {
-      if (!isEnabled) return;
+
+  Future<void> _deleteFileForProjectId(String projectId) async {
+    // Brute-force search: In a real app, we might want a cache or index.
+    // Since we don't have many files yet, simple directory walk is fine.
+    try {
+      final dir = Directory('$_baseDir/todos');
+      if (!await dir.exists()) return;
       
-      final todoDir = Directory('$_baseDir/to_dos');
-      if (!await todoDir.exists()) return;
-      
-      final entities = <_TodoEntry>[];
-      
-      try {
-        await for (final file in todoDir.list()) {
-            if (file is File && file.path.endsWith('.md')) {
-                try {
-                    final content = await file.readAsString();
-                    final lines = content.split('\n');
-                    if (lines.length < 2) continue;
-                    
-                    final desc = lines[0].trim();
-                    final id = lines[1].trim();
-                    // Extract State/Focus
-                    String state = 'Unknown';
-                    String focus = 'Unknown';
-                    
-                    for (var line in lines) {
-                        if (line.startsWith('State:')) state = line.substring(6).trim();
-                        if (line.startsWith('Focus:')) focus = line.substring(6).trim();
-                    }
-                    
-                    entities.add(_TodoEntry(id, desc, state, focus));
-                } catch (e) {
-                    print('[MarkdownPersistence] Error parsing ${file.path}: $e');
+      await for (final file in dir.list(recursive: true)) {
+        if (file is File && file.path.endsWith('.md')) {
+          // Read first few lines to find ID?
+          // To be efficient, we assume ID is in the first 5 lines.
+          final stream = file.openRead();
+          try {
+             final lines = await stream.transform(SystemEncoding().decoder).transform(const LineSplitter()).take(5).toList();
+             for (final line in lines) {
+                if (line.contains('<!-- id: $projectId -->')) {
+                   print('[MarkdownPersistence] Deleting old file: ${file.path}');
+                   await file.delete();
+                   return;
                 }
-            }
+             }
+          } catch (e) {
+             // Ignore read errors
+          }
         }
-        
-        final buffer = StringBuffer();
-        buffer.writeln('# Project Overview');
-        buffer.writeln();
-        buffer.writeln('| **identifier**<br>Description | State | Focus |');
-        buffer.writeln('|:---|:---|:---|');
-        
-        for (final e in entities) {
-            buffer.writeln('| **${e.id}**<br>${e.desc} | ${e.state} | ${e.focus} |');
-        }
-        
-        buffer.writeln();
-        buffer.writeln('Last updated: ${DateFormat('yyyy-MM-dd').format(DateTime.now())}');
-        
-        final overviewFile = File('$_baseDir/overview.md');
-        await overviewFile.writeAsString(buffer.toString());
-      } catch (e) {
-        print('[MarkdownPersistence] Error updating overview: $e');
       }
+    } catch (e) {
+      print('[MarkdownPersistence] Error scanning for old files: $e');
+    }
   }
-  
-  String _generateSlug(String title) {
+
+  Future<void> deleteProject(Project project) async {
+    if (!isEnabled) return;
+    await _deleteFileForProjectId(project.id);
+  }
+
+  String _generateFileName(String title) {
     return title.toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9\s]'), '')
         .trim()
         .replaceAll(RegExp(r'\s+'), '_');
   }
-}
-
-class _TodoEntry {
-    final String id;
-    final String desc;
-    final String state;
-    final String focus;
-    
-    _TodoEntry(this.id, this.desc, this.state, this.focus);
 }

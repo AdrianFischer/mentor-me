@@ -1,0 +1,8 @@
+{
+  "track_id": "nav_fix_20260105",
+  "type": "bug",
+  "status": "new",
+  "created_at": "2026-01-05T10:00:00Z",
+  "updated_at": "2026-01-05T10:00:00Z",
+  "description": "Fix bug requiring double arrow key press to change hierarchy after Esc"
+}
