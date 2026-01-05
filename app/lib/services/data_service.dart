@@ -84,82 +84,120 @@ class DataService extends ChangeNotifier {
   }
 
   Future<String> addProject(String title) async {
-    print("[VERIFY_FLOW] Data Update: addProject($title)");
-    // Determine order: Last + 1.0
-    double newOrder = 0.0;
-    if (_projects.isNotEmpty) {
-      // Assuming _projects is sorted by order
-      newOrder = _projects.last.order + 1.0;
-    }
+    return insertProject(title, _projects.length);
+  }
+
+  Future<String> insertProject(String title, int index) async {
+    print("[VERIFY_FLOW] Data Update: insertProject($title) at $index");
     
     final tags = _extractTags(title);
-    final project = Project(id: uuid.v4(), title: title, order: newOrder, tags: tags);
+    final project = Project(id: uuid.v4(), title: title, order: index.toDouble(), tags: tags);
     
-    // Ensure we can add to the list
     if (_projects is! List<Project>) {
       _projects = List.from(_projects);
     }
-    _projects.add(project);
+    
+    if (index >= _projects.length) {
+      _projects.add(project);
+    } else {
+      _projects.insert(index, project);
+    }
+
+    final updatedProjects = List<Project>.from(_projects);
+
+    // Update orders for all projects and save
+    for (int i = 0; i < updatedProjects.length; i++) {
+      updatedProjects[i] = updatedProjects[i].copyWith(order: i.toDouble());
+      await _repository.saveProject(updatedProjects[i]);
+    }
+
     notifyListeners();
-    await _repository.saveProject(project);
+    // await _repository.saveProject(project); // Already saved in loop
     await _saveToMarkdown(project);
     return project.id;
   }
 
   Future<String?> addTask(String projectId, String title) async {
-    try {
-      print("[VERIFY_FLOW] Data Update: addTask($title) to $projectId");
-      final index = _projects.indexWhere((p) => p.id == projectId);
-      if (index == -1) return null;
+    final pIndex = _projects.indexWhere((p) => p.id == projectId);
+    if (pIndex == -1) return null;
+    return insertTask(projectId, title, _projects[pIndex].tasks.length);
+  }
 
-      final project = _projects[index];
-      
-      double newOrder = 0.0;
-      if (project.tasks.isNotEmpty) {
-        newOrder = project.tasks.last.order + 1.0;
-      }
-      
+  Future<String?> insertTask(String projectId, String title, int index) async {
+    try {
+      print("[VERIFY_FLOW] Data Update: insertTask($title) to $projectId at $index");
+      final pIndex = _projects.indexWhere((p) => p.id == projectId);
+      if (pIndex == -1) return null;
+
+      final project = _projects[pIndex];
       final tags = _extractTags(title);
-      final task = Task(id: uuid.v4(), title: title, projectId: projectId, order: newOrder, tags: tags);
+      final task = Task(id: uuid.v4(), title: title, projectId: projectId, order: index.toDouble(), tags: tags);
       
-      final newTasks = List<Task>.from(project.tasks)..add(task);
+      final newTasks = List<Task>.from(project.tasks);
+      if (index >= newTasks.length) {
+        newTasks.add(task);
+      } else {
+        newTasks.insert(index, task);
+      }
+
+      // Update orders
+      for (int i = 0; i < newTasks.length; i++) {
+        newTasks[i] = newTasks[i].copyWith(order: i.toDouble());
+        await _repository.saveTask(newTasks[i]);
+      }
+
       final newProject = project.copyWith(tasks: newTasks);
       
       if (_projects is! List<Project>) {
         _projects = List.from(_projects);
       }
-      _projects[index] = newProject;
+      _projects[pIndex] = newProject;
       notifyListeners();
       
-      await _repository.saveTask(task);
+      // await _repository.saveTask(task); // Saved in loop
       await _saveToMarkdown(newProject);
 
       return task.id;
     } catch (e) {
-      debugPrint('Error adding task: $e');
+      debugPrint('Error inserting task: $e');
       return null;
     }
   }
 
   Future<String?> addSubtask(String taskId, String title) async {
+    // Find task index and project
+    for (var i = 0; i < _projects.length; i++) {
+      final taskIndex = _projects[i].tasks.indexWhere((t) => t.id == taskId);
+      if (taskIndex != -1) {
+        return insertSubtask(taskId, title, _projects[i].tasks[taskIndex].subtasks.length);
+      }
+    }
+    return null;
+  }
+
+  Future<String?> insertSubtask(String taskId, String title, int index) async {
     for (var i = 0; i < _projects.length; i++) {
       final project = _projects[i];
       final taskIndex = project.tasks.indexWhere((t) => t.id == taskId);
       
       if (taskIndex != -1) {
         final task = project.tasks[taskIndex];
+        final tags = _extractTags(title);
+        final subtask = Subtask(id: uuid.v4(), title: title, order: index.toDouble(), tags: tags);
         
-        double newOrder = 0.0;
-        if (task.subtasks.isNotEmpty) {
-          newOrder = task.subtasks.last.order + 1.0;
+        final newSubtasks = List<Subtask>.from(task.subtasks);
+        if (index >= newSubtasks.length) {
+          newSubtasks.add(subtask);
+        } else {
+          newSubtasks.insert(index, subtask);
         }
 
-        final tags = _extractTags(title);
-        final subtask = Subtask(id: uuid.v4(), title: title, order: newOrder, tags: tags);
-        
-        final newSubtasks = List<Subtask>.from(task.subtasks)..add(subtask);
+        // Update orders
+        for (int j = 0; j < newSubtasks.length; j++) {
+           newSubtasks[j] = newSubtasks[j].copyWith(order: j.toDouble());
+        }
+
         final newTask = task.copyWith(subtasks: newSubtasks);
-        
         final newTasksList = List<Task>.from(project.tasks);
         newTasksList[taskIndex] = newTask;
         
@@ -168,7 +206,7 @@ class DataService extends ChangeNotifier {
         
         notifyListeners();
         
-        await _repository.saveTask(newTask);
+        await _repository.saveTask(newTask); // Helper saves whole task?
         await _saveToMarkdown(newProject);
         
         return subtask.id;
@@ -599,7 +637,7 @@ class DataService extends ChangeNotifier {
   
   Future<void> _reloadProjects() async {
     final projects = await _repository.getAllProjects();
-    _projects = List.from(projects);
+    _projects = List.from(projects)..sort((a, b) => a.order.compareTo(b.order));
     notifyListeners();
   }
 

@@ -159,15 +159,28 @@ class AddNewItemAction extends Action<AddNewItemIntent> {
 
     // Task Mode
     final projects = dataService.projects;
-    // ... Cleanup empty logic would be good here too, but maybe separate concern ...
 
     if (selectionState.focusedColumnIndex == 0) {
-      String newId = await dataService.addProject("");
+      // Insertion logic for projects
+      int targetIndex = projects.length;
+      if (selectionState.selectedProjectId != null) {
+        final currentIdx = projects.indexWhere((p) => p.id == selectionState.selectedProjectId);
+        if (currentIdx != -1) targetIndex = currentIdx + 1;
+      }
+      
+      String newId = await dataService.insertProject("", targetIndex);
       ref.read(selectionProvider.notifier).selectProject(newId);
       ref.read(selectionProvider.notifier).setEditingItem(newId);
     } else if (selectionState.focusedColumnIndex == 1) {
       if (selectionState.selectedProjectId != null) {
-         String? newId = await dataService.addTask(selectionState.selectedProjectId!, "");
+         final p = projects.firstWhere((p) => p.id == selectionState.selectedProjectId);
+         int targetIndex = p.tasks.length;
+         if (selectionState.selectedTaskId != null) {
+            final currentIdx = p.tasks.indexWhere((t) => t.id == selectionState.selectedTaskId);
+            if (currentIdx != -1) targetIndex = currentIdx + 1;
+         }
+
+         String? newId = await dataService.insertTask(selectionState.selectedProjectId!, "", targetIndex);
          if (newId != null) {
            ref.read(selectionProvider.notifier).selectTask(newId);
            ref.read(selectionProvider.notifier).setEditingItem(newId);
@@ -175,7 +188,15 @@ class AddNewItemAction extends Action<AddNewItemIntent> {
       }
     } else if (selectionState.focusedColumnIndex == 2) {
       if (selectionState.selectedTaskId != null) {
-         String? newId = await dataService.addSubtask(selectionState.selectedTaskId!, "");
+         final p = projects.firstWhere((p) => p.id == selectionState.selectedProjectId);
+         final t = p.tasks.firstWhere((t) => t.id == selectionState.selectedTaskId);
+         int targetIndex = t.subtasks.length;
+         if (selectionState.selectedSubtaskId != null) {
+            final currentIdx = t.subtasks.indexWhere((s) => s.id == selectionState.selectedSubtaskId);
+            if (currentIdx != -1) targetIndex = currentIdx + 1;
+         }
+
+         String? newId = await dataService.insertSubtask(selectionState.selectedTaskId!, "", targetIndex);
          if (newId != null) {
            ref.read(selectionProvider.notifier).selectSubtask(newId);
            ref.read(selectionProvider.notifier).setEditingItem(newId);
