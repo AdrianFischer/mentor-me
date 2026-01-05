@@ -6,3 +6,55 @@ worktrees/
 
 # GitHub App credentials
 gha-creds-*.json
+
+# OS & IDE
+.DS_Store
+.idea/
+.vscode/
+.cursor/
+*.swp
+*.swo
+
+# Dependencies
+node_modules/
+.venv/
+.pnp
+.pnp.js
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Build & Dist
+build/
+dist/
+coverage/
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/.ldb/
+**/ios/Flutter/.elf-ldb/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/android/.gradle
+**/android/local.properties
+
+# Python
+__pycache__/
+*.pyc
+
+# Temp
+tmp/
+temp/
+*~

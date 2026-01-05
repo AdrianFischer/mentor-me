@@ -5,10 +5,10 @@
 - [x] Task: Create new directory structure (`app/`, `backend/`, `data/`, `scripts/`) [4d7fa0f]
     - [x] Write Tests: N/A (Directory creation)
     - [x] Implement Feature: Execute shell commands to create the new top-level structure.
-- [~] Task: Move Flutter app to `app/`
-    - [ ] Write Tests: N/A (File move)
-    - [ ] Implement Feature: Move all contents of `src/flutter_app/` to `app/` and update any relative paths in root config files.
-- [ ] Task: Extract Firebase Functions to `backend/`
+- [x] Task: Move Flutter app to `app/` [985fe22]
+    - [x] Write Tests: N/A (File move)
+    - [x] Implement Feature: Move all contents of `src/flutter_app/` to `app/` and update any relative paths in root config files.
+- [~] Task: Extract Firebase Functions to `backend/`
     - [ ] Write Tests: N/A (File move)
     - [ ] Implement Feature: Move `src/flutter_app/functions/` to `backend/` and verify build/config integrity.
 - [ ] Task: Consolidate Scripts to `scripts/`

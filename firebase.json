@@ -1,0 +1,41 @@
+{
+  "functions": {
+    "source": "backend",
+    "codebase": "default",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log"
+    ],
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run lint",
+      "npm --prefix \"$RESOURCE_DIR\" run build"
+    ]
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "macos": {
+        "default": {
+          "projectId": "mentor-me-ai",
+          "appId": "1:572182442562:ios:732b575d313c58df62b3db",
+          "uploadDebugSymbols": false,
+          "fileOutput": "app/macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "app/lib/firebase_options.dart": {
+          "projectId": "mentor-me-ai",
+          "configurations": {
+            "ios": "1:572182442562:ios:1623bd9609fc299162b3db",
+            "macos": "1:572182442562:ios:732b575d313c58df62b3db",
+            "web": "1:572182442562:web:3104c9a65448d6c562b3db"
+          }
+        }
+      }
+    }
+  }
+}
