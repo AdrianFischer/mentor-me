@@ -51,5 +51,11 @@ void main() {
       expect(projects.first.tasks.length, 1);
       expect(projects.first.tasks.first.title, 'Task 1');
     });
+
+    test('addProject should trigger FilePersistenceService.saveProject', () async {
+      await dataService.addProject('Persistent Project');
+      
+      verify(() => filePersistence.saveProject(any(that: isA<Project>().having((p) => p.title, 'title', 'Persistent Project')))).called(1);
+    });
   });
 }
