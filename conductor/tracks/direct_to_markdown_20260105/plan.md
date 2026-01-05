@@ -26,7 +26,7 @@ Goal: Connect the in-memory state to the file system with robust change detectio
 - [x] Task: Implement `FileSystemWatcher` to listen for external changes. [5ad5727]
 - [x] Task: Implement "Write-Behind" logic with loop prevention (e.g., using file modification timestamps or internal versioning). [9aaa2c5]
 - [x] Task: Implement debouncing for UI updates triggered by file system events. [ac2ae6f]
-- [ ] Task: Write Tests: Integration test for "Edit in App -> File Updated" and "Edit File -> App Updated".
+- [x] Task: Write Tests: Integration test for "Edit in App -> File Updated" and "Edit File -> App Updated". [84f53bc]
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: File System Integration & Loop Prevention' (Protocol in workflow.md)
 
 ## Phase 4: Cleanup & Deletion
