@@ -52,5 +52,33 @@ This is a description.
       expect(markdown, contains('Some notes.'));
       expect(markdown, contains('- [ ] Task A'));
     });
+
+    test('parseProject should handle empty file', () {
+      final project = MarkdownParser.parseProject('');
+      expect(project.title, 'Untitled');
+      expect(project.tasks, isEmpty);
+    });
+
+    test('parseProject should handle missing frontmatter', () {
+      final markdown = '# Just a Title\n\nSome notes.';
+      final project = MarkdownParser.parseProject(markdown);
+      expect(project.title, 'Just a Title');
+      expect(project.notes, 'Some notes.');
+      expect(project.id, isNotEmpty);
+    });
+
+    test('parseProject should handle malformed frontmatter gracefully', () {
+      final markdown = '''
+---
+id: [invalid
+tags: {
+---
+
+# Title
+''';
+      final project = MarkdownParser.parseProject(markdown);
+      expect(project.title, 'Title');
+      expect(project.id, isNotEmpty);
+    });
   });
 }
