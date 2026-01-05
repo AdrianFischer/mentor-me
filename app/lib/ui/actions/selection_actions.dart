@@ -224,7 +224,8 @@ class DeleteItemAction extends Action<DeleteItemIntent> {
 
      String? nextId;
      if (index > 0) nextId = items[index - 1].id;
-     else if (items.length > 1) nextId = items[1].id;
+     // Spec: If the deleted entry was the first in the list, no item should be selected (selection cleared).
+     // So we do NOT select index + 1 if index == 0.
 
      // Capture current focus column before selection changes it (if selectX forces jump)
      final currentFocus = ref.read(selectionProvider).focusedColumnIndex;
@@ -233,8 +234,8 @@ class DeleteItemAction extends Action<DeleteItemIntent> {
      onSelect(nextId);
      
      // Ensure we stay on the list column after deletion, instead of jumping to details/chat
-     if (nextId != null) {
-       ref.read(selectionProvider.notifier).setFocusedColumn(currentFocus);
-     }
+     // Only set focus if we actually selected something. If we cleared selection, we might still want focus on the column?
+     // If selection is cleared, onSelect(null) is called.
+     ref.read(selectionProvider.notifier).setFocusedColumn(currentFocus);
   }
 }

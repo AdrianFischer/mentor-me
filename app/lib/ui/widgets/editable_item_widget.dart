@@ -427,6 +427,13 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
              }
           }
        }
+       
+       if (event.logicalKey == LogicalKeyboardKey.backspace) {
+          if (_controller.text.isEmpty) {
+             widget.onDelete();
+             return KeyEventResult.handled;
+          }
+       }
     }
     return KeyEventResult.ignored;
   }

@@ -78,6 +78,7 @@ class SelectionNotifier extends Notifier<SelectionState> {
   void selectProject(String? projectId) {
     state = state.copyWith(
       selectedProjectId: projectId,
+      clearProject: projectId == null,
       clearTask: true,
       clearSubtask: true,
       isAssistantActive: false,
@@ -94,6 +95,7 @@ class SelectionNotifier extends Notifier<SelectionState> {
   void selectTask(String? taskId) {
     state = state.copyWith(
       selectedTaskId: taskId,
+      clearTask: taskId == null,
       clearSubtask: true,
       focusedColumnIndex: 1,
     );
@@ -102,6 +104,7 @@ class SelectionNotifier extends Notifier<SelectionState> {
   void selectSubtask(String? subtaskId) {
     state = state.copyWith(
       selectedSubtaskId: subtaskId,
+      clearSubtask: subtaskId == null,
       focusedColumnIndex: 2,
     );
   }
@@ -109,6 +112,7 @@ class SelectionNotifier extends Notifier<SelectionState> {
   void selectConversation(String? conversationId) {
     state = state.copyWith(
       selectedConversationId: conversationId,
+      clearConversation: conversationId == null,
       focusedColumnIndex: 1, // Keep focus on the list to allow navigation/highlight
     );
   }
