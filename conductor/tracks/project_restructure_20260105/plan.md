@@ -2,9 +2,9 @@
 
 ## Phase 1: Directory Reorganization
 
-- [ ] Task: Create new directory structure (`app/`, `backend/`, `data/`, `scripts/`)
-    - [ ] Write Tests: N/A (Directory creation)
-    - [ ] Implement Feature: Execute shell commands to create the new top-level structure.
+- [x] Task: Create new directory structure (`app/`, `backend/`, `data/`, `scripts/`) [4d7fa0f]
+    - [x] Write Tests: N/A (Directory creation)
+    - [x] Implement Feature: Execute shell commands to create the new top-level structure.
 - [ ] Task: Move Flutter app to `app/`
     - [ ] Write Tests: N/A (File move)
     - [ ] Implement Feature: Move all contents of `src/flutter_app/` to `app/` and update any relative paths in root config files.
