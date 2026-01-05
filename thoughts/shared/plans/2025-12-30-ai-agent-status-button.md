@@ -133,3 +133,4 @@ Connect the UI to data persistence and expose it to MCP.
 - Ticket: N/A
 - Similar implementation: `update_notes` tool.
 
+

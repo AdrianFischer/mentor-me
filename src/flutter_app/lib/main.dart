@@ -11,19 +11,47 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
-  // Ensure we have an anonymous user for Cloud Functions / Storage security
+  // Ensure we have a logged-in user for Sync
   if (FirebaseAuth.instance.currentUser == null) {
-    debugPrint("Signing in anonymously...");
+    debugPrint("Signing in with hardcoded sync user...");
+    
+    // Use MEMORY persistence to avoid keychain errors in unsigned/debug builds
     try {
-      await FirebaseAuth.instance.signInAnonymously();
+      await FirebaseAuth.instance.setPersistence(Persistence.NONE);
+    } catch (e) {
+      debugPrint("WARN: Failed to set persistence to MEMORY: $e");
+    }
+
+    const email = 'sync_user@example.com';
+    const password = 'SyncUser2025!';
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      debugPrint("Signed in as $email");
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'keychain-error' || e.code == 'internal-error') {
-         debugPrint("WARN: Keychain persistence failed (expected without valid signing). Session will be memory-only.");
-         // Swallow the error. The session *might* still be active in memory for this run,
-         // or we might need to rely on the fact that some features might be degraded.
-         // However, typically signInAnonymously *throws* if it can't write to keychain.
-         // Let's try to proceed.
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+         debugPrint("User not found, creating new sync user...");
+         try {
+           await FirebaseAuth.instance.createUserWithEmailAndPassword(
+             email: email,
+             password: password,
+           );
+           debugPrint("Created and signed in as $email");
+         } catch (createError) {
+            // Handle keychain error specifically for create/sign-in
+            if (createError.toString().contains('keychain-error')) {
+               debugPrint("WARN: Keychain error ignored. Session is valid but may not persist restart.");
+            } else {
+               debugPrint("Failed to create user: $createError");
+               rethrow;
+            }
+         }
+      } else if (e.code == 'keychain-error' || e.toString().contains('keychain-error')) {
+          debugPrint("WARN: Keychain error during sign-in ignored. Session is valid but may not persist restart.");
       } else {
+        debugPrint("Login failed: ${e.code} - ${e.message}");
         rethrow;
       }
     }
