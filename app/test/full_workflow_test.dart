@@ -198,7 +198,69 @@ void main() {
     final taskContent = files.first.readAsStringSync();
     expect(taskContent, contains("- [ ] My new Task"));
 
-    // Exit edit mode for task to stabilize state
+    // 9a) Add Notes to Task
+    // Press Tab to go to notes field of the task
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // Verify focus is on the second text field (Notes)
+    expect(taskInputFinder, findsAtLeastNWidgets(2));
+    final taskNotesField = taskInputFinder.at(1);
+    expect(tester.widget<TextField>(taskNotesField).focusNode?.hasFocus, isTrue);
+
+    await tester.enterText(taskNotesField, "Task notes content");
+    await tester.pump(const Duration(milliseconds: 1100));
+
+    // Verify Task Notes in File
+    var contentAfterTaskNotes = files.first.readAsStringSync();
+    expect(contentAfterTaskNotes, contains("Task notes content"));
+    // Verify Project Notes still there
+    expect(contentAfterTaskNotes, contains("my new notes"));
+
+    // 9b) Subtask Creation
+    // Exit edit mode first to ensure clean navigation
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // Navigate Right to enter Subtasks column -> Auto-creates subtask
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pump(const Duration(milliseconds: 1100));
+
+    expect(find.text('Subtasks'), findsOneWidget);
+
+    // 9c) Enter Subtask Title & Notes
+    final taskId = container.read(selectionProvider).selectedTaskId!;
+    final subtaskColKey = ValueKey('subtasks_${selectionState.selectedProjectId}_$taskId');
+
+    final subtaskInputFinder = find.descendant(
+      of: find.byKey(subtaskColKey),
+      matching: find.byType(TextField)
+    );
+    expect(subtaskInputFinder, findsAtLeastNWidgets(1));
+
+    await tester.enterText(subtaskInputFinder.first, "My new Subtask");
+    await tester.pump();
+
+    // Tab to notes
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    await tester.enterText(subtaskInputFinder.at(1), "Subtask notes content");
+    await tester.pump(const Duration(milliseconds: 1100));
+
+    // 9d) Verify Subtask & Notes in File
+    final contentAfterSubtask = files.first.readAsStringSync();
+    expect(contentAfterSubtask, contains("- [ ] My new Subtask"));
+    expect(contentAfterSubtask, contains("Subtask notes content"));
+
+    // 9e) Navigate back to Task column for deletion step
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape); // Exit edit mode
+    await tester.pump(const Duration(milliseconds: 500));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // Exit edit mode for task to stabilize state (redundant but matches flow)
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pump(const Duration(milliseconds: 500));
 
@@ -218,10 +280,13 @@ void main() {
     
     // Verify Project is still selected (in state)
     final afterDeleteState = container.read(selectionProvider);
-    expect(afterDeleteState.selectedProjectId, isNotNull);
+    expect(afterDeleteState.selectedProjectId, equals(selectionState.selectedProjectId));
     expect(afterDeleteState.selectedTaskId, isNull); // Task deleted
     
-    // Verify Notes and Title unchanged
+    // Verify UI still shows the project as selected
+    expect(find.text("My new Project"), findsOneWidget);
+    
+    // Verify Notes and Title unchanged in file
     expect(afterDeleteContent, contains("# My new Project"));
     expect(afterDeleteContent, contains("my new notes"));
   });
