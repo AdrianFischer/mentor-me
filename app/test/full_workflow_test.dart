@@ -93,11 +93,9 @@ void main() {
     await tester.sendKeyDownEvent(LogicalKeyboardKey.meta);
     await tester.sendKeyEvent(LogicalKeyboardKey.keyN);
     await tester.sendKeyUpEvent(LogicalKeyboardKey.meta);
-    debugPrint("DEBUG: Sent keys Cmd+N");
     
     // Allow async UI update and debounce to fire
     await tester.pump(const Duration(milliseconds: 500)); 
-    debugPrint("DEBUG: Pumped 500ms");
 
     // Find the active TextField (Title is first, Notes is second)
     final projectInputFinder = find.descendant(
@@ -105,19 +103,13 @@ void main() {
       matching: find.byType(TextField)
     );
     expect(projectInputFinder, findsNWidgets(2));
-    debugPrint("DEBUG: Found 2 TextFields. Entering text...");
     
     await tester.enterText(projectInputFinder.first, "My new Project");
-    debugPrint("DEBUG: Text entered. Pumping...");
     await tester.pump(); // Rebuild with text
-    debugPrint("DEBUG: Pumped after text.");
 
     // 3) Press "Esc" -> Verify project is still selected
-    debugPrint("DEBUG: Sending Esc");
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-    debugPrint("DEBUG: Esc sent. Pumping 1500ms for debounce");
     await tester.pump(const Duration(milliseconds: 1500));
-    debugPrint("DEBUG: Pumped after Esc");
 
     expect(find.text("My new Project"), findsOneWidget);
     
@@ -126,21 +118,17 @@ void main() {
     expect(selectionState.selectedProjectId, isNotNull);
     
     // Verify File
-    debugPrint("DEBUG: Verifying file persistence...");
     // Replace Future.delayed with pump to be safe in test env
     await tester.pump(const Duration(milliseconds: 500)); 
     
     final files = todosDir.listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.md'));
-    debugPrint("DEBUG: Files found: ${files.length}");
     // Due to rename logic not deleting old file yet, we might have multiple files.
     expect(files.length, greaterThanOrEqualTo(1));
     
     final hasCorrectContent = files.any((f) {
        final c = f.readAsStringSync();
-       // debugPrint("DEBUG: File ${f.path} content:\n$c");
        return c.contains("# My new Project");
     });
-    debugPrint("DEBUG: Content verification: $hasCorrectContent");
     expect(hasCorrectContent, isTrue);
 
     // 4) Press Enter -> Verify opened in edit mode
