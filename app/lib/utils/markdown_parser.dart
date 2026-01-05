@@ -104,7 +104,30 @@ class MarkdownParser {
     // 4. Tasks
     for (var task in project.tasks) {
       final checkbox = task.isCompleted ? '[x]' : '[ ]';
-      buffer.writeln('- $checkbox ${task.title}\n');
+      buffer.writeln('- $checkbox ${task.title}');
+      
+      if (task.notes != null && task.notes!.isNotEmpty) {
+         // Indent notes by 2 spaces
+         final notesLines = task.notes!.split('\n');
+         for (var line in notesLines) {
+            buffer.writeln('  $line');
+         }
+      }
+
+      if (task.subtasks.isNotEmpty) {
+        for (var sub in task.subtasks) {
+           final subCheckbox = sub.isCompleted ? '[x]' : '[ ]';
+           buffer.writeln('  - $subCheckbox ${sub.title}');
+           
+           if (sub.notes != null && sub.notes!.isNotEmpty) {
+             final subNotesLines = sub.notes!.split('\n');
+             for (var line in subNotesLines) {
+                buffer.writeln('    $line');
+             }
+           }
+        }
+      }
+      buffer.writeln(); // Add newline after task block
     }
 
     return buffer.toString();
