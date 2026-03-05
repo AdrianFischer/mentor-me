@@ -7,7 +7,7 @@
 - **Riverpod:** Used for reactive, testable, and robust state management across the application.
 
 ## Data Persistence
-- **Isar Database & Markdown Sync:** A high-performance, local NoSQL database for application state, synchronized bidirectionally with local Markdown files for human-readable, AI-accessible data persistence.
+- **Direct-to-Markdown (File-First):** No database. The application parses Markdown files on startup into an in-memory state (Riverpod) and writes changes directly back to the file system using a write-behind strategy with loop prevention.
 - **Firebase:** Utilized for cloud-based features including Authentication, Firestore (sync), Storage, and Cloud Functions.
 
 ## AI & Agent Infrastructure

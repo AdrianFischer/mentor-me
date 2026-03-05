@@ -24,6 +24,7 @@ class Subtask with _$Subtask {
     @Default([]) List<String> tags,
     String? notes,
     @Default(AiStatus.notReady) AiStatus aiStatus,
+    @Default([]) List<String> localImagePaths,
   }) = _Subtask;
 
   factory Subtask.fromJson(Map<String, dynamic> json) => _$SubtaskFromJson(json);
@@ -82,6 +83,7 @@ class Task with _$Task {
     TaskGoal? goal,
     String? notes,
     @Default(AiStatus.notReady) AiStatus aiStatus,
+    @Default([]) List<String> localImagePaths,
   }) = _Task;
 
   factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);

@@ -7,11 +7,15 @@ import '../ai_tools/implementations/mcp_tool_bridge.dart';
 
 class McpClientService {
   final ToolRegistry _toolRegistry;
-  Client? _client;
+  McpClient? _client;
 
   McpClientService(this._toolRegistry);
 
   Future<void> connectToDartMcp() async {
+    if (kIsWeb) {
+      print('[MCP] Skipping Dart MCP Server on Web.');
+      return;
+    }
     try {
       print('[MCP] Starting Dart MCP Server...');
       
@@ -35,9 +39,9 @@ class McpClientService {
       final transport = StdioClientTransport(parameters);
       
       // Client takes clientInfo as positional arg, capabilities in options
-      _client = Client(
+      _client = McpClient(
         Implementation(name: 'flutter_app_client', version: '1.0.0'),
-        options: ClientOptions(
+        options: McpClientOptions(
           capabilities: ClientCapabilities(
             experimental: {},
             roots: ClientCapabilitiesRoots(listChanged: true), 

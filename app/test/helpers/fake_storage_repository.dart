@@ -8,6 +8,7 @@ class FakeStorageRepository implements StorageRepository {
   final List<Conversation> _conversations = [];
   final List<ChatMessage> _messages = [];
   final List<Knowledge> _knowledge = [];
+  final List<Memory> _memories = [];
   final _controller = StreamController<void>.broadcast();
   
   FakeStorageRepository({List<Project>? initialProjects}) 
@@ -203,6 +204,28 @@ class FakeStorageRepository implements StorageRepository {
   @override
   Future<void> deleteKnowledge(String id) async {
     _knowledge.removeWhere((k) => k.id == id);
+  }
+
+  @override
+  Future<void> saveMemory(Memory memory) async {
+    final index = _memories.indexWhere((m) => m.id == memory.id);
+    if (index >= 0) {
+      _memories[index] = memory;
+    } else {
+      _memories.add(memory);
+    }
+    _controller.add(null);
+  }
+
+  @override
+  Future<List<Memory>> getAllMemories() async {
+    return _memories;
+  }
+
+  @override
+  Future<void> deleteMemory(String id) async {
+    _memories.removeWhere((m) => m.id == id);
+    _controller.add(null);
   }
 
   @override

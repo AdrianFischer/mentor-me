@@ -1,0 +1,8 @@
+{
+  "track_id": "direct_to_markdown_20260105",
+  "type": "refactor",
+  "status": "new",
+  "created_at": "2026-01-05T14:30:00Z",
+  "updated_at": "2026-01-05T14:30:00Z",
+  "description": "Architecture Redesign: Remove Isar database and implement direct bidirectional Markdown synchronization with in-memory state."
+}

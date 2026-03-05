@@ -12,6 +12,7 @@ class InMemoryRepository implements StorageRepository {
   final List<Conversation> _conversations = [];
   final List<ChatMessage> _chatHistory = [];
   final List<Knowledge> _knowledgeBase = [];
+  final List<Memory> _memories = [];
   
   final _dataChangeController = StreamController<void>.broadcast();
   StreamSubscription? _watcherSubscription;
@@ -181,6 +182,21 @@ class InMemoryRepository implements StorageRepository {
 
   @override
   Future<void> deleteKnowledge(String id) async {
-     // _knowledgeBase.removeWhere((k) => k.id == id);
+     _knowledgeBase.removeWhere((k) => k.id == id);
+  }
+
+  @override
+  Future<void> saveMemory(Memory memory) async {
+    _memories.add(memory);
+  }
+
+  @override
+  Future<List<Memory>> getAllMemories() async {
+    return List.unmodifiable(_memories);
+  }
+
+  @override
+  Future<void> deleteMemory(String id) async {
+    _memories.removeWhere((m) => m.id == id);
   }
 }

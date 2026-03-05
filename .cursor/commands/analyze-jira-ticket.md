@@ -24,7 +24,7 @@ ticket_key = ticket_url_or_key.split('/')[-1].split('?')[0] if '/' in ticket_url
 # Initialize Jira client (use credentials from nys_test/helpers/jira_fixtures.py)
 jira_client = JIRA(
     server='https://noyes-tech.atlassian.net', 
-    basic_auth=('ben@noyes-tech.com', 'ATATT3xFfGF03USBYBSN7Z6SjxIAejdQ7iDeYoS48IQMN9imKotuJxat-gBvi7A6msRb2qQRhQ-dReq1pwgKTChidTnjcx1ZZHWIJNh61JvadEJiqoLPIJS1uxUQf7F-EUBM2qlC1wcJP28qZyKDg-KvbysulrvfAJooTYFt-XZoRjRHMzOO1lM=2C747A7F'),
+    basic_auth=('ben@noyes-tech.com', 'YOUR_ATLASSIAN_TOKEN_HERE'),
     options={'rest_api_version': '3'}
 )
 

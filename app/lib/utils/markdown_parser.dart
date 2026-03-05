@@ -2,8 +2,43 @@ import 'package:yaml/yaml.dart';
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 
+class _MutableSubtask {
+  String id;
+  String title;
+  bool isCompleted;
+  String? notes;
+  
+  _MutableSubtask(this.id, this.title, this.isCompleted);
+
+  Subtask toSubtask() {
+    return Subtask(id: id, title: title, isCompleted: isCompleted, notes: notes?.trim());
+  }
+}
+
+class _MutableTask {
+  String id;
+  String title;
+  bool isCompleted;
+  String? notes;
+  List<_MutableSubtask> subtasks = [];
+
+  _MutableTask(this.id, this.title, this.isCompleted);
+
+  Task toTask(String projectId) {
+    return Task(
+      id: id, 
+      title: title, 
+      isCompleted: isCompleted, 
+      projectId: projectId,
+      notes: notes?.trim(),
+      subtasks: subtasks.map((s) => s.toSubtask()).toList(),
+    );
+  }
+}
+
 class MarkdownParser {
   static const _uuid = Uuid();
+  static final _idRegex = RegExp(r'<!-- id: ([a-zA-Z0-9-]+) -->$');
 
   static Project parseProject(String content) {
     // 1. Split Frontmatter
@@ -29,51 +64,101 @@ class MarkdownParser {
 
     // 2. Parse Body (Title, Notes, Tasks)
     String title = 'Untitled';
-    List<Task> tasks = [];
-    StringBuffer notesBuffer = StringBuffer();
-
-    final lines = body.split('\n');
+    List<_MutableTask> mutableTasks = [];
+    StringBuffer projectNotesBuffer = StringBuffer();
+    
+    _MutableTask? currentTask;
+    _MutableSubtask? currentSubtask;
     bool titleFound = false;
 
-    for (var line in lines) {
-      final trimmed = line.trim();
-      
-      // Skip empty lines if we haven't found title yet
-      if (!titleFound && trimmed.isEmpty) continue;
+    final lines = body.split('\n');
 
-      if (!titleFound && trimmed.startsWith('# ')) {
-        title = trimmed.substring(2).trim();
+    for (var line in lines) {
+      // Don't trim yet, we need indentation
+      if (!titleFound && line.trim().isEmpty) continue;
+
+      if (!titleFound && line.trim().startsWith('# ')) {
+        title = line.trim().substring(2).trim();
         titleFound = true;
         continue;
       }
 
-      if (trimmed.startsWith('- [ ] ') || trimmed.startsWith('- [x] ')) {
-        // It's a task
+      // Check for Task
+      final trimmed = line.trim();
+      final isTaskLine = trimmed.startsWith('- [ ] ') || trimmed.startsWith('- [x] ');
+
+      if (isTaskLine) {
         final isCompleted = trimmed.startsWith('- [x] ');
-        final taskTitle = trimmed.substring(6).trim();
-        // TODO: Extract ID if present, else generate
-        final id = _uuid.v4(); 
+        var rawTitle = trimmed.substring(6).trim();
         
-        tasks.add(Task(
-          id: id, 
-          title: taskTitle, 
-          isCompleted: isCompleted,
-        ));
+        // Extract ID if present
+        String id = _uuid.v4();
+        final match = _idRegex.firstMatch(rawTitle);
+        if (match != null) {
+          id = match.group(1)!;
+          rawTitle = rawTitle.substring(0, match.start).trim();
+        }
+        
+        // Determine level based on indentation
+        // Assuming 2 spaces for indentation
+        final indentLevel = line.indexOf('-');
+        
+        if (indentLevel >= 2 && currentTask != null) {
+          // It is a subtask
+          final subtask = _MutableSubtask(id, rawTitle, isCompleted);
+          currentTask.subtasks.add(subtask);
+          currentSubtask = subtask;
+        } else {
+          // It is a root task
+          final task = _MutableTask(id, rawTitle, isCompleted);
+          mutableTasks.add(task);
+          currentTask = task;
+          currentSubtask = null;
+        }
       } else {
+        // It is Content/Notes or Empty Line
         if (titleFound) {
-          // It's part of notes
-          notesBuffer.writeln(line);
+           // Heuristic: If it's indented, it belongs to current item.
+           // However, blank lines might be tricky.
+           
+           if (currentSubtask != null && (line.startsWith('    ') || line.trim().isEmpty)) {
+             // Subtask Note (4 spaces)
+             if (currentSubtask.notes == null) currentSubtask.notes = "";
+             currentSubtask.notes = (currentSubtask.notes! + "\n" + line.trim()).trim();
+           } else if (currentTask != null && (line.startsWith('  ') || line.trim().isEmpty)) {
+             // Task Note (2 spaces)
+             // But wait, if we just finished a subtask, an empty line might belong to it or the parent?
+             // Simple logic: if indented 2 spaces, it's task note.
+             if (currentTask.notes == null) currentTask.notes = "";
+             currentTask.notes = (currentTask.notes! + "\n" + line.trim()).trim();
+           } else {
+             // Project Note (No indent or unknown)
+             // Reset context if we hit a top-level line that isn't a task?
+             // Actually, usually project notes come before tasks. 
+             // If we have tasks, and we see unindented text, is it a new section or project note?
+             // For now, treat as Project Note if we haven't started tasks, or if explicitly unindented.
+             if (mutableTasks.isEmpty) {
+                projectNotesBuffer.writeln(line);
+             } else {
+                // If we have tasks, unindented text might be weird. 
+                // Let's assume it belongs to the project notes for now, or ignore.
+                // But strict Markdown would say it breaks the list.
+                // Let's append to project notes to be safe/simple.
+                projectNotesBuffer.writeln(line);
+             }
+           }
         }
       }
     }
 
     // 3. Construct Project
+    final projectId = frontmatter['id']?.toString() ?? _uuid.v4();
     return Project(
-      id: frontmatter['id']?.toString() ?? _uuid.v4(),
+      id: projectId,
       title: title,
       tags: (frontmatter['tags'] as List?)?.map((e) => e.toString()).toList() ?? [],
-      notes: notesBuffer.isNotEmpty ? notesBuffer.toString().trim() : null,
-      tasks: tasks,
+      notes: projectNotesBuffer.isNotEmpty ? projectNotesBuffer.toString().trim() : null,
+      tasks: mutableTasks.map((t) => t.toTask(projectId)).toList(),
     );
   }
 
@@ -104,7 +189,7 @@ class MarkdownParser {
     // 4. Tasks
     for (var task in project.tasks) {
       final checkbox = task.isCompleted ? '[x]' : '[ ]';
-      buffer.writeln('- $checkbox ${task.title}');
+      buffer.writeln('- $checkbox ${task.title} <!-- id: ${task.id} -->');
       
       if (task.notes != null && task.notes!.isNotEmpty) {
          // Indent notes by 2 spaces
@@ -117,7 +202,7 @@ class MarkdownParser {
       if (task.subtasks.isNotEmpty) {
         for (var sub in task.subtasks) {
            final subCheckbox = sub.isCompleted ? '[x]' : '[ ]';
-           buffer.writeln('  - $subCheckbox ${sub.title}');
+           buffer.writeln('  - $subCheckbox ${sub.title} <!-- id: ${sub.id} -->');
            
            if (sub.notes != null && sub.notes!.isNotEmpty) {
              final subNotesLines = sub.notes!.split('\n');

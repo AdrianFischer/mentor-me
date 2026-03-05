@@ -19,7 +19,7 @@ __pycache__/
 # IDE
 .idea/
 .vscode/
-.cursor/
+# .cursor/
 .DS_Store
 
 # Assets & Media

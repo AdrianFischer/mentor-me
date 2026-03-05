@@ -393,17 +393,12 @@ class SelectionNotifier extends Notifier<SelectionState> {
 
   void _cleanupEmptyItems(DataService dataService) {
     // Prevent modification if we are currently editing an item (though usually this runs on navigation)
-    // But if we navigate AWAY while editing, we probably want to keep it if it has content, or delete if empty.
-    print("[DEBUG] Cleanup Start. Selected: ${state.selectedProjectId}, Editing: ${state.editingItemId}");
-    
     final projects = dataService.projects;
     for (var p in List.of(projects)) {
        // ...
        
        if (p.title.isEmpty && p.tasks.isEmpty) {
-          print("[DEBUG] Checking Project ${p.id}. Selected? ${p.id == state.selectedProjectId} Editing? ${p.id == state.editingItemId}");
           if (p.id != state.selectedProjectId && p.id != state.editingItemId) {
-             print("[DEBUG] Deleting Project ${p.id}");
              dataService.deleteItem(p.id);
           }
        }

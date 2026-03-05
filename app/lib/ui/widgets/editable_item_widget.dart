@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -18,6 +21,7 @@ class EditableItem {
   final bool isCompleted;
   final GoalMetadata? goal;
   final AiStatus aiStatus;
+  final List<String> localImagePaths;
 
   EditableItem({
     required this.id, 
@@ -26,6 +30,7 @@ class EditableItem {
     this.isCompleted = false,
     this.goal,
     this.aiStatus = AiStatus.notReady,
+    this.localImagePaths = const [],
   });
 }
 
@@ -263,6 +268,34 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                 Padding(
                   padding: const EdgeInsets.only(left: 44, right: 12, top: 4),
                   child: _buildGoalVisualization(widget.item.goal!),
+                ),
+
+              // Image Artifacts
+              if (widget.item.localImagePaths.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 44, top: 8),
+                  child: SizedBox(
+                    height: 80,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: widget.item.localImagePaths.length,
+                      itemBuilder: (context, idx) {
+                        final path = widget.item.localImagePaths[idx];
+                        return Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          width: 80,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey[200]!),
+                            image: DecorationImage(
+                              image: FileImage(File(path)),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
 
               // Notes Section

@@ -28,7 +28,7 @@ class SaveMemoryTool implements AiTool {
   @override
   Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
     final fact = args['fact'] as String;
-    await dataService.saveKnowledge(fact);
+    await dataService.saveMemory(fact);
     return {'result': 'success', 'message': 'Memory saved.'};
   }
 }

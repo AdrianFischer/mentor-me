@@ -87,3 +87,32 @@ class Knowledge {
     );
   }
 }
+
+class Memory {
+  final String id;
+  final String fact;
+  final DateTime timestamp;
+
+  Memory({
+    required this.fact,
+    String? id,
+    DateTime? timestamp,
+  }) : id = id ?? const Uuid().v4(), 
+       timestamp = timestamp ?? DateTime.now();
+
+  factory Memory.fromJson(Map<String, dynamic> json) {
+    return Memory(
+      id: json['id'],
+      fact: json['fact'],
+      timestamp: DateTime.parse(json['timestamp']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'fact': fact,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
+}

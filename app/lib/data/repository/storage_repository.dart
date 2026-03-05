@@ -29,6 +29,11 @@ abstract class StorageRepository {
   Future<List<Knowledge>> getAllKnowledge();
   Future<void> deleteKnowledge(String id);
 
+  /// Long-term Memory
+  Future<void> saveMemory(Memory memory);
+  Future<List<Memory>> getAllMemories();
+  Future<void> deleteMemory(String id);
+
   /// Stream that emits when data is changed externally or needs reload.
   Stream<void> get onDataChanged;
 }

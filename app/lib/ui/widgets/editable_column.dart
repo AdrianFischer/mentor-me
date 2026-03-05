@@ -26,6 +26,7 @@ class EditableColumn extends StatefulWidget {
   final bool showCompleted;
   final VoidCallback? onToggleShowCompleted;
   final Function(int)? onAiStatusChanged;
+  final VoidCallback? onColumnTap;
 
   const EditableColumn({
     super.key,
@@ -51,6 +52,7 @@ class EditableColumn extends StatefulWidget {
     this.showCompleted = true,
     this.onToggleShowCompleted,
     this.onAiStatusChanged,
+    this.onColumnTap,
   });
 
   @override
@@ -98,6 +100,7 @@ class _EditableColumnState extends State<EditableColumn> {
       child: GestureDetector(
         onTap: () {
            _focusNode.requestFocus();
+           widget.onColumnTap?.call();
            if (widget.onItemSelected != null && widget.selectedIndex != null) {
               widget.onItemSelected!(widget.selectedIndex!);
            }

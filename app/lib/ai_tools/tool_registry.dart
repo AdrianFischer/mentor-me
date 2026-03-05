@@ -13,6 +13,9 @@ import 'implementations/get_task_tool.dart';
 import 'implementations/update_item_name_tool.dart';
 import 'implementations/update_notes_tool.dart';
 import 'implementations/set_ai_status_tool.dart';
+import 'implementations/list_todos_by_status_tool.dart';
+import 'implementations/update_todo_by_index_tool.dart';
+import 'implementations/manage_todo_images_tool.dart';
 
 class ToolRegistry {
   final DataService _dataService;
@@ -32,6 +35,9 @@ class ToolRegistry {
     _register(UpdateItemNameTool());
     _register(UpdateNotesTool());
     _register(SetAiStatusTool());
+    _register(ListTodosByStatusTool());
+    _register(UpdateTodoByIndexTool());
+    _register(ManageTodoImagesTool());
   }
 
   void register(AiTool tool) {

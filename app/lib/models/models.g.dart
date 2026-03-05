@@ -18,6 +18,10 @@ _$SubtaskImpl _$$SubtaskImplFromJson(Map<String, dynamic> json) =>
       notes: json['notes'] as String?,
       aiStatus: $enumDecodeNullable(_$AiStatusEnumMap, json['aiStatus']) ??
           AiStatus.notReady,
+      localImagePaths: (json['localImagePaths'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$SubtaskImplToJson(_$SubtaskImpl instance) =>
@@ -29,6 +33,7 @@ Map<String, dynamic> _$$SubtaskImplToJson(_$SubtaskImpl instance) =>
       'tags': instance.tags,
       'notes': instance.notes,
       'aiStatus': _$AiStatusEnumMap[instance.aiStatus]!,
+      'localImagePaths': instance.localImagePaths,
     };
 
 const _$AiStatusEnumMap = {
@@ -127,6 +132,10 @@ _$TaskImpl _$$TaskImplFromJson(Map<String, dynamic> json) => _$TaskImpl(
       notes: json['notes'] as String?,
       aiStatus: $enumDecodeNullable(_$AiStatusEnumMap, json['aiStatus']) ??
           AiStatus.notReady,
+      localImagePaths: (json['localImagePaths'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$TaskImplToJson(_$TaskImpl instance) =>
@@ -141,6 +150,7 @@ Map<String, dynamic> _$$TaskImplToJson(_$TaskImpl instance) =>
       'goal': instance.goal,
       'notes': instance.notes,
       'aiStatus': _$AiStatusEnumMap[instance.aiStatus]!,
+      'localImagePaths': instance.localImagePaths,
     };
 
 _$ProjectImpl _$$ProjectImplFromJson(Map<String, dynamic> json) =>
