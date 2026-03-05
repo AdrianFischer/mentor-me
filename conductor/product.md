@@ -17,7 +17,7 @@ Assisted Intelligence is a keyboard-driven task management application that blen
 - **Rapid Keyboard Navigation:** Dedicated shortcuts for adding, editing, moving, and completing tasks.
 - **Mentor Mode:** A specialized chat interface that leverages persistent user context to provide career guidance and strategic next steps.
 - **Autonomous Agents:** AI capabilities that proactively break down complex projects and verify task completion.
-- **Markdown-First & Local-First Architecture:** Ensures speed, privacy, and accessibility. Bidirectional synchronization between a robust local database (Isar) and human-readable Markdown files allows for direct interaction with data via standard text editors and AI tools.
+- **Direct-to-Markdown Architecture:** The application operates directly on human-readable Markdown files, using them as the primary source of truth. An in-memory application state ensures instant UI responsiveness while changes are persisted to disk in the background. This eliminates complex database synchronization and ensures that your data is always accessible as standard text files.
 
 ## Mentor Personality
 The Mentor is primarily **Analytical and Objective**, providing data-driven insights and structured frameworks. It is also **Direct and Challenging**, pushing the user to think strategically and questioning choices that may not align with their long-term goals.

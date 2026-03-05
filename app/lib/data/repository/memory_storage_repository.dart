@@ -8,6 +8,7 @@ class MemoryStorageRepository implements StorageRepository {
   final List<Conversation> _conversations = [];
   final Map<String, List<ChatMessage>> _chatHistories = {};
   final List<Knowledge> _knowledgeBase = [];
+  final List<Memory> _memories = [];
   final StreamController<void> _dataChangeController = StreamController<void>.broadcast();
 
   @override
@@ -130,18 +131,26 @@ class MemoryStorageRepository implements StorageRepository {
   Future<void> deleteKnowledge(String id) async {
     _knowledgeBase.removeWhere((k) => k.id == id);
   }
+
+  @override
+  Future<void> saveMemory(Memory memory) async {
+    final index = _memories.indexWhere((m) => m.id == memory.id);
+    if (index >= 0) {
+      _memories[index] = memory;
+    } else {
+      _memories.add(memory);
+    }
+    _dataChangeController.add(null);
+  }
+
+  @override
+  Future<List<Memory>> getAllMemories() async {
+    return List.unmodifiable(_memories);
+  }
+
+  @override
+  Future<void> deleteMemory(String id) async {
+    _memories.removeWhere((m) => m.id == id);
+    _dataChangeController.add(null);
+  }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

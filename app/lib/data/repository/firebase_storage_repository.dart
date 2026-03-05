@@ -80,6 +80,7 @@ class FirebaseStorageRepository implements StorageRepository {
     _subscriptions.add(_userDoc.collection('conversations').snapshots().listen((_) => notify()));
     _subscriptions.add(_userDoc.collection('chat_messages').snapshots().listen((_) => notify()));
     _subscriptions.add(_userDoc.collection('knowledge').snapshots().listen((_) => notify()));
+    _subscriptions.add(_userDoc.collection('memories').snapshots().listen((_) => notify()));
   }
 
   // Helper to get Timestamp from DateTime
@@ -334,6 +335,39 @@ class FirebaseStorageRepository implements StorageRepository {
   Future<void> deleteKnowledge(String id) async {
     if (_currentUserId == null) return;
     await _userDoc.collection('knowledge').doc(id).delete();
+  }
+
+  // --- Memory ---
+
+  @override
+  Future<void> saveMemory(Memory memory) async {
+    if (_currentUserId == null) return;
+    final data = {
+      'id': memory.id,
+      'fact': memory.fact,
+      'timestamp': _toTimestamp(memory.timestamp),
+    };
+    await _userDoc.collection('memories').doc(memory.id).set(data);
+  }
+
+  @override
+  Future<List<Memory>> getAllMemories() async {
+    if (_currentUserId == null) return [];
+    final snapshot = await _userDoc.collection('memories').orderBy('timestamp', descending: true).get();
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      return Memory(
+        id: data['id'],
+        fact: data['fact'],
+        timestamp: _fromTimestamp(data['timestamp']),
+      );
+    }).toList();
+  }
+
+  @override
+  Future<void> deleteMemory(String id) async {
+    if (_currentUserId == null) return;
+    await _userDoc.collection('memories').doc(id).delete();
   }
   
   // Recursive helper to convert Timestamps to ISO8601 Strings if they exist in the Map

@@ -27,6 +27,7 @@ mixin _$Subtask {
   List<String> get tags => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
   AiStatus get aiStatus => throw _privateConstructorUsedError;
+  List<String> get localImagePaths => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -45,7 +46,8 @@ abstract class $SubtaskCopyWith<$Res> {
       double order,
       List<String> tags,
       String? notes,
-      AiStatus aiStatus});
+      AiStatus aiStatus,
+      List<String> localImagePaths});
 }
 
 /// @nodoc
@@ -68,6 +70,7 @@ class _$SubtaskCopyWithImpl<$Res, $Val extends Subtask>
     Object? tags = null,
     Object? notes = freezed,
     Object? aiStatus = null,
+    Object? localImagePaths = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -98,6 +101,10 @@ class _$SubtaskCopyWithImpl<$Res, $Val extends Subtask>
           ? _value.aiStatus
           : aiStatus // ignore: cast_nullable_to_non_nullable
               as AiStatus,
+      localImagePaths: null == localImagePaths
+          ? _value.localImagePaths
+          : localImagePaths // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ) as $Val);
   }
 }
@@ -116,7 +123,8 @@ abstract class _$$SubtaskImplCopyWith<$Res> implements $SubtaskCopyWith<$Res> {
       double order,
       List<String> tags,
       String? notes,
-      AiStatus aiStatus});
+      AiStatus aiStatus,
+      List<String> localImagePaths});
 }
 
 /// @nodoc
@@ -137,6 +145,7 @@ class __$$SubtaskImplCopyWithImpl<$Res>
     Object? tags = null,
     Object? notes = freezed,
     Object? aiStatus = null,
+    Object? localImagePaths = null,
   }) {
     return _then(_$SubtaskImpl(
       id: null == id
@@ -167,6 +176,10 @@ class __$$SubtaskImplCopyWithImpl<$Res>
           ? _value.aiStatus
           : aiStatus // ignore: cast_nullable_to_non_nullable
               as AiStatus,
+      localImagePaths: null == localImagePaths
+          ? _value._localImagePaths
+          : localImagePaths // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }
@@ -181,8 +194,10 @@ class _$SubtaskImpl implements _Subtask {
       this.order = 0.0,
       final List<String> tags = const [],
       this.notes,
-      this.aiStatus = AiStatus.notReady})
-      : _tags = tags;
+      this.aiStatus = AiStatus.notReady,
+      final List<String> localImagePaths = const []})
+      : _tags = tags,
+        _localImagePaths = localImagePaths;
 
   factory _$SubtaskImpl.fromJson(Map<String, dynamic> json) =>
       _$$SubtaskImplFromJson(json);
@@ -211,10 +226,18 @@ class _$SubtaskImpl implements _Subtask {
   @override
   @JsonKey()
   final AiStatus aiStatus;
+  final List<String> _localImagePaths;
+  @override
+  @JsonKey()
+  List<String> get localImagePaths {
+    if (_localImagePaths is EqualUnmodifiableListView) return _localImagePaths;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_localImagePaths);
+  }
 
   @override
   String toString() {
-    return 'Subtask(id: $id, title: $title, isCompleted: $isCompleted, order: $order, tags: $tags, notes: $notes, aiStatus: $aiStatus)';
+    return 'Subtask(id: $id, title: $title, isCompleted: $isCompleted, order: $order, tags: $tags, notes: $notes, aiStatus: $aiStatus, localImagePaths: $localImagePaths)';
   }
 
   @override
@@ -230,13 +253,23 @@ class _$SubtaskImpl implements _Subtask {
             const DeepCollectionEquality().equals(other._tags, _tags) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.aiStatus, aiStatus) ||
-                other.aiStatus == aiStatus));
+                other.aiStatus == aiStatus) &&
+            const DeepCollectionEquality()
+                .equals(other._localImagePaths, _localImagePaths));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, title, isCompleted, order,
-      const DeepCollectionEquality().hash(_tags), notes, aiStatus);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      title,
+      isCompleted,
+      order,
+      const DeepCollectionEquality().hash(_tags),
+      notes,
+      aiStatus,
+      const DeepCollectionEquality().hash(_localImagePaths));
 
   @JsonKey(ignore: true)
   @override
@@ -260,7 +293,8 @@ abstract class _Subtask implements Subtask {
       final double order,
       final List<String> tags,
       final String? notes,
-      final AiStatus aiStatus}) = _$SubtaskImpl;
+      final AiStatus aiStatus,
+      final List<String> localImagePaths}) = _$SubtaskImpl;
 
   factory _Subtask.fromJson(Map<String, dynamic> json) = _$SubtaskImpl.fromJson;
 
@@ -278,6 +312,8 @@ abstract class _Subtask implements Subtask {
   String? get notes;
   @override
   AiStatus get aiStatus;
+  @override
+  List<String> get localImagePaths;
   @override
   @JsonKey(ignore: true)
   _$$SubtaskImplCopyWith<_$SubtaskImpl> get copyWith =>
@@ -1136,6 +1172,7 @@ mixin _$Task {
   TaskGoal? get goal => throw _privateConstructorUsedError;
   String? get notes => throw _privateConstructorUsedError;
   AiStatus get aiStatus => throw _privateConstructorUsedError;
+  List<String> get localImagePaths => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -1157,7 +1194,8 @@ abstract class $TaskCopyWith<$Res> {
       List<String> tags,
       TaskGoal? goal,
       String? notes,
-      AiStatus aiStatus});
+      AiStatus aiStatus,
+      List<String> localImagePaths});
 
   $TaskGoalCopyWith<$Res>? get goal;
 }
@@ -1185,6 +1223,7 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
     Object? goal = freezed,
     Object? notes = freezed,
     Object? aiStatus = null,
+    Object? localImagePaths = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -1227,6 +1266,10 @@ class _$TaskCopyWithImpl<$Res, $Val extends Task>
           ? _value.aiStatus
           : aiStatus // ignore: cast_nullable_to_non_nullable
               as AiStatus,
+      localImagePaths: null == localImagePaths
+          ? _value.localImagePaths
+          : localImagePaths // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ) as $Val);
   }
 
@@ -1260,7 +1303,8 @@ abstract class _$$TaskImplCopyWith<$Res> implements $TaskCopyWith<$Res> {
       List<String> tags,
       TaskGoal? goal,
       String? notes,
-      AiStatus aiStatus});
+      AiStatus aiStatus,
+      List<String> localImagePaths});
 
   @override
   $TaskGoalCopyWith<$Res>? get goal;
@@ -1286,6 +1330,7 @@ class __$$TaskImplCopyWithImpl<$Res>
     Object? goal = freezed,
     Object? notes = freezed,
     Object? aiStatus = null,
+    Object? localImagePaths = null,
   }) {
     return _then(_$TaskImpl(
       id: null == id
@@ -1328,6 +1373,10 @@ class __$$TaskImplCopyWithImpl<$Res>
           ? _value.aiStatus
           : aiStatus // ignore: cast_nullable_to_non_nullable
               as AiStatus,
+      localImagePaths: null == localImagePaths
+          ? _value._localImagePaths
+          : localImagePaths // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }
@@ -1345,9 +1394,11 @@ class _$TaskImpl implements _Task {
       final List<String> tags = const [],
       this.goal,
       this.notes,
-      this.aiStatus = AiStatus.notReady})
+      this.aiStatus = AiStatus.notReady,
+      final List<String> localImagePaths = const []})
       : _subtasks = subtasks,
-        _tags = tags;
+        _tags = tags,
+        _localImagePaths = localImagePaths;
 
   factory _$TaskImpl.fromJson(Map<String, dynamic> json) =>
       _$$TaskImplFromJson(json);
@@ -1389,10 +1440,18 @@ class _$TaskImpl implements _Task {
   @override
   @JsonKey()
   final AiStatus aiStatus;
+  final List<String> _localImagePaths;
+  @override
+  @JsonKey()
+  List<String> get localImagePaths {
+    if (_localImagePaths is EqualUnmodifiableListView) return _localImagePaths;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_localImagePaths);
+  }
 
   @override
   String toString() {
-    return 'Task(id: $id, title: $title, isCompleted: $isCompleted, projectId: $projectId, subtasks: $subtasks, order: $order, tags: $tags, goal: $goal, notes: $notes, aiStatus: $aiStatus)';
+    return 'Task(id: $id, title: $title, isCompleted: $isCompleted, projectId: $projectId, subtasks: $subtasks, order: $order, tags: $tags, goal: $goal, notes: $notes, aiStatus: $aiStatus, localImagePaths: $localImagePaths)';
   }
 
   @override
@@ -1412,7 +1471,9 @@ class _$TaskImpl implements _Task {
             (identical(other.goal, goal) || other.goal == goal) &&
             (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.aiStatus, aiStatus) ||
-                other.aiStatus == aiStatus));
+                other.aiStatus == aiStatus) &&
+            const DeepCollectionEquality()
+                .equals(other._localImagePaths, _localImagePaths));
   }
 
   @JsonKey(ignore: true)
@@ -1428,7 +1489,8 @@ class _$TaskImpl implements _Task {
       const DeepCollectionEquality().hash(_tags),
       goal,
       notes,
-      aiStatus);
+      aiStatus,
+      const DeepCollectionEquality().hash(_localImagePaths));
 
   @JsonKey(ignore: true)
   @override
@@ -1455,7 +1517,8 @@ abstract class _Task implements Task {
       final List<String> tags,
       final TaskGoal? goal,
       final String? notes,
-      final AiStatus aiStatus}) = _$TaskImpl;
+      final AiStatus aiStatus,
+      final List<String> localImagePaths}) = _$TaskImpl;
 
   factory _Task.fromJson(Map<String, dynamic> json) = _$TaskImpl.fromJson;
 
@@ -1479,6 +1542,8 @@ abstract class _Task implements Task {
   String? get notes;
   @override
   AiStatus get aiStatus;
+  @override
+  List<String> get localImagePaths;
   @override
   @JsonKey(ignore: true)
   _$$TaskImplCopyWith<_$TaskImpl> get copyWith =>

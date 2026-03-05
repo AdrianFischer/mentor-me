@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:mcp_dart/mcp_dart.dart';
 import 'package:mcp_dart/mcp_dart.dart' as mcp;
 import 'package:shelf/shelf.dart';
@@ -20,6 +21,10 @@ class McpServerService {
   McpServerService(this._dataService, this._toolRegistry);
 
   Future<void> start({int port = 8081, int retries = 5}) async {
+    if (kIsWeb) {
+      print('[MCP] Skipping MCP Server on Web.');
+      return;
+    }
     if (_server != null) return;
 
     for (var i = 0; i < retries; i++) {
@@ -84,6 +89,19 @@ class McpServerService {
 
         _server = await shelf_io.serve(handler, InternetAddress.anyIPv4, currentPort);
         print('MCP Server listening on http://localhost:$currentPort/mcp');
+        
+        // Save port for auto-discovery
+        try {
+          final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+          if (home != null) {
+            final configDir = Directory('$home/.assisted_intelligence');
+            if (!configDir.existsSync()) configDir.createSync();
+            final portFile = File('${configDir.path}/mcp_port');
+            portFile.writeAsStringSync(currentPort.toString());
+          }
+        } catch (e) {
+          print('Failed to save MCP port to config: $e');
+        }
         return;
       } on SocketException catch (e) {
         if (i < retries - 1) {
@@ -208,6 +226,7 @@ class McpServerService {
 }
 
 class _SseTransport implements Transport {
+  @override
   final String sessionId;
   final String _endpointPath;
   final StreamController<List<int>> _streamController = StreamController<List<int>>();

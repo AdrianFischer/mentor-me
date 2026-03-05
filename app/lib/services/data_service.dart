@@ -23,11 +23,106 @@ class DataService extends ChangeNotifier {
   
   // Conversations Cache
   List<Conversation> _conversations = [];
+  List<Memory> _memories = [];
+
+  // Session Indexing for Agents
+  final List<String> _sessionIndexMap = [];
 
   DataService(this._repository);
 
   List<Project> get projects => _projects;
   List<Conversation> get conversations => _conversations;
+  List<Memory> get memories => _memories;
+
+  // --- Session Indexing ---
+
+  void clearSessionIndex() => _sessionIndexMap.clear();
+
+  int addToSessionIndex(String id) {
+    final index = _sessionIndexMap.indexOf(id);
+    if (index != -1) return index + 1;
+    _sessionIndexMap.add(id);
+    return _sessionIndexMap.length;
+  }
+
+  String? getIdFromSessionIndex(int index) {
+    if (index < 1 || index > _sessionIndexMap.length) return null;
+    return _sessionIndexMap[index - 1];
+  }
+
+  // --- Local Image Artifacts ---
+
+  Future<void> addLocalImagePath(String itemId, String path) async {
+    for (var i = 0; i < _projects.length; i++) {
+      final project = _projects[i];
+      for (var j = 0; j < project.tasks.length; j++) {
+        final task = project.tasks[j];
+        if (task.id == itemId) {
+          if (task.localImagePaths.contains(path)) return;
+          final newTask = task.copyWith(localImagePaths: [...task.localImagePaths, path]);
+          final newTasksList = List<Task>.from(project.tasks);
+          newTasksList[j] = newTask;
+          _projects[i] = project.copyWith(tasks: newTasksList);
+          notifyListeners();
+          _repository.saveTask(newTask);
+          return;
+        }
+        for (var k = 0; k < task.subtasks.length; k++) {
+          final subtask = task.subtasks[k];
+          if (subtask.id == itemId) {
+            if (subtask.localImagePaths.contains(path)) return;
+            final newSubtask = subtask.copyWith(localImagePaths: [...subtask.localImagePaths, path]);
+            final newSubtasks = List<Subtask>.from(task.subtasks);
+            newSubtasks[k] = newSubtask;
+            final newTask = task.copyWith(subtasks: newSubtasks);
+            final newTasksList = List<Task>.from(project.tasks);
+            newTasksList[j] = newTask;
+            _projects[i] = project.copyWith(tasks: newTasksList);
+            notifyListeners();
+            _repository.saveTask(newTask);
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> removeLocalImagePath(String itemId, String path) async {
+    for (var i = 0; i < _projects.length; i++) {
+      final project = _projects[i];
+      for (var j = 0; j < project.tasks.length; j++) {
+        final task = project.tasks[j];
+        if (task.id == itemId) {
+          final newPaths = List<String>.from(task.localImagePaths)..remove(path);
+          if (newPaths.length == task.localImagePaths.length) return;
+          final newTask = task.copyWith(localImagePaths: newPaths);
+          final newTasksList = List<Task>.from(project.tasks);
+          newTasksList[j] = newTask;
+          _projects[i] = project.copyWith(tasks: newTasksList);
+          notifyListeners();
+          _repository.saveTask(newTask);
+          return;
+        }
+        for (var k = 0; k < task.subtasks.length; k++) {
+          final subtask = task.subtasks[k];
+          if (subtask.id == itemId) {
+            final newPaths = List<String>.from(subtask.localImagePaths)..remove(path);
+            if (newPaths.length == subtask.localImagePaths.length) return;
+            final newSubtask = subtask.copyWith(localImagePaths: newPaths);
+            final newSubtasks = List<Subtask>.from(task.subtasks);
+            newSubtasks[k] = newSubtask;
+            final newTask = task.copyWith(subtasks: newSubtasks);
+            final newTasksList = List<Task>.from(project.tasks);
+            newTasksList[j] = newTask;
+            _projects[i] = project.copyWith(tasks: newTasksList);
+            notifyListeners();
+            _repository.saveTask(newTask);
+            return;
+          }
+        }
+      }
+    }
+  }
 
   List<String> get allTags {
     final tags = <String>{};
@@ -333,6 +428,7 @@ class DataService extends ChangeNotifier {
     // Check if it is a Project
     int projectIndex = _projects.indexWhere((p) => p.id == itemId);
     if (projectIndex != -1) {
+       _cancelDebounce(itemId); // Prevent race condition
        _projects.removeAt(projectIndex);
        _repository.deleteProject(itemId);
        notifyListeners();
@@ -345,6 +441,8 @@ class DataService extends ChangeNotifier {
       final taskIndex = project.tasks.indexWhere((t) => t.id == itemId);
       if (taskIndex != -1) {
         final task = project.tasks[taskIndex];
+        
+        _cancelDebounce(itemId); // Prevent race condition
         
         final newTasks = List<Task>.from(project.tasks)..removeAt(taskIndex);
         final newProject = project.copyWith(tasks: newTasks);
@@ -361,6 +459,8 @@ class DataService extends ChangeNotifier {
         final subIndex = task.subtasks.indexWhere((s) => s.id == itemId);
         
         if (subIndex != -1) {
+           _cancelDebounce(task.id); // Prevent race condition (subtasks are debounced on task)
+           
            final newSubtasks = List<Subtask>.from(task.subtasks)..removeAt(subIndex);
            final newTask = task.copyWith(subtasks: newSubtasks);
            
@@ -599,18 +699,26 @@ class DataService extends ChangeNotifier {
     });
   }
   
+  bool _isInitialized = false;
+  StreamSubscription? _dataSubscription;
+
   Future<void> initData() async {
+    if (_isInitialized) return;
+    _isInitialized = true;
+
     await _repository.init();
     
     // Listen for file changes (hot reload)
-    _repository.onDataChanged.listen((_) {
+    _dataSubscription = _repository.onDataChanged.listen((_) {
       print("Data change detected. Reloading...");
       _reloadProjects();
       _reloadConversations();
+      _reloadMemories();
     });
     
     await _reloadProjects();
     await _reloadConversations();
+    await _reloadMemories();
   }
   
   Future<void> _reloadProjects() async {
@@ -623,6 +731,27 @@ class DataService extends ChangeNotifier {
     final list = await _repository.getAllConversations();
     _conversations = List.from(list);
     notifyListeners();
+  }
+
+  Future<void> _reloadMemories() async {
+    final list = await _repository.getAllMemories();
+    _memories = List.from(list);
+    notifyListeners();
+  }
+
+  // --- Long-term Memory ---
+
+  Future<void> saveMemory(String fact) async {
+    final memory = Memory(fact: fact);
+    _memories.insert(0, memory);
+    notifyListeners();
+    await _repository.saveMemory(memory);
+  }
+
+  Future<void> deleteMemory(String id) async {
+    _memories.removeWhere((m) => m.id == id);
+    notifyListeners();
+    await _repository.deleteMemory(id);
   }
 
   // --- Conversations ---

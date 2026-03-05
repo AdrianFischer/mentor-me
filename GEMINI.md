@@ -4,16 +4,16 @@
 
 **Assisted Intelligence** is a keyboard-driven task management application designed for power users. It differentiates itself through deep AI integration, featuring a "Mentor" mode that provides strategic career guidance and autonomous agents that assist with task breakdown and verification.
 
-The application follows a **local-first** architecture for speed and privacy, utilizing **Isar** for local storage and **Firebase** for optional cloud synchronization and advanced AI features.
+The application follows a **local-first, file-first** architecture for speed, privacy, and portability. It operates directly on human-readable Markdown files as its primary source of truth, with an in-memory application state for instant UI responsiveness.
 
 ## Technical Stack
 
 *   **Frontend:** Flutter (Dart) targeting macOS, iOS, and Web.
 *   **Backend:** Firebase Functions (Node.js / TypeScript).
 *   **State Management:** Riverpod.
-*   **Database:**
-    *   **Local:** Isar (NoSQL).
-    *   **Cloud:** Cloud Firestore (Sync), Firebase Storage.
+*   **Data Persistence:**
+    *   **Primary (Local):** Direct-to-Markdown. The app parses and writes `.md` files in the user's data directory.
+    *   **Cloud Sync (Optional):** Firebase Firestore and Storage (for cross-device synchronization and large assets).
 *   **AI & Agents:**
     *   **Model:** Google Gemini (via `firebase_ai` and Vertex AI).
     *   **Protocol:** Model Context Protocol (MCP) via `mcp_dart`.
@@ -81,7 +81,7 @@ flutter test
 ## Key Conventions
 
 *   **State Management:** Use Riverpod for all app state. Avoid `setState` for complex logic.
-*   **Data Persistence:** Prefer Isar for local data. Sync to Firestore only when necessary or explicitly triggered.
+*   **Data Persistence:** Files are the source of truth. The application uses a write-behind strategy to persist in-memory changes to disk while maintaining responsiveness.
 *   **AI Integration:** AI features should be implemented using the `firebase_ai` package.
 *   **MCP:** New tools for the AI agent should be exposed via the embedded MCP server setup in the app.
 *   **Design:** Follow a minimalist, high-contrast, distraction-free visual style.

@@ -3,7 +3,25 @@ import 'dart:convert';
 import 'dart:io';
 
 void main(List<String> args) async {
-  final baseUrl = args.isNotEmpty ? args[0] : 'http://localhost:8081/mcp';
+  String? baseUrl;
+
+  // Try auto-discovery
+  try {
+    final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    if (home != null) {
+      final portFile = File('$home/.assisted_intelligence/mcp_port');
+      if (portFile.existsSync()) {
+        final port = portFile.readAsStringSync().trim();
+        baseUrl = 'http://localhost:$port/mcp';
+        stderr.writeln('[Bridge] Auto-discovered server at $baseUrl');
+      }
+    }
+  } catch (e) {
+    stderr.writeln('[Bridge] Auto-discovery failed: $e');
+  }
+
+  // Fallback to args or default
+  baseUrl ??= args.isNotEmpty ? args[0] : 'http://localhost:8081/mcp';
   
   stderr.writeln('[Bridge] Connecting to $baseUrl...');
 
@@ -42,7 +60,7 @@ void main(List<String> args) async {
            if (pendingMessages.isNotEmpty) {
              stderr.writeln('[Bridge] Processing ${pendingMessages.length} buffered messages.');
              for (final msg in pendingMessages) {
-               _sendToApp(client, baseUrl, postEndpoint!, msg);
+               _sendToApp(client, baseUrl!, postEndpoint!, msg);
              }
              pendingMessages.clear();
            }
@@ -68,7 +86,7 @@ void main(List<String> args) async {
          return;
        }
        
-       _sendToApp(client, baseUrl, postEndpoint!, line);
+       _sendToApp(client, baseUrl!, postEndpoint!, line);
     });
 
   } catch (e) {

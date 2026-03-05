@@ -150,6 +150,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                     LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.enter): const ToggleCompletionIntent(),
                     LogicalKeySet(LogicalKeyboardKey.escape): const StopEditIntent(),
                     LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyN): const AddNewItemIntent(),
+                    LogicalKeySet(LogicalKeyboardKey.space): const AddNewItemIntent(),
                     LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.backspace): const DeleteItemIntent(),
                   },
                               child: Focus(
@@ -317,6 +318,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       },
       onBack: onBack,
       onNavigateRight: () => Actions.invoke(context, const ChangeColumnIntent(1)),
+      onColumnTap: () => ref.read(selectionProvider.notifier).setFocusedColumn(0),
     );
   }
 
@@ -429,6 +431,7 @@ class _MyAppState extends ConsumerState<MyApp> {
            goal: goal, 
            notes: t.notes,
            aiStatus: t.aiStatus,
+           localImagePaths: t.localImagePaths,
          );
       }).toList(),
       editingItemId: state.editingItemId,
@@ -469,6 +472,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       onBack: onBack,
       onNavigateLeft: () => Actions.invoke(context, const ChangeColumnIntent(-1)),
       onNavigateRight: () => Actions.invoke(context, const ChangeColumnIntent(1)),
+      onColumnTap: () => ref.read(selectionProvider.notifier).setFocusedColumn(1),
     );
   }
 
@@ -501,6 +505,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         isCompleted: s.isCompleted, 
         notes: s.notes,
         aiStatus: s.aiStatus,
+        localImagePaths: s.localImagePaths,
       )).toList(),
       editingItemId: state.editingItemId,
       onNotesUpdate: (index, val) {
@@ -539,6 +544,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       },
       onBack: onBack,
       onNavigateLeft: () => Actions.invoke(context, const ChangeColumnIntent(-1)),
+      onColumnTap: () => ref.read(selectionProvider.notifier).setFocusedColumn(2),
     );
   }
 

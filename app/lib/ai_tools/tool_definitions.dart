@@ -206,6 +206,51 @@ class ToolDefinitions {
       },
       'required': ['fact']
     }
+  },
+  {
+    "name": "list_todos_by_status",
+    "description": "Lists tasks and subtasks by status (active/completed) with an index for easier referencing. Status 'active' means is_completed=false, 'completed' means is_completed=true.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["active", "completed"],
+          "description": "The status of items to list."
+        }
+      },
+      "required": ["status"]
+    }
+  },
+  {
+    "name": "update_todo_by_index",
+    "description": "Updates a task or subtask using its index from the last 'list_todos_by_status' call. You can update title, notes, or is_completed.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "description": "The 1-based index of the item."
+        },
+        "new_title": { "type": "string" },
+        "notes": { "type": "string" },
+        "is_completed": { "type": "boolean" }
+      },
+      "required": ["index"]
+    }
+  },
+  {
+    "name": "manage_todo_images",
+    "description": "Adds or removes local image paths for a task or subtask using its index.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "index": { "type": "integer", "description": "The index from the last list call." },
+        "action": { "type": "string", "enum": ["add", "remove"] },
+        "file_path": { "type": "string", "description": "The absolute local path to the image file." }
+      },
+      "required": ["index", "action", "file_path"]
+    }
   }
 ];
 }
