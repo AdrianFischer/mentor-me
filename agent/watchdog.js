@@ -70,7 +70,7 @@ export class Watchdog {
       const content = fs.readFileSync(routinePath, 'utf-8');
       const routine = JSON.parse(content);
       
-      const lastExecution = this.routinesState.get(file) || 0;
+      const lastExecution = this.routinesState.get(file) || routine.last_executed_at || 0;
       const intervalMs = (routine.execute_every_seconds || 60) * 1000;
 
       if (now >= lastExecution + intervalMs) {
@@ -78,6 +78,10 @@ export class Watchdog {
         
         // Update state BEFORE calling to avoid double triggers if logic is slow
         this.routinesState.set(file, now);
+        
+        // Persist last execution time in the file
+        routine.last_executed_at = now;
+        fs.writeFileSync(routinePath, JSON.stringify(routine, null, 2), 'utf-8');
         
         // Execute the routine independently
         this.runner.run(routine).then(result => {

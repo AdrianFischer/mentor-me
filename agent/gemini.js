@@ -100,7 +100,17 @@ CONSTRAINTS:
   }
 
   async _handleResponse(chat, response) {
-    this.history = this._cleanHistory(await chat.getHistory());
+    let newHistory = this._cleanHistory(await chat.getHistory());
+    
+    // Truncate to the last 20 messages to maintain context limit
+    if (newHistory.length > 20) {
+      newHistory = newHistory.slice(-20);
+      if (newHistory.length > 0 && newHistory[0].role !== 'user') {
+        newHistory.shift();
+      }
+    }
+    
+    this.history = newHistory;
     
     if (!response.candidates || response.candidates.length === 0) {
       return { text: "", toolCalls: [] };

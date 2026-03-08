@@ -20,3 +20,6 @@ version: 1
 
 - [x] Build middleware for Execute and Respond <!-- id: d663a29c-e434-44eb-9579-1f39efafd4f5 -->
 
+- [x] Pass context of last 20 messages to Telegram bot <!-- id: 41e2e144-763f-457e-91a9-c57f0ad5e86f -->
+  Ensure the bot always gets the context of the last 20 messages whenever the user texts it. This makes it easier for the bot to maintain conversational context.
+
