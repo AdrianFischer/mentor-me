@@ -10,3 +10,5 @@ version: 1
 # Inbox
 
 
+- [x] Fix MCP not connecting <!-- id: 3c74339c-c17b-43bb-af6a-605d7b54cb17 -->
+
