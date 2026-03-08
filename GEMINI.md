@@ -125,3 +125,4 @@ flutter test
     3.  **Sparsity Filter:** Routines that output `NO_ACTION_TAKEN` are silenced. Any other output is reported to the primary user via Telegram.
     4.  **Telemetry:** Every execution captures token usage metadata into `logs/routines/telemetry.json` for auditability.
     5.  **Timeout:** Mandatory `timeout` (seconds) per routine to prevent zombie processes.
+    6.  **Management:** Native Brain tools (`list_routines`, `update_routine`, `delete_routine`) allow managing schedules and "learning" context from Telegram.
