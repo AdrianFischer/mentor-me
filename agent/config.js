@@ -17,6 +17,8 @@ export function loadConfig() {
 
   const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
   const geminiApiKey = process.env.GEMINI_API_KEY;
+  const authorizedUserIdsRaw = process.env.AUTHORIZED_USER_IDS || '';
+  const authorizedUserIds = authorizedUserIdsRaw.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
 
   if (!telegramToken || !geminiApiKey) {
     throw new Error('Critical secrets (TELEGRAM_BOT_TOKEN or GEMINI_API_KEY) missing in .env');
@@ -35,6 +37,7 @@ export function loadConfig() {
   return {
     telegramToken,
     geminiApiKey,
+    authorizedUserIds,
     mcpPort,
     baseUrl: `http://127.0.0.1:${mcpPort}/mcp`
   };

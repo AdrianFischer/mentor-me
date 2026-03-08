@@ -4,6 +4,7 @@ import { logger } from './logger.js';
 export class BotService {
   constructor(config, brain) {
     this.token = config.telegramToken;
+    this.authorizedUserIds = config.authorizedUserIds;
     this.brain = brain;
     this.telegraf = new Telegraf(this.token, {
       handlerTimeout: 300000 // 5 minutes for heavy thinking
@@ -12,6 +13,26 @@ export class BotService {
   }
 
   setupHandlers() {
+    // Security Middleware
+    this.telegraf.use(async (ctx, next) => {
+      const userId = ctx.from?.id;
+      
+      // Discovery Mode: Always log the User ID
+      if (userId) {
+        logger.info(`[SECURITY] Access attempt from User ID: ${userId} (${ctx.from.username || 'unknown'})`);
+      }
+
+      if (this.isAuthorized(userId)) {
+        return next();
+      }
+
+      logger.warn(`[SECURITY] Blocked unauthorized access from User ID: ${userId}`);
+      // Only reply to first message to avoid spamming the attacker back
+      if (ctx.message?.text === '/start') {
+        await ctx.reply('🔒 *Access Denied.*\nThis is a private AI assistant.', { parse_mode: 'Markdown' });
+      }
+    });
+
     this.telegraf.start((ctx) => this.handleStart(ctx));
     this.telegraf.help((ctx) => this.handleHelp(ctx));
     
@@ -43,6 +64,14 @@ export class BotService {
         await ctx.reply('❌ An unexpected error occurred. Please try again.');
       }
     });
+  }
+
+  isAuthorized(userId) {
+    // If no whitelist is defined, allow (useful for initial setup)
+    if (!this.authorizedUserIds || this.authorizedUserIds.length === 0) {
+      return true;
+    }
+    return this.authorizedUserIds.includes(userId);
   }
 
   async handleStart(ctx) {

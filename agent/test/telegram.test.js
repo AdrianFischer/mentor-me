@@ -76,4 +76,22 @@ describe('3. Telegram Integration', () => {
   it('AC 18: Maintains stable connection (implicitly checked by library usage)', () => {
     expect(true).toBe(true);
   });
+
+  it('should block unauthorized users when whitelist is present', async () => {
+    const config = { telegramToken: 'test', authorizedUserIds: [123] };
+    const bot = new BotService(config);
+    expect(bot.isAuthorized(999)).toBe(false);
+  });
+
+  it('should allow authorized users when whitelist is present', async () => {
+    const config = { telegramToken: 'test', authorizedUserIds: [123] };
+    const bot = new BotService(config);
+    expect(bot.isAuthorized(123)).toBe(true);
+  });
+
+  it('should allow all users when whitelist is empty', async () => {
+    const config = { telegramToken: 'test', authorizedUserIds: [] };
+    const bot = new BotService(config);
+    expect(bot.isAuthorized(999)).toBe(true);
+  });
 });

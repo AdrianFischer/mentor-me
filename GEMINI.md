@@ -105,4 +105,12 @@ flutter test
 *   **Telegram Timeout Constraints:** The `telegraf` library has a default `handlerTimeout` of 90 seconds. For heavy multimodal processing or complex tool-call chains, this MUST be increased (e.g., to 300s/5m) to prevent `TimeoutError` crashes.
 *   **Continuous Feedback (Typing Status):** Telegram's "typing" indicator expires after ~5 seconds. To keep it active during long "thinking" sessions, implement a heartbeat that sends `ctx.sendChatAction('typing')` every 4 seconds.
 *   **AI Persona (Human-in-the-Loop):** To avoid robotic output (like listing tool names), the agent is configured as a **Senior Executive Assistant**. If tool execution results in an empty response text, the brain should perform a "Final Summary Turn" to force a human-friendly explanation of actions taken.
-*   **Unified Brain API:** Use a polymorphic `process(input)` method in the agent brain that accepts either a `string` (text) or an `Object` (audio data). This simplifies the interaction layer and makes the system multimodal by default.
+*   **Unified Brain API:** Use a polymorphic `process(input)` method in the agent brain that accepts either a `string` (text) or an `Object` (audio/image data). This simplifies the interaction layer and makes the system multimodal by default.
+*   **Standardized Media Protocol:** Tools should return media in a standardized `media: { imageBase64, mimeType }` object. The Brain should pass this object generically to the interaction layer. This prevents "leaky logic" where the brain needs to know the internal structure of every tool.
+*   **Architectural Separation (Rich Objects):** The Brain should return "Semantic Objects" (text + media + metadata). The interaction layer (e.g., `BotService`) is responsible for translating these into platform-specific formats (like Telegram HTML).
+*   **Verification-First Mutating:** When the agent adds or updates data, it should proactively verify the change by calling a "Get" tool (e.g., `get_project` or `list_todos`) before confirming success to the user. This eliminates "hallucinated success."
+*   **Continuous Learning (The Reflection Step):** Every task MUST conclude with a "Reflect & Document" turn. The agent identifies:
+    1.  What unexpected technical hurdle was found?
+    2.  What user preference was discovered (e.g., "Use HTML, not Markdown")?
+    3.  What architectural pattern should be reused?
+    These insights must be committed to `GEMINI.md` immediately.
