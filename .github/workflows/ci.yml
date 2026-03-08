@@ -1,0 +1,42 @@
+name: Automated Testing Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-flutter:
+    name: Flutter Tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Install dependencies
+        run: cd app && flutter pub get
+      - name: Run Flutter tests
+        run: cd app && flutter test
+
+  test-agent:
+    name: Node.js Agent Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: agent/package-lock.json
+      - name: Create dummy .env for tests
+        run: |
+          mkdir -p app
+          echo "TELEGRAM_BOT_TOKEN=dummy_token_for_tests" > app/.env
+          echo "GEMINI_API_KEY=dummy_key_for_tests" >> app/.env
+      - name: Install dependencies
+        run: cd agent && npm install
+      - name: Run Agent tests (Vitest)
+        run: cd agent && npm test
