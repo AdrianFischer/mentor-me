@@ -7,7 +7,7 @@ export class AgentBrain {
     this.mcp = services.mcp;
     this.gemini = services.gemini;
     this.bot = services.bot;
-    this.routinesDir = path.resolve('data/routines');
+    this.routinesDir = path.resolve('../data/routines');
     
     if (!fs.existsSync(this.routinesDir)) {
       fs.mkdirSync(this.routinesDir, { recursive: true });
@@ -24,73 +24,17 @@ export class AgentBrain {
    * @param {Function} onStatus - Optional callback for status updates.
    */
   async process(input, onStatus = () => {}) {
-    let prompt;
-    if (typeof input === 'string') {
-      prompt = input;
-    } else if (input.audioBase64) {
-      prompt = [
-        { inlineData: { data: input.audioBase64, mimeType: input.mimeType || 'audio/ogg' } },
-        { text: "The user sent a voice memo. Please listen and respond or execute tools as requested. IMPORTANT: Always provide a textual response summarizing exactly what you did, including names of items created or updated." }
-      ];
-    } else if (input.imageBase64) {
-      prompt = [
-        { inlineData: { data: input.imageBase64, mimeType: input.mimeType || 'image/jpeg' } },
-        { text: input.text || "The user sent an image. Please analyze it and respond or execute tools as requested." }
-      ];
-    } else {
-      throw new Error('Invalid input format to Brain.process()');
-    }
-
-    const isMultimodal = Array.isArray(prompt);
-    logger.info(`Processing ${isMultimodal ? 'Multimodal' : 'Text'}: ${isMultimodal ? '[Media Data]' : `"${prompt}"`}`);
-    onStatus('Discovering tools...');
-
     try {
-      // 1. Discover available tools from app
-      const mcpTools = await this.mcp.discoverTools();
+      const prompt = this._buildPrompt(input);
+      const isMultimodal = Array.isArray(prompt);
+      logger.info(`Processing ${isMultimodal ? 'Multimodal' : 'Text'}: ${isMultimodal ? '[Media Data]' : `"${prompt}"`}`);
 
-      // 2. Add Native Brain Tools (Routines Management)
-      const allTools = [
-        ...mcpTools,
-        {
-          name: 'list_routines',
-          description: 'Lists all currently configured autonomous routines and their schedules.',
-          inputSchema: { type: 'object', properties: {} }
-        },
-        {
-          name: 'update_routine',
-          description: 'Creates or updates an autonomous routine definition. Use this to change frequency, tasks, or add "learned" context for next runs.',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              filename: { type: 'string', description: 'The filename (e.g., daily_cleanup.json).' },
-              name: { type: 'string', description: 'Human readable name.' },
-              execute_every_seconds: { type: 'number', description: 'Interval in seconds.' },
-              task: { type: 'string', description: 'The task description for Gemini CLI.' },
-              context: { type: 'string', description: 'Context and learned strategies for the routine.' },
-              timeout: { type: 'number', description: 'Max runtime in seconds.' }
-            },
-            required: ['filename', 'name', 'task', 'execute_every_seconds']
-          }
-        },
-        {
-          name: 'delete_routine',
-          description: 'Removes an autonomous routine.',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              filename: { type: 'string' }
-            },
-            required: ['filename']
-          }
-        }
-      ];
+      onStatus('Discovering tools...');
+      const allTools = await this._gatherTools();
 
-      // 3. Initial processing with Gemini
       onStatus('Thinking...');
       let { text: responseText, toolCalls } = await this.gemini.process(prompt, allTools);
 
-      // 4. Tool execution loop
       const executedTools = [];
       let mediaOutput = null;
 
@@ -99,18 +43,8 @@ export class AgentBrain {
           onStatus(`Executing ${call.name}...`);
           logger.info(`Calling tool: ${call.name} with ${JSON.stringify(call.args)}`);
           
-          let result;
-          // Handle Native Tools first, fallback to MCP
-          if (call.name === 'list_routines') {
-            result = this._listRoutines();
-          } else if (call.name === 'update_routine') {
-            result = this._updateRoutine(call.args);
-          } else if (call.name === 'delete_routine') {
-            result = this._deleteRoutine(call.args);
-          } else {
-            result = await this.mcp.callTool(call.name, call.args);
-          }
-
+          const result = await this._executeTool(call);
+          
           executedTools.push(call.name);
 
           // Standardized media protocol: if tool returns a 'media' object
@@ -118,7 +52,6 @@ export class AgentBrain {
             mediaOutput = result.media;
           }
 
-          // Feed result back to Gemini
           onStatus(`Analyzing result of ${call.name}...`);
           const summary = await this.gemini.processToolResult(call.name, result);
           responseText = summary.text;
@@ -126,27 +59,8 @@ export class AgentBrain {
         }
       }
 
-      // 4. Final summary turn - if tools were called but no text was generated
-      if (executedTools.length > 0 && (!responseText || responseText.trim() === '')) {
-        onStatus('Summarizing actions...');
-        logger.info('Tools were executed but no response text was provided. Forcing summary turn.');
-        
-        // Final request for a human-like summary
-        const summary = await this.gemini.process("Please summarize what you just did for me in a human-friendly, professional tone, listing the key items you've added or updated.");
-        responseText = summary.text;
-      }
+      responseText = await this._ensureTextResponse(responseText, executedTools, onStatus);
 
-      // 5. Catch-all fallback if still empty
-      if (!responseText || responseText.trim() === '') {
-        if (executedTools.length > 0) {
-          responseText = "✅ I've processed your request and updated your task list accordingly. Is there anything else I can help with?";
-        } else {
-          logger.warn('Gemini returned an empty response. Using fallback.');
-          responseText = "I've handled that for you. What's next on our agenda?";
-        }
-      }
-
-      // Return both text and media if available
       if (mediaOutput) {
         return { text: responseText, ...mediaOutput };
       }
@@ -156,6 +70,101 @@ export class AgentBrain {
       logger.error('Brain Error', error);
       return `❌ Sorry, I had trouble processing that: ${error.message}`;
     }
+  }
+
+  _buildPrompt(input) {
+    if (typeof input === 'string') {
+      return input;
+    } else if (input.audioBase64) {
+      return [
+        { inlineData: { data: input.audioBase64, mimeType: input.mimeType || 'audio/ogg' } },
+        { text: "The user sent a voice memo. Please listen and respond or execute tools as requested. IMPORTANT: Always provide a textual response summarizing exactly what you did, including names of items created or updated." }
+      ];
+    } else if (input.imageBase64) {
+      return [
+        { inlineData: { data: input.imageBase64, mimeType: input.mimeType || 'image/jpeg' } },
+        { text: input.text || "The user sent an image. Please analyze it and respond or execute tools as requested." }
+      ];
+    } else {
+      throw new Error('Invalid input format to Brain.process()');
+    }
+  }
+
+  async _gatherTools() {
+    const mcpTools = await this.mcp.discoverTools();
+
+    return [
+      ...mcpTools,
+      {
+        name: 'list_routines',
+        description: 'Lists all currently configured autonomous routines and their schedules.',
+        inputSchema: { type: 'object', properties: {} }
+      },
+      {
+        name: 'update_routine',
+        description: 'Creates or updates an autonomous routine definition. Use this to change frequency, tasks, or add "learned" context for next runs.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            filename: { type: 'string', description: 'The filename (e.g., daily_cleanup.json).' },
+            name: { type: 'string', description: 'Human readable name.' },
+            execute_every_seconds: { type: 'number', description: 'Interval in seconds.' },
+            task: { type: 'string', description: 'The task description for Gemini CLI.' },
+            context: { type: 'string', description: 'Context and learned strategies for the routine.' },
+            timeout: { type: 'number', description: 'Max runtime in seconds.' }
+          },
+          required: ['filename', 'name', 'task', 'execute_every_seconds']
+        }
+      },
+      {
+        name: 'delete_routine',
+        description: 'Removes an autonomous routine.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            filename: { type: 'string' }
+          },
+          required: ['filename']
+        }
+      }
+    ];
+  }
+
+  async _executeTool(call) {
+    if (call.name === 'list_routines') {
+      return this._listRoutines();
+    } else if (call.name === 'update_routine') {
+      return this._updateRoutine(call.args);
+    } else if (call.name === 'delete_routine') {
+      return this._deleteRoutine(call.args);
+    } else {
+      return await this.mcp.callTool(call.name, call.args);
+    }
+  }
+
+  async _ensureTextResponse(responseText, executedTools, onStatus) {
+    let finalResponseText = responseText;
+    
+    // Final summary turn - if tools were called but no text was generated
+    if (executedTools.length > 0 && (!finalResponseText || finalResponseText.trim() === '')) {
+      onStatus('Summarizing actions...');
+      logger.info('Tools were executed but no response text was provided. Forcing summary turn.');
+      
+      const summary = await this.gemini.process("Please summarize what you just did for me in a human-friendly, professional tone, listing the key items you've added or updated.");
+      finalResponseText = summary.text;
+    }
+
+    // Catch-all fallback if still empty
+    if (!finalResponseText || finalResponseText.trim() === '') {
+      if (executedTools.length > 0) {
+        finalResponseText = "✅ I've processed your request and updated your task list accordingly. Is there anything else I can help with?";
+      } else {
+        logger.warn('Gemini returned an empty response. Using fallback.');
+        finalResponseText = "I've handled that for you. What's next on our agenda?";
+      }
+    }
+
+    return finalResponseText;
   }
 
   _listRoutines() {

@@ -1,0 +1,502 @@
+[
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T11:27:04.323Z",
+    "total_tokens": 301549
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T11:27:27.068Z",
+    "total_tokens": 44052
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T11:28:01.883Z",
+    "total_tokens": 101163
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T11:28:25.577Z",
+    "total_tokens": 61607
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T11:28:50.440Z",
+    "total_tokens": 99364
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T11:29:21.236Z",
+    "total_tokens": 58726
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T11:29:47.905Z",
+    "total_tokens": 147617
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T11:31:29.819Z",
+    "total_tokens": 31951
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T11:32:57.238Z",
+    "total_tokens": 100670
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T11:58:39.220Z",
+    "total_tokens": 31576
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T11:59:25.379Z",
+    "total_tokens": 87290
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T11:59:36.317Z",
+    "total_tokens": 102269
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:00:10.860Z",
+    "total_tokens": 66300
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:00:22.760Z",
+    "total_tokens": 44642
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:00:39.641Z",
+    "total_tokens": 69672
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:01:21.422Z",
+    "total_tokens": 31687
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:01:45.069Z",
+    "total_tokens": 78266
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:02:19.249Z",
+    "total_tokens": 45497
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:03:16.677Z",
+    "total_tokens": 46340
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:03:24.165Z",
+    "total_tokens": 57628
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:05:47.884Z",
+    "total_tokens": 47274
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:06:10.998Z",
+    "total_tokens": 45151
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:06:28.913Z",
+    "total_tokens": 43336
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:06:52.061Z",
+    "total_tokens": 31729
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:07:39.495Z",
+    "total_tokens": 32830
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:08:50.268Z",
+    "total_tokens": 65172
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:09:28.449Z",
+    "total_tokens": 121711
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:09:47.875Z",
+    "total_tokens": 31596
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:10:18.938Z",
+    "total_tokens": 47940
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:11:58.878Z",
+    "total_tokens": 298100
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:13:20.256Z",
+    "total_tokens": 513390
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:13:40.066Z",
+    "total_tokens": 32415
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:14:23.519Z",
+    "total_tokens": 66359
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:14:45.963Z",
+    "total_tokens": 31340
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:15:44.222Z",
+    "total_tokens": 103979
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:16:03.990Z",
+    "total_tokens": 62934
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:17:05.210Z",
+    "total_tokens": 195382
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:17:49.706Z",
+    "total_tokens": 31839
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:18:01.221Z",
+    "total_tokens": 73323
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:18:43.401Z",
+    "total_tokens": 75354
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:19:24.225Z",
+    "total_tokens": 68569
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:20:16.392Z",
+    "total_tokens": 166478
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:20:33.417Z",
+    "total_tokens": 48800
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:21:14.279Z",
+    "total_tokens": 47029
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:21:35.725Z",
+    "total_tokens": 32004
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:21:52.925Z",
+    "total_tokens": 72940
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:23:52.945Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:25:05.486Z",
+    "total_tokens": 60182
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:26:30.006Z",
+    "total_tokens": 58983
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:26:30.325Z",
+    "total_tokens": 52371
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:27:07.427Z",
+    "total_tokens": 87743
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:28:32.059Z",
+    "total_tokens": 379598
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:29:00.414Z",
+    "total_tokens": 96182
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:29:23.753Z",
+    "total_tokens": 32955
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:29:53.234Z",
+    "total_tokens": 79378
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:30:15.370Z",
+    "total_tokens": 71458
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:30:43.430Z",
+    "total_tokens": 47422
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:31:11.625Z",
+    "total_tokens": 92027
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:31:31.024Z",
+    "total_tokens": 73733
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:31:45.351Z",
+    "total_tokens": 48108
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:32:04.333Z",
+    "total_tokens": 58135
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:32:33.573Z",
+    "total_tokens": 46862
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:32:57.010Z",
+    "total_tokens": 32007
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:33:09.071Z",
+    "total_tokens": 31065
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:33:48.996Z",
+    "total_tokens": 87577
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:34:41.172Z",
+    "total_tokens": 32396
+  },
+  {
+    "routine": "Tenth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:50.543Z",
+    "total_tokens": 29134
+  },
+  {
+    "routine": "Seventh Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:50.951Z",
+    "total_tokens": 29075
+  },
+  {
+    "routine": "Fifteenth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:51.766Z",
+    "total_tokens": 29041
+  },
+  {
+    "routine": "Stability Test",
+    "timestamp": "2026-03-08T12:35:52.198Z",
+    "total_tokens": 29432
+  },
+  {
+    "routine": "Twentieth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:52.450Z",
+    "total_tokens": 29046
+  },
+  {
+    "routine": "Eleventh Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:52.753Z",
+    "total_tokens": 29148
+  },
+  {
+    "routine": "Twelfth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:53.195Z",
+    "total_tokens": 29131
+  },
+  {
+    "routine": "Third Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:53.482Z",
+    "total_tokens": 29149
+  },
+  {
+    "routine": "Ninth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:53.586Z",
+    "total_tokens": 29089
+  },
+  {
+    "routine": "Twenty-Second Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:53.923Z",
+    "total_tokens": 29397
+  },
+  {
+    "routine": "Eighteenth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:54.457Z",
+    "total_tokens": 29323
+  },
+  {
+    "routine": "Thirteenth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:54.738Z",
+    "total_tokens": 29099
+  },
+  {
+    "routine": "Sixth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:55.723Z",
+    "total_tokens": 29225
+  },
+  {
+    "routine": "Fourth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:55.772Z",
+    "total_tokens": 29280
+  },
+  {
+    "routine": "Fifth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:55.915Z",
+    "total_tokens": 29182
+  },
+  {
+    "routine": "Nineteenth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:55.930Z",
+    "total_tokens": 29144
+  },
+  {
+    "routine": "Twenty-First Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:56.368Z",
+    "total_tokens": 29120
+  },
+  {
+    "routine": "Sixteenth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:56.720Z",
+    "total_tokens": 29201
+  },
+  {
+    "routine": "Fourteenth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:57.133Z",
+    "total_tokens": 29168
+  },
+  {
+    "routine": "Voice Memo Stability Test",
+    "timestamp": "2026-03-08T12:35:57.606Z",
+    "total_tokens": 29272
+  },
+  {
+    "routine": "Second Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:57.826Z",
+    "total_tokens": 29145
+  },
+  {
+    "routine": "Eighth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:58.018Z",
+    "total_tokens": 29155
+  },
+  {
+    "routine": "Twenty-Fourth Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:58.683Z",
+    "total_tokens": 29336
+  },
+  {
+    "routine": "Stability Test Routine",
+    "timestamp": "2026-03-08T12:35:59.145Z",
+    "total_tokens": 29532
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:35:59.458Z",
+    "total_tokens": 31631
+  },
+  {
+    "routine": "Twenty-Third Stability Test Routine",
+    "timestamp": "2026-03-08T12:36:01.093Z",
+    "total_tokens": 29119
+  },
+  {
+    "routine": "Seventeenth Stability Test Routine",
+    "timestamp": "2026-03-08T12:36:05.257Z",
+    "total_tokens": 29165
+  },
+  {
+    "routine": "Weekly Memory Consolidator",
+    "timestamp": "2026-03-08T12:36:26.783Z",
+    "total_tokens": 20826
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:36:38.663Z",
+    "total_tokens": 102714
+  },
+  {
+    "routine": "Daily Code Quality Audit",
+    "timestamp": "2026-03-08T12:37:11.359Z",
+    "total_tokens": 260089
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T12:42:01.224Z",
+    "total_tokens": 33117
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T12:42:18.613Z",
+    "total_tokens": 59421
+  },
+  {
+    "routine": "Daily Code Quality Audit",
+    "timestamp": "2026-03-08T12:43:04.749Z",
+    "total_tokens": 219997
+  },
+  {
+    "routine": "Weekly Memory Consolidator",
+    "timestamp": "2026-03-08T12:43:47.506Z",
+    "total_tokens": 249152
+  }
+]

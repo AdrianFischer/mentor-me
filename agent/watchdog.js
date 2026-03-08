@@ -9,8 +9,8 @@ import { RoutineRunner } from './routine_runner.js';
  */
 export class Watchdog {
   constructor(config = {}) {
-    this.routinesDir = config.routinesDir || path.resolve('data/routines');
-    this.logsDir = config.logsDir || path.resolve('logs/routines');
+    this.routinesDir = config.routinesDir || path.resolve('../data/routines');
+    this.logsDir = config.logsDir || path.resolve('../logs/routines');
     this.intervalMs = config.intervalMs || 1000;
     this.routinesState = new Map(); // Store last_execution_time for each routine
     this.timer = null;
@@ -98,7 +98,7 @@ export class Watchdog {
     }
 
     if (!result.success) {
-      logger.warn(`Routine "${routine.name}" failed: ${result.error || 'Check logs'}`);
+      logger.warn(`Routine "${routine.name}" failed with code ${result.code}: ${result.error || 'Check logs'}`);
       return;
     }
 

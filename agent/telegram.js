@@ -170,6 +170,7 @@ export class BotService {
     const imageBase64 = response.imageBase64;
 
     try {
+      logger.info(`Outgoing to Telegram: "${text.substring(0, 100)}${text.length > 100 ? '...' : ''}" ${imageBase64 ? '[+Image]' : ''}`);
       if (imageBase64) {
         const buffer = Buffer.from(imageBase64, 'base64');
         await ctx.replyWithPhoto({ source: buffer }, { 

@@ -1,0 +1,7 @@
+{
+  "name": "Weekly Memory Consolidator",
+  "execute_every_seconds": 604800,
+  "timeout": 300,
+  "context": "You are a long-term memory optimizer for Assisted Intelligence. The project has a knowledge_base/ folder and memory files.",
+  "task": "Review the last 7 days of logs and added memories in GEMINI.md. Identify redundant or outdated facts. Propose a summarized version of the knowledge base to keep the context window lean. If everything is already optimal, output 'NO_ACTION_TAKEN'."
+}

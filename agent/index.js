@@ -15,6 +15,7 @@ async function main() {
   try {
     // 1. Load Configuration
     const config = loadConfig();
+    logger.info(`Loaded ${config.authorizedUserIds.length} authorized Telegram users.`);
 
     // 2. Initialize Services
     const mcp = new McpService(config);
@@ -44,10 +45,9 @@ async function main() {
     await bot.start();
 
     // 5. Start Autonomous Watchdog
+    const primaryUserId = config.authorizedUserIds?.[0];
     const watchdog = new Watchdog({
       onWorkAccomplished: (message) => {
-        // Send to the first authorized user as the primary contact
-        const primaryUserId = config.authorizedUserIds?.[0];
         if (primaryUserId) {
           bot.sendMessage(primaryUserId, message);
         } else {

@@ -1,0 +1,5 @@
+{
+  "name": "Time Teller",
+  "execute_every_seconds": 60,
+  "task": "Tell the user the current time."
+}

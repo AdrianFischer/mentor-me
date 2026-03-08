@@ -1,73 +1,41 @@
 ---
 
-id: d3c12bbb-4632-4bdf-9995-3f4a31b8e699
+id: b1910afd-a234-43ca-876f-723f31a06d6a
 
 version: 1
 
 ---
 
 
-# Logimat
+# LogiMAT
 
 
-- [ ] Max Mustermann - Musterfirma GmbH <!-- id: 24a71714-bba7-4e4b-8933-c7f478a2d78b -->
-  **Kundenprofil**
-  * **Ansprechpartner:** [Name] (z.B. Max Mustermann)
-  * **Firma:** [Firma] (z.B. Musterfirma GmbH)
-  * **Rolle:** [Rolle] (z.B. Logistikleitung)
-  **Ausgangssituation**
-  * **Aktuelles System:** Manuelles Handregallager
-  * **Ziel:** Automatisierung
-  **Systemanforderungen**
-  * **Präferiertes System:** System L
-  * **Performance:** ca. 250 Picks pro Stunde
-  * **Personal:** 1 Picker
-  **IT & Prozesse**
-  * **Auftragsdaten:** Request Queue vorhanden (Aufträge können frühzeitig übertragen werden)
-
-- [ ] Leitfaden-Update: Qualifizierungsfragen zu Rolle & Branche des Besuchers einbauen <!-- id: 318173a3-b055-438e-b5f1-e9e6b249f10c -->
-  **Ziele der Qualifizierung:**
-  Schnelle Einordnung des Gesprächspartners am Messestand (Kunde, Integrator, Berater, Student, Wettbewerber, Mitaussteller).
+- [ ] Workflow: Student <!-- id: ad539d27-3eba-4f4f-93d1-30fb3cf38c53 -->
+  **1. Eisbrecher-Frage**
+  "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
   
-  **Wichtige Qualifizierungsfragen:**
-  1. **Branche:** "Ist Ihr Unternehmen in der Branche, die ein Lager betreibt, oder in der Produktion oder Ersatzteillager?"
-  2. **Besuchertyp:** Ist es ein potenzieller Kunde, ein Integrator, ein Berater oder ein Mitaussteller? 
-  3. **Rolle/Funktion:** "In welchem Bereich sind Sie im Unternehmen tätig?" (z.B. CEO, Lagerleiter, Logistikleiter)
-  4. **Aktuelle Situation:** "Wie sieht Ihre aktuelle Kommissionierlösung aus?" (z.B. manuell, teilausgebaut, vollautomatisiert)
-  5. **Pain Points:** "Wo drückt aktuell am meisten der Schuh?" (z.B. Personalmangel, hohe Fehlerquote, zu geringer Durchsatz)
-  6. **Timeline:** "Gibt es bereits ein konkretes Projekt oder informieren Sie sich grundsätzlich?"
+  **2. Identifikation**
+  - Antwortet, dass er noch studiert, für ein Projekt recherchiert oder nach Praktika sucht.
+  
+  **3. Gesprächsverlauf (Schema)**
+  - **Begeisterung wecken:** Das System kurz erklären, um Begeisterung für die Marke zu wecken.
+  - **Karriere-Pitch ("mit 2% ködern"):** Auf offene Stellen, Praktika oder Werkstudentenjobs verweisen.
+  - **Aktion:** Auf die Karriere-Website oder den HR-Kontakt verweisen und das Gespräch höflich, aber zügig beenden, um Kapazitäten für andere Besucher freizuhalten.
 
-- [x] Workflows für verschiedene Besuchertypen definieren (Kunde, Integrator, Berater, etc.) <!-- id: f6d62c86-78a3-419d-bce6-e4d8d62b340b -->
-  - [ ] Integratoren kurz <!-- id: 49efe247-820a-479d-bf52-44a7e1cceb87 -->
-  - [ ] Consultants kurz <!-- id: b4f35d30-f98d-43ca-83ff-7027691e0b93 -->
+- [ ] Workflow: Wettbewerber <!-- id: 2f673e99-e10b-41d9-a987-143708ca13ce -->
+  **1. Eisbrecher-Frage**
+  "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
+  
+  **2. Identifikation**
+  - Namensschild verrät Mitaussteller/Konkurrent.
+  - Stellt unnatürlich tiefe, technische Detailfragen zu Interna oder Preisen.
+  
+  **3. Gesprächsverlauf (Schema)**
+  - **Defensiv bleiben:** Freundlich bleiben, aber keine tiefen technischen Details oder Preisinformationen herausgeben.
+  - **Fokus wahren:** Höflich darauf hinweisen, dass man aktuell primär für aktive Kundenanfragen zur Verfügung steht.
+  - **Aktion (Abwimmeln):** Das Gespräch sehr zügig und höflich abbrechen.
 
-- [ ] 5-Minuten System-Preview (inkl. USPs) für potenzielle Kunden ins Video integrieren <!-- id: 68b726d9-7e60-482b-a23f-3ba8dc9aae58 -->
-  **Inhalte für das 5-Minuten-Preview am System (für potenzielle Kunden):**
-  * **Funktionsweise:** Teile einlagern und auslagern demonstrieren.
-  * **USP 1: Preis:** Konkurrenzlos geringer Preis.
-  * **USP 2: Flächeneinsparung:** Ca. 70 % Einsparung der Fläche.
-  * **USP 3: Pick-Effizienz:** 200 % Steigerung (von 80-100 manuellen Picks auf über 300 Picks mit dem System).
-  * **USP 4: Erweiterbarkeit:** Flexible Erweiterung bis zu 6,50 m in die Höhe und bis zu 4.500 Stellplätze.
-  * **USP 5: Flexibilität:** Flexibel bezüglich der Behälter, die auf dem System verwendet werden können.
-
-- [ ] Messeaussteller wie normale Kunden <!-- id: eaaa92fc-88b3-4b0c-b1f1-20e407e1676d -->
-
-- [x] Lead: Max Mustermann (CEO) - System L <!-- id: e796df90-8b37-49ef-b61e-239fe6a827d9 -->
-  - **Rolle:** CEO\n- **Aktuelle Performance:** 200 Picks pro Stunde\n- **Ziel/Personal:** Will mit 2 Leuten picken\n- **Potenzielles System:** System L könnte interessant sein
-
-- [ ] Praktikanten / Studenten mit 2 % ködern <!-- id: f84cb69f-c04d-40a4-9ce1-40cb9766b8f3 -->
-
-- [x] Workflow für "Kunde" definieren <!-- id: 4fa49f8a-0e74-4953-bcbf-d683f903cb73 -->
-
-- [x] Workflow für "Berater / Consultant" definieren <!-- id: a72035bd-1605-49e3-8734-39d4fe6cd2a9 -->
-
-- [x] Workflow für "Wettbewerber" definieren (Gespräch schnell abbrechen) <!-- id: ddc54256-03cb-42ff-9a25-0239ed03223b -->
-
-- [ ] Workflow für "Mitaussteller" definieren <!-- id: 5e758002-38f9-40b7-930e-6e40bf45d49d -->
-
-- [ ] Conversation Workflow: Normal Customer <!-- id: b3626c51-1ac2-469d-9989-b6f775c0f123 -->
-
-- [ ] Conversation Workflow: Integrator <!-- id: ca69cf8a-e522-4387-8339-fa469dc0067a -->
+- [ ] Workflow: Integrator <!-- id: c7c3e5a4-3e44-49c1-9025-d58785e08b7d -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
   
@@ -80,7 +48,7 @@ version: 1
   - **Partnerschaft pitchen:** Erklären, wie unser System das aktuelle Portfolio des Integrators perfekt ergänzt.
   - **Aktion:** Technische Kontaktdaten austauschen für ein tiefergehendes Partner-Gespräch nach der Messe.
 
-- [ ] Conversation Workflow: Consultant <!-- id: fd25156d-b5c9-496c-8ed8-3a60a181044f -->
+- [ ] Workflow: Berater <!-- id: 590f704c-a79f-4794-886e-33fc072a4595 -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
   
@@ -93,41 +61,18 @@ version: 1
   - **Material anbieten:** Whitepapers, Factsheets und technisches Infomaterial anbieten, das er seinen Kunden zeigen kann.
   - **Aktion:** Kontakt aufnehmen (Lead erfassen), um für anstehende Kundenprojekte im Gedächtnis zu bleiben.
 
-- [ ] Conversation Workflow: Competitor <!-- id: c358265c-157a-40c4-9c17-e80795702743 -->
+- [ ] Workflow: Endkunde <!-- id: 8c4613c7-9d71-4f50-bdcd-1d95fb40567f -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
   
   **2. Identifikation**
-  - Namensschild verrät Mitaussteller/Konkurrent.
-  - Stellt unnatürlich tiefe, technische Detailfragen zu Interna oder Preisen.
+  - Betreibt ein eigenes Lager oder eine Produktion.
+  - Berichtet von konkreten Pain Points (Personalmangel, zu wenig Durchsatz, Platzmangel).
   
   **3. Gesprächsverlauf (Schema)**
-  - **Defensiv bleiben:** Freundlich bleiben, aber keine tiefen technischen Details oder Preisinformationen herausgeben.
-  - **Fokus wahren:** Höflich darauf hinweisen, dass man aktuell primär für aktive Kundenanfragen zur Verfügung steht.
-  - **Aktion (Abwimmeln):** Das Gespräch sehr zügig und höflich abbrechen.
-
-- [ ] Conversation Workflow: Student / Intern <!-- id: 80cdebf1-bef3-4b4e-9c2b-64c067fad6c3 -->
-  **1. Eisbrecher-Frage**
-  "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
-  
-  **2. Identifikation**
-  - Antwortet, dass er noch studiert, für ein Projekt recherchiert oder nach Praktika sucht.
-  
-  **3. Gesprächsverlauf (Schema)**
-  - **Begeisterung wecken:** Das System kurz erklären, um Begeisterung für die Marke zu wecken.
-  - **Karriere-Pitch ("mit 2% ködern"):** Auf offene Stellen, Praktika oder Werkstudentenjobs verweisen.
-  - **Aktion:** Auf die Karriere-Website oder den HR-Kontakt verweisen und das Gespräch höflich, aber zügig beenden, um Kapazitäten für andere Besucher freizuhalten.
-
-- [ ] Conversation Workflow: Co-exhibitor <!-- id: 16abd121-f5c6-4787-a3ce-b75661848e20 -->
-  **1. Eisbrecher-Frage**
-  "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
-  
-  **2. Identifikation**
-  - Namensschild verrät Mitaussteller/Konkurrent.
-  - Stellt unnatürlich tiefe, technische Detailfragen zu Interna oder Preisen.
-  
-  **3. Gesprächsverlauf (Schema)**
-  - **Defensiv bleiben:** Freundlich bleiben, aber keine tiefen technischen Details oder Preisinformationen herausgeben.
-  - **Fokus wahren:** Höflich darauf hinweisen, dass man aktuell primär für aktive Kundenanfragen zur Verfügung steht.
-  - **Aktion (Abwimmeln):** Das Gespräch sehr zügig und höflich abbrechen.
+  - **Bedürfnisanalyse:** "Wo drückt aktuell am meisten der Schuh?"
+  - **Visual Proof (5 Min):** Kurze Live-Demo am System (Teile ein- und auslagern).
+  - **Gezielter Pitch:** USPs direkt auf die Pain Points anwenden (z.B. hohe Pick-Rate bei Personalmangel: 200% Steigerung, 70% Platzersparnis, unschlagbarer Preis).
+  - **Qualifizierung / Zeitplan:** "Gibt es bereits ein konkretes Projekt oder informieren Sie sich grundsätzlich?"
+  - **Aktion:** Visitenkarte scannen und konkreten nächsten Schritt (Follow-up Call) vereinbaren.
 

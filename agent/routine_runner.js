@@ -5,8 +5,8 @@ import { logger } from './logger.js';
 
 export class RoutineRunner {
   constructor(config = {}) {
-    this.logsDir = config.logsDir || path.resolve('logs/routines');
-    this.geminiPath = config.geminiPath || 'gemini'; // Default to global gemini cli
+    this.logsDir = config.logsDir || path.resolve('../logs/routines');
+    this.geminiPath = config.geminiPath || 'gemini';
   }
 
   /**
@@ -15,9 +15,24 @@ export class RoutineRunner {
   async run(routine) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const logFile = path.join(this.logsDir, `${routine.name.replace(/\s+/g, '_')}_${timestamp}.log`);
-    const timeout = (routine.timeout || 300) * 1000; // Default 5 mins
+    const timeoutSeconds = routine.timeout || 300;
+    const timeoutMs = timeoutSeconds * 1000;
 
-    logger.info(`Starting routine execution: ${routine.name}. Timeout: ${routine.timeout}s`);
+    let dynamicContext = '';
+    
+    // 1. Run optional Setup Script to get dynamic context
+    if (routine.setup_script) {
+      try {
+        logger.info(`Running setup script for ${routine.name}: ${routine.setup_script}`);
+        const scriptResult = await this._runSetupScript(routine.setup_script);
+        dynamicContext = `\n\nDynamic System Context (from setup script):\n${scriptResult}`;
+      } catch (err) {
+        logger.warn(`Setup script failed for ${routine.name}: ${err.message}`);
+        dynamicContext = `\n\nWarning: Setup script failed with error: ${err.message}`;
+      }
+    }
+
+    logger.info(`Starting routine execution: ${routine.name}. Timeout: ${timeoutSeconds}s`);
     
     return new Promise((resolve) => {
       const logStream = fs.createWriteStream(logFile);
@@ -25,10 +40,12 @@ export class RoutineRunner {
       // Construct command arguments
       let args = [];
       if (this.geminiPath.includes('gemini')) {
+        const fullPrompt = `Context: ${routine.context || ''}${dynamicContext}\n\nTask: ${routine.task}`;
+
         args = [
-          '-m', routine.task,
-          '--context', routine.context || '',
-          '--json' // Use JSON mode to get metadata easily
+          '-p', fullPrompt,
+          '-o', 'json', 
+          '-y' 
         ];
       } else {
         // Fallback for test mocks or generic commands
@@ -55,10 +72,10 @@ export class RoutineRunner {
       });
 
       const timer = setTimeout(() => {
-        logger.warn(`Routine ${routine.name} timed out after ${routine.timeout}s. Killing...`);
+        logger.warn(`Routine ${routine.name} timed out after ${timeoutSeconds}s. Killing...`);
         child.kill('SIGKILL');
         logStream.write('\n[TIMEOUT_ERROR] Process killed by Watchdog due to timeout.');
-      }, timeout);
+      }, timeoutMs);
 
       child.on('close', (code) => {
         clearTimeout(timer);
@@ -69,22 +86,30 @@ export class RoutineRunner {
         let usage = { total_tokens: 0 };
         let finalResponse = output.trim();
 
-        // Try to parse JSON output if we used --json
         if (this.geminiPath.includes('gemini') && output.trim()) {
           try {
-            // Gemini CLI returns JSON lines or a single JSON block. 
-            // We assume it's a single block for simplicity or take the last line if multiple.
-            const lines = output.trim().split('\n');
-            const lastLine = lines[lines.length - 1];
-            const parsed = JSON.parse(lastLine);
+            // Isolate the JSON block from any noisy prefix (like "MCP issues detected...")
+            const jsonStart = output.indexOf('{');
+            const jsonEnd = output.lastIndexOf('}');
             
-            // Map Gemini CLI metadata to our usage format
-            // Gemini CLI typically returns a response object with metadata
-            usage.total_tokens = parsed.usage_metadata?.total_token_count || 0;
-            
-            // Extract text from candidates
-            if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
-              finalResponse = parsed.candidates[0].content.parts[0].text;
+            if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+              const cleanJsonStr = output.substring(jsonStart, jsonEnd + 1);
+              const parsed = JSON.parse(cleanJsonStr);
+              
+              // Extract the actual response text
+              if (parsed.response) {
+                finalResponse = parsed.response;
+              }
+
+              // Extract and sum tokens from the CLI's internal stats object
+              if (parsed.stats && parsed.stats.models) {
+                let totalTokens = 0;
+                for (const modelKey of Object.keys(parsed.stats.models)) {
+                  const tokens = parsed.stats.models[modelKey]?.tokens?.total || 0;
+                  totalTokens += tokens;
+                }
+                usage.total_tokens = totalTokens;
+              }
             }
           } catch (e) {
             logger.warn('Failed to parse Gemini JSON output for telemetry', e.message);
@@ -95,10 +120,11 @@ export class RoutineRunner {
         
         resolve({
           success: code === 0,
+          code,
           output: finalResponse,
           usage,
           logFile,
-          timedOut: code === null // SIGKILL results in null code
+          timedOut: code === null
         });
       });
 
@@ -112,30 +138,39 @@ export class RoutineRunner {
     });
   }
 
+  async _runSetupScript(script) {
+    return new Promise((resolve, reject) => {
+      const isPython = script.endsWith('.py');
+      const cmd = isPython ? 'python3' : 'bash';
+      const args = isPython ? [script] : ['-c', script];
+      
+      const child = spawn(cmd, args);
+      let output = '';
+      let error = '';
+
+      child.stdout.on('data', (data) => output += data);
+      child.stderr.on('data', (data) => error += data);
+
+      child.on('close', (code) => {
+        if (code === 0) resolve(output.trim());
+        else reject(new Error(error || `Exited with code ${code}`));
+      });
+
+      child.on('error', (err) => reject(err));
+      setTimeout(() => child.kill('SIGKILL'), 30000); 
+    });
+  }
+
   _logTelemetry(routineName, usage) {
     const telemetryFile = path.join(this.logsDir, 'telemetry.json');
     let data = [];
-    
     try {
-      // Ensure logsDir exists
-      if (!fs.existsSync(this.logsDir)) {
-        fs.mkdirSync(this.logsDir, { recursive: true });
-      }
-
+      if (!fs.existsSync(this.logsDir)) fs.mkdirSync(this.logsDir, { recursive: true });
       if (fs.existsSync(telemetryFile)) {
-        const content = fs.readFileSync(telemetryFile, 'utf-8');
-        data = JSON.parse(content || '[]');
+        data = JSON.parse(fs.readFileSync(telemetryFile, 'utf-8') || '[]');
       }
-      
-      data.push({
-        routine: routineName,
-        timestamp: new Date().toISOString(),
-        total_tokens: usage.total_tokens
-      });
-
-      // Keep only last 100 entries to prevent bloat
+      data.push({ routine: routineName, timestamp: new Date().toISOString(), total_tokens: usage.total_tokens });
       if (data.length > 100) data.shift();
-
       fs.writeFileSync(telemetryFile, JSON.stringify(data, null, 2));
     } catch (e) {
       logger.error('Failed to write telemetry.json', e);
