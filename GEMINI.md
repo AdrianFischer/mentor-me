@@ -119,3 +119,9 @@ flutter test
     2.  What user preference was discovered (e.g., "Use HTML, not Markdown")?
     3.  What architectural pattern should be reused?
     These insights must be committed to `GEMINI.md` immediately.
+*   **Autonomous Routines (Watchdog):** The agent can execute proactive, scheduled tasks using the `Watchdog` service.
+    1.  **Definitions:** Routines are stored as JSON/YAML in `data/routines/`.
+    2.  **Execution:** Each routine spawns a detached Gemini CLI subprocess with full terminal access.
+    3.  **Sparsity Filter:** Routines that output `NO_ACTION_TAKEN` are silenced. Any other output is reported to the primary user via Telegram.
+    4.  **Telemetry:** Every execution captures token usage metadata into `logs/routines/telemetry.json` for auditability.
+    5.  **Timeout:** Mandatory `timeout` (seconds) per routine to prevent zombie processes.

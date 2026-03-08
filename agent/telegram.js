@@ -244,4 +244,20 @@ export class BotService {
   async stop() {
     this.telegraf.stop();
   }
+
+  /**
+   * Proactively sends a message to an authorized user.
+   */
+  async sendMessage(userId, text) {
+    if (!this.isAuthorized(userId)) {
+      logger.warn(`Attempted to send proactive message to unauthorized ID: ${userId}`);
+      return;
+    }
+
+    try {
+      await this.telegraf.telegram.sendMessage(userId, text, { parse_mode: 'HTML' });
+    } catch (error) {
+      logger.error(`Failed to send proactive message to ${userId}`, error);
+    }
+  }
 }

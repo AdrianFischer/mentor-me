@@ -3,6 +3,7 @@ import { McpService } from './mcp.js';
 import { GeminiService } from './gemini.js';
 import { BotService } from './telegram.js';
 import { AgentBrain } from './agent.js';
+import { Watchdog } from './watchdog.js';
 import { logger } from './logger.js';
 
 async function main() {
@@ -42,15 +43,31 @@ async function main() {
     const bot = new BotService(config, brain);
     await bot.start();
 
+    // 5. Start Autonomous Watchdog
+    const watchdog = new Watchdog({
+      onWorkAccomplished: (message) => {
+        // Send to the first authorized user as the primary contact
+        const primaryUserId = config.authorizedUserIds?.[0];
+        if (primaryUserId) {
+          bot.sendMessage(primaryUserId, message);
+        } else {
+          logger.warn('No authorized user found to send routine report.');
+        }
+      }
+    });
+    watchdog.start();
+
     logger.info('✨ Agent is now live and talking to your bot');
 
     // Handle Shutdown
     process.once('SIGINT', () => {
       logger.info('Shutting down...');
+      watchdog.stop();
       bot.stop('SIGINT');
     });
     process.once('SIGTERM', () => {
       logger.info('Shutting down...');
+      watchdog.stop();
       bot.stop('SIGTERM');
     });
 
