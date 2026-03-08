@@ -14,6 +14,24 @@ enum AiStatus {
   done,
 }
 
+extension AiStatusExtension on AiStatus {
+  AiStatus get nextStatus {
+    switch (this) {
+      case AiStatus.notReady: return AiStatus.ready;
+      case AiStatus.ready: return AiStatus.inProgress;
+      case AiStatus.inProgress: return AiStatus.done;
+      case AiStatus.done: return AiStatus.notReady;
+    }
+  }
+}
+
+extension TagExtractionExtension on String {
+  List<String> extractTags() {
+    final regex = RegExp(r'#[\w\u00C0-\u017F-]+');
+    return regex.allMatches(this).map((m) => m.group(0)!).toList();
+  }
+}
+
 @freezed
 class Subtask with _$Subtask {
   const factory Subtask({
@@ -87,6 +105,58 @@ class Task with _$Task {
   }) = _Task;
 
   factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
+}
+
+class GoalMetadata {
+  final double? progress;
+  final String? label;
+  final List<bool>? recentHabitHistory;
+
+  GoalMetadata({this.progress, this.label, this.recentHabitHistory});
+}
+
+extension TaskGoalMetadataExtension on Task {
+  GoalMetadata? get goalMetadata {
+    if (goal != null) {
+      return goal!.map(
+        numeric: (n) {
+          final pct = n.target == 0 ? 0.0 : (n.current / n.target).clamp(0.0, 1.0);
+          return GoalMetadata(
+            progress: pct,
+            label: "${n.current}${n.unit ?? ''} / ${n.target}${n.unit ?? ''}",
+          );
+        },
+        habit: (h) {
+          final today = DateTime.now();
+          final recent = <bool>[];
+          for (int i = 4; i >= 0; i--) {
+            final d = today.subtract(Duration(days: i));
+            final entry = h.history
+                .where((r) => r.date.year == d.year && r.date.month == d.month && r.date.day == d.day)
+                .firstOrNull;
+            recent.add(entry?.isSuccess ?? false);
+          }
+          final successCount = h.history.where((r) => r.isSuccess).length;
+          final totalCount = h.history.length;
+          final pct = totalCount > 0 ? (successCount / totalCount * 100).toInt() : 0;
+          return GoalMetadata(
+            recentHabitHistory: recent,
+            label: "${(h.targetFrequency * 100).toInt()}% Target | $pct% Actual",
+          );
+        },
+      );
+    } else if (subtasks.isNotEmpty) {
+      final total = subtasks.length;
+      final completed = subtasks.where((s) => s.isCompleted).length;
+      if (total > 0) {
+        return GoalMetadata(
+          progress: completed / total,
+          label: "$completed/$total",
+        );
+      }
+    }
+    return null;
+  }
 }
 
 @freezed
