@@ -85,3 +85,23 @@ flutter test
 *   **AI Integration:** AI features should be implemented using the `firebase_ai` package.
 *   **MCP:** New tools for the AI agent should be exposed via the embedded MCP server setup in the app.
 *   **Design:** Follow a minimalist, high-contrast, distraction-free visual style.
+
+## Learnings & Future Context (CRITICAL)
+
+*This section MUST be updated continuously as new insights are discovered. It serves as the collective memory for all agents and collaborators.*
+
+*   **Architecture (Brain vs. View):** The "Intelligent Agent" (Brain) should be hosted as a standalone service (Node.js) separate from the Flutter UI (View). This ensures logic errors do not freeze the UI and allows for independent scaling and debugging.
+*   **Local-First Priority:** Initial implementations of AI features (long-term memory, image artifacts) should prioritize local storage (Isar/File System) to ensure privacy and speed. Cloud synchronization should be added as a secondary, optional layer.
+*   **Stable Reference Mapping:** Agents require a "Session Index" (stable 1, 2, 3...) to refer to tasks and projects, as managing UUIDs directly via voice/text is inefficient.
+*   **MCP Discovery:** The system uses a standard location (`~/.assisted_intelligence/mcp_port`) for port auto-discovery, allowing standalone agents to find the running app instantly.
+*   **Test-Driven Specification:** For complex integrations like the Telegram Agent, a detailed list of Acceptance Criteria (ACs) must be defined and translated into automated tests *before* implementation begins.
+*   **Empirical Verification (MANDATORY):** Never return a task as "complete" without verifying the logic changes. Every new method or critical sequence (like startup retries) must be exercised via an automated test or a dedicated verification script (e.g., `test_logger.js`).
+*   **Secret Management:** Never commit API keys or tokens. Redact immediately and use `.env` files located in the `app/` directory, which are ignored by Git. If a secret is committed, GitHub's Push Protection requires manual unblocking and a potential history rewrite.
+*   **Multimodal Audio (Direct Processing):** Gemini 1.5+ supports native `.ogg` (Opus) audio processing. To process Telegram voice memos efficiently:
+    1.  Download the `.ogg` file from Telegram and convert to a base64 string.
+    2.  Send to Gemini as `inlineData` with `mimeType: 'audio/ogg'`.
+    3.  **CRITICAL:** Strip raw `inlineData` from the chat history after the initial turn (replace with a text placeholder like `[Processed Voice Memo]`). Failure to do so causes the audio bytes to be resent in every subsequent turn, leading to massive token waste and high latency.
+*   **Telegram Timeout Constraints:** The `telegraf` library has a default `handlerTimeout` of 90 seconds. For heavy multimodal processing or complex tool-call chains, this MUST be increased (e.g., to 300s/5m) to prevent `TimeoutError` crashes.
+*   **Continuous Feedback (Typing Status):** Telegram's "typing" indicator expires after ~5 seconds. To keep it active during long "thinking" sessions, implement a heartbeat that sends `ctx.sendChatAction('typing')` every 4 seconds.
+*   **AI Persona (Human-in-the-Loop):** To avoid robotic output (like listing tool names), the agent is configured as a **Senior Executive Assistant**. If tool execution results in an empty response text, the brain should perform a "Final Summary Turn" to force a human-friendly explanation of actions taken.
+*   **Unified Brain API:** Use a polymorphic `process(input)` method in the agent brain that accepts either a `string` (text) or an `Object` (audio data). This simplifies the interaction layer and makes the system multimodal by default.
