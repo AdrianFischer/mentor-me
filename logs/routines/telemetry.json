@@ -1,26 +1,6 @@
 [
   {
     "routine": "System Health Check",
-    "timestamp": "2026-03-08T11:27:04.323Z",
-    "total_tokens": 301549
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-08T11:27:27.068Z",
-    "total_tokens": 44052
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-08T11:28:01.883Z",
-    "total_tokens": 101163
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-08T11:28:25.577Z",
-    "total_tokens": 61607
-  },
-  {
-    "routine": "System Health Check",
     "timestamp": "2026-03-08T11:28:50.440Z",
     "total_tokens": 99364
   },
@@ -498,5 +478,25 @@
     "routine": "Weekly Memory Consolidator",
     "timestamp": "2026-03-08T12:43:47.506Z",
     "total_tokens": 249152
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T13:56:47.437Z",
+    "total_tokens": 48959
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T15:47:09.281Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-08T15:47:11.284Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-08T15:47:28.501Z",
+    "total_tokens": 99629
   }
 ]
