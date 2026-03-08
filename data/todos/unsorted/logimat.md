@@ -13,10 +13,8 @@ version: 1
 - [ ] Workflow: Student <!-- id: ad539d27-3eba-4f4f-93d1-30fb3cf38c53 -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
-  
   **2. Identifikation**
   - Antwortet, dass er noch studiert, für ein Projekt recherchiert oder nach Praktika sucht.
-  
   **3. Gesprächsverlauf (Schema)**
   - **Begeisterung wecken:** Das System kurz erklären, um Begeisterung für die Marke zu wecken.
   - **Karriere-Pitch ("mit 2% ködern"):** Auf offene Stellen, Praktika oder Werkstudentenjobs verweisen.
@@ -25,11 +23,9 @@ version: 1
 - [ ] Workflow: Wettbewerber <!-- id: 2f673e99-e10b-41d9-a987-143708ca13ce -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
-  
   **2. Identifikation**
   - Namensschild verrät Mitaussteller/Konkurrent.
   - Stellt unnatürlich tiefe, technische Detailfragen zu Interna oder Preisen.
-  
   **3. Gesprächsverlauf (Schema)**
   - **Defensiv bleiben:** Freundlich bleiben, aber keine tiefen technischen Details oder Preisinformationen herausgeben.
   - **Fokus wahren:** Höflich darauf hinweisen, dass man aktuell primär für aktive Kundenanfragen zur Verfügung steht.
@@ -38,11 +34,9 @@ version: 1
 - [ ] Workflow: Integrator <!-- id: c7c3e5a4-3e44-49c1-9025-d58785e08b7d -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
-  
   **2. Identifikation**
   - Bietet selbst Gesamtlösungen/Automatisierung an.
   - Sucht nach Sub-Systemen, die er in eigene Kundenprojekte integrieren kann.
-  
   **3. Gesprächsverlauf (Schema)**
   - **Fokus auf Technik:** Das Gespräch weg von den Pain Points der Endkunden hin zu APIs, einfacher Integration und Kompatibilität lenken.
   - **Partnerschaft pitchen:** Erklären, wie unser System das aktuelle Portfolio des Integrators perfekt ergänzt.
@@ -51,11 +45,9 @@ version: 1
 - [ ] Workflow: Berater <!-- id: 590f704c-a79f-4794-886e-33fc072a4595 -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
-  
   **2. Identifikation**
   - Plant herstellerneutral für verschiedene Endkunden.
   - Sucht nach neuen, innovativen Lösungen, um sie in seinen Empfehlungskatalog aufzunehmen.
-  
   **3. Gesprächsverlauf (Schema)**
   - **Fokus auf USPs & Use Cases:** Klar definieren, *welche* Kundenprofile der perfekte Fit für unser System sind.
   - **Material anbieten:** Whitepapers, Factsheets und technisches Infomaterial anbieten, das er seinen Kunden zeigen kann.
@@ -64,11 +56,9 @@ version: 1
 - [ ] Workflow: Endkunde <!-- id: 8c4613c7-9d71-4f50-bdcd-1d95fb40567f -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
-  
   **2. Identifikation**
   - Betreibt ein eigenes Lager oder eine Produktion.
   - Berichtet von konkreten Pain Points (Personalmangel, zu wenig Durchsatz, Platzmangel).
-  
   **3. Gesprächsverlauf (Schema)**
   - **Bedürfnisanalyse:** "Wo drückt aktuell am meisten der Schuh?"
   - **Visual Proof (5 Min):** Kurze Live-Demo am System (Teile ein- und auslagern).
