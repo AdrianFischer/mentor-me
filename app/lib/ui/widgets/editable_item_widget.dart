@@ -1,18 +1,8 @@
 import 'dart:io';
-
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../models/models.dart';
-
-class GoalMetadata {
-  final double? progress; // 0.0 - 1.0
-  final String? label; 
-  final List<bool>? recentHabitHistory; // last 7 days
-
-  GoalMetadata({this.progress, this.label, this.recentHabitHistory});
-}
 
 class EditableItem {
   final String id;

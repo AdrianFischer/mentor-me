@@ -90,8 +90,8 @@ class _EditableColumnState extends State<EditableColumn> {
             widget.onNavigateRight!();
             return KeyEventResult.handled;
           }
-          if (event.logicalKey == LogicalKeyboardKey.space) {
-            Actions.invoke(context, AddNewItemIntent());
+          if (event.logicalKey == LogicalKeyboardKey.space && widget.editingItemId == null) {
+            Actions.invoke(context, const AddNewItemIntent());
             return KeyEventResult.handled;
           }
         }
