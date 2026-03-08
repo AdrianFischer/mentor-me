@@ -14,6 +14,7 @@ async function main() {
 
   try {
     // 1. Load Configuration
+    // We wait 5s earlier, now we load config AFTER the wait so we get the fresh mcp_port file
     const config = loadConfig();
     logger.info(`Loaded ${config.authorizedUserIds.length} authorized Telegram users.`);
 
@@ -26,6 +27,10 @@ async function main() {
     let retries = 10;
     while (!connected && retries > 0) {
       try {
+        // Reload config on retry to catch port changes
+        const freshConfig = loadConfig();
+        mcp.baseUrl = freshConfig.baseUrl;
+
         await mcp.connect();
         connected = true;
         logger.info('✅ MCP Connected');
