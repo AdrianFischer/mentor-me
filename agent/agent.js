@@ -48,7 +48,7 @@ export class AgentBrain {
 
       // 3. Tool execution loop
       const executedTools = [];
-      let finalImageBase64 = null;
+      let mediaOutput = null;
 
       while (toolCalls && toolCalls.length > 0) {
         for (const call of toolCalls) {
@@ -57,9 +57,9 @@ export class AgentBrain {
           const result = await this.mcp.callTool(call.name, call.args);
           executedTools.push(call.name);
 
-          // If tool returned image data, store it for the final response
-          if (result.base64 && result.result === 'success') {
-            finalImageBase64 = result.base64;
+          // Standardized media protocol: if tool returns a 'media' object
+          if (result.media && result.media.base64 && result.result === 'success') {
+            mediaOutput = result.media;
           }
 
           // Feed result back to Gemini
@@ -90,9 +90,9 @@ export class AgentBrain {
         }
       }
 
-      // Return both text and image if available
-      if (finalImageBase64) {
-        return { text: responseText, imageBase64: finalImageBase64 };
+      // Return both text and media if available
+      if (mediaOutput) {
+        return { text: responseText, ...mediaOutput };
       }
 
       return responseText;

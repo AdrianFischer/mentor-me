@@ -42,8 +42,10 @@ class GetImageTool implements AiTool {
       
       return {
         'result': 'success',
-        'base64': base64Data,
-        'mimeType': 'image/jpeg' // Fallback to jpeg
+        'media': {
+          'imageBase64': base64Data,
+          'mimeType': 'image/jpeg'
+        }
       };
     } catch (e) {
       return {

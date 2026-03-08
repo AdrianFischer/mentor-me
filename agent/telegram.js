@@ -158,73 +158,52 @@ export class BotService {
   }
 
   async handlePhoto(ctx) {
-    try {
-      const photos = ctx.message.photo;
-      if (!photos || photos.length === 0) return;
-      
-      // Highest resolution is the last one in the array
-      const photo = photos[photos.length - 1];
-      logger.info(`Received photo: ${photo.file_id} (${photo.width}x${photo.height})`);
-      
-      // 1. Get file link from Telegram
-      const link = await ctx.telegram.getFileLink(photo.file_id);
-      
-      // 2. Download the file
-      const response = await fetch(link.href);
-      if (!response.ok) throw new Error(`Failed to download photo: ${response.statusText}`);
-      
-      const buffer = await response.arrayBuffer();
-      const imageBase64 = Buffer.from(buffer).toString('base64');
-      
-      // 3. Process with Brain
-      const aiResponse = await this.withTyping(ctx, () => 
-        this.brain.process({ 
-          imageBase64, 
-          mimeType: 'image/jpeg',
-          text: ctx.message.caption 
-        }, (status) => {
-          logger.info(`Status update: ${status}`);
-        })
-      );
-      
-      await this.safeReply(ctx, aiResponse);
-    } catch (error) {
-      logger.error('Photo Processing Error', error);
-      await ctx.reply('❌ Sorry, I had trouble seeing that photo.');
-    }
+    const photos = ctx.message.photo;
+    if (!photos || photos.length === 0) return;
+    
+    // Highest resolution is the last one in the array
+    const photo = photos[photos.length - 1];
+    return this._downloadAndProcessMedia(ctx, photo.file_id, 'image/jpeg', ctx.message.caption);
   }
 
   async handleVoice(ctx) {
+    const voice = ctx.message.voice;
+    return this._downloadAndProcessMedia(ctx, voice.file_id, voice.mime_type || 'audio/ogg');
+  }
+
+  /**
+   * Generic helper to download media from Telegram and pass it to the AI brain.
+   */
+  async _downloadAndProcessMedia(ctx, fileId, mimeType, text = null) {
     try {
-      const voice = ctx.message.voice;
-      logger.info(`Received voice memo: ${voice.file_id} (${voice.duration}s)`);
+      logger.info(`Processing media: ${fileId} (${mimeType})`);
       
-      await ctx.sendChatAction('typing');
-      
-      // 1. Get file link from Telegram
-      const link = await ctx.telegram.getFileLink(voice.file_id);
-      
-      // 2. Download the file
-      const response = await fetch(link.href);
-      if (!response.ok) throw new Error(`Failed to download voice memo: ${response.statusText}`);
-      
-      const buffer = await response.arrayBuffer();
-      const audioBase64 = Buffer.from(buffer).toString('base64');
-      
-      // 3. Process with Brain
-      const aiResponse = await this.withTyping(ctx, () => 
-        this.brain.process({ 
-          audioBase64, 
-          mimeType: voice.mime_type || 'audio/ogg' 
-        }, (status) => {
+      const response = await this.withTyping(ctx, async () => {
+        // 1. Get file link from Telegram
+        const link = await ctx.telegram.getFileLink(fileId);
+        
+        // 2. Download the file
+        const download = await fetch(link.href);
+        if (!download.ok) throw new Error(`Failed to download media: ${download.statusText}`);
+        
+        const buffer = await download.arrayBuffer();
+        const base64 = Buffer.from(buffer).toString('base64');
+        
+        // 3. Process with Brain
+        const input = mimeType.startsWith('image') 
+          ? { imageBase64: base64, mimeType, text }
+          : { audioBase64: base64, mimeType };
+          
+        return this.brain.process(input, (status) => {
           logger.info(`Status update: ${status}`);
-        })
-      );
+        });
+      });
       
-      await this.safeReply(ctx, aiResponse);
+      await this.safeReply(ctx, response);
     } catch (error) {
-      logger.error('Voice Processing Error', error);
-      await ctx.reply('❌ Sorry, I had trouble hearing that voice memo.');
+      logger.error('Media Processing Error', error);
+      const type = mimeType.startsWith('image') ? 'photo' : 'voice memo';
+      await ctx.reply(`❌ Sorry, I had trouble processing that ${type}.`);
     }
   }
 

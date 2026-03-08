@@ -128,16 +128,24 @@ CONSTRAINTS:
   }
 
   _cleanHistory(history) {
-    return history.map(turn => ({
-      role: turn.role,
-      parts: turn.parts.map(part => {
-        if (part.inlineData) {
-          const type = part.inlineData.mimeType.startsWith('audio') ? 'Voice Memo' : 'Image';
-          return { text: `[Processed ${type}]` };
-        }
-        return part;
-      })
-    }));
+    if (!history || history.length === 0) return [];
+    
+    return history.map(turn => {
+      // Only check turns that have inlineData
+      const hasInlineData = turn.parts.some(p => p.inlineData);
+      if (!hasInlineData) return turn;
+
+      return {
+        role: turn.role,
+        parts: turn.parts.map(part => {
+          if (part.inlineData) {
+            const type = part.inlineData.mimeType.startsWith('audio') ? 'Voice Memo' : 'Image';
+            return { text: `[Processed ${type}]` };
+          }
+          return part;
+        })
+      };
+    });
   }
 
   async safeProcess(prompt) {

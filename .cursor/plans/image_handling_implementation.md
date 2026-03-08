@@ -90,3 +90,9 @@ The goal is to enable the Assisted Intelligence system to receive, process, and 
     - `BotService.safeReply` supports sending photos back via Telegram.
     - Switched from Markdown to HTML for superior response reliability.
     - Verified with 53/53 passing tests.
+
+- [2026-03-08] **Codebase Simplification & Optimization Complete:**
+    - Unified Telegram media pipeline via `_downloadAndProcessMedia`.
+    - Optimized Gemini history cleaning to skip turns without multimodal data.
+    - Implemented standardized media protocol between tools and Brain.
+    - All tests passing (53/53).
