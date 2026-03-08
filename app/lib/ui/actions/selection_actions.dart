@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/selection_provider.dart';
 import '../../providers/data_provider.dart';
+import '../../services/data_service.dart';
 import '../../models/models.dart';
 
 // --- Intents ---
@@ -71,23 +72,35 @@ class ToggleCompletionAction extends Action<ToggleCompletionIntent> {
     
     if (selectionState.isAssistantActive) return;
 
-    // 1. Check Subtask Toggle
-    if (selectionState.focusedColumnIndex == 2 && selectionState.selectedSubtaskId != null) {
-       _toggleById(dataService, selectionState.selectedSubtaskId!);
-       return;
-    } 
-    
-    // 2. Check Task Toggle
-    bool isTaskTarget = (selectionState.focusedColumnIndex == 1 && selectionState.selectedTaskId != null) || 
-                        (selectionState.focusedColumnIndex == 2 && selectionState.selectedTaskId != null && selectionState.selectedSubtaskId == null);
+    String? idToToggle;
+    if (selectionState.focusedColumnIndex == 1) {
+       idToToggle = selectionState.selectedTaskId;
+    } else if (selectionState.focusedColumnIndex == 2) {
+       idToToggle = selectionState.selectedSubtaskId;
+    }
 
-    if (isTaskTarget && selectionState.selectedTaskId != null) {
-       _toggleById(dataService, selectionState.selectedTaskId!);
+    if (idToToggle != null) {
+       // Only toggle if NOT currently editing (consistent with shortcut logic)
+       if (selectionState.editingItemId == null) {
+          _toggleById(dataService, idToToggle);
+          return;
+       }
+    }
+
+    // Fallback to Add
+    final addAction = AddNewItemAction(ref);
+    if (addAction.isEnabled(const AddNewItemIntent())) {
+       addAction.invoke(const AddNewItemIntent());
     }
   }
 
-  void _toggleById(dynamic dataService, String id) {
+  void _toggleById(DataService dataService, String id) {
      for(final p in dataService.projects) {
+       if (p.id == id) {
+          // Projects usually don't toggle, but if we wanted to:
+          // dataService.setItemStatus(id, !p.isCompleted);
+          return;
+       }
        for(final t in p.tasks) {
          if (t.id == id) {
            dataService.setItemStatus(id, !t.isCompleted);
@@ -235,8 +248,7 @@ class DeleteItemAction extends Action<DeleteItemIntent> {
 
   @override
   bool isEnabled(DeleteItemIntent intent) {
-    final selectionState = ref.read(selectionProvider);
-    return selectionState.editingItemId == null;
+    return true; // Enable during editing for Backspace support
   }
 
   @override
@@ -244,6 +256,11 @@ class DeleteItemAction extends Action<DeleteItemIntent> {
      final state = ref.read(selectionProvider);
      final dataService = ref.read(dataServiceProvider);
      
+     // Stop editing if active
+     if (state.editingItemId != null) {
+        ref.read(selectionProvider.notifier).setEditingItem(null);
+     }
+
      // Conversation
      if (state.isAssistantActive && state.focusedColumnIndex == 1 && state.selectedConversationId != null) {
         final id = state.selectedConversationId!;
@@ -275,7 +292,13 @@ class DeleteItemAction extends Action<DeleteItemIntent> {
      if (index == -1) return;
 
      String? nextId;
-     if (index > 0) nextId = items[index - 1].id;
+     // The Spec says: "If the deleted entry was the first in the list, no item should be selected"
+     // If index > 0, we move selection up. If index == 0, we clear it.
+     if (index > 0) {
+        nextId = items[index - 1].id;
+     } else {
+        nextId = null;
+     }
 
      final currentFocus = ref.read(selectionProvider).focusedColumnIndex;
 

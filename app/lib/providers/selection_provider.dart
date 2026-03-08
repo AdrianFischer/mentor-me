@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/data_service.dart';
 import '../models/models.dart';
 import 'data_provider.dart';
+import 'filtered_data_providers.dart';
 
 class SelectionState {
   final String? selectedProjectId;
@@ -13,8 +14,6 @@ class SelectionState {
   final int focusedColumnIndex; // 0: Projects, 1: Tasks/Conversations, 2: Details/Chat
   final bool isAssistantActive;
   final String? editingItemId;
-  final bool showCompletedTasks;
-  final bool showCompletedSubtasks;
 
   SelectionState({
     this.selectedProjectId,
@@ -26,8 +25,6 @@ class SelectionState {
     this.focusedColumnIndex = 0,
     this.isAssistantActive = false,
     this.editingItemId,
-    this.showCompletedTasks = true,
-    this.showCompletedSubtasks = true,
   });
 
   SelectionState copyWith({
@@ -40,8 +37,6 @@ class SelectionState {
     int? focusedColumnIndex,
     bool? isAssistantActive,
     String? editingItemId,
-    bool? showCompletedTasks,
-    bool? showCompletedSubtasks,
     // Special flags to allow setting null
     bool clearProject = false,
     bool clearTask = false,
@@ -61,8 +56,6 @@ class SelectionState {
       focusedColumnIndex: focusedColumnIndex ?? this.focusedColumnIndex,
       isAssistantActive: isAssistantActive ?? this.isAssistantActive,
       editingItemId: clearEditing ? null : (editingItemId ?? this.editingItemId),
-      showCompletedTasks: showCompletedTasks ?? this.showCompletedTasks,
-      showCompletedSubtasks: showCompletedSubtasks ?? this.showCompletedSubtasks,
     );
   }
 }
@@ -84,12 +77,11 @@ class SelectionNotifier extends Notifier<SelectionState> {
       isAssistantActive: false,
       clearTag: true,
       clearTaggedItem: true,
-      focusedColumnIndex: 0, // When clicking a project, usually we want focus there or next col? 
-                             // Keeping it simple: if you select a project, you are focusing the project list or ready to move right.
-                             // But consistent with UI: if I click a project, it becomes active.
+      focusedColumnIndex: 0,
     );
-    // Auto-focus next column usually happens if invoked via keyboard, but via tap we might want to stay.
-    // Let's stick to state updates.
+    if (projectId != null) {
+      ref.invalidate(filteredTasksProvider(projectId));
+    }
   }
 
   void selectTask(String? taskId) {
@@ -99,6 +91,9 @@ class SelectionNotifier extends Notifier<SelectionState> {
       clearSubtask: true,
       focusedColumnIndex: 1,
     );
+    if (taskId != null) {
+      ref.invalidate(filteredSubtasksProvider(taskId));
+    }
   }
 
   void selectSubtask(String? subtaskId) {
@@ -113,7 +108,7 @@ class SelectionNotifier extends Notifier<SelectionState> {
     state = state.copyWith(
       selectedConversationId: conversationId,
       clearConversation: conversationId == null,
-      focusedColumnIndex: 1, // Keep focus on the list to allow navigation/highlight
+      focusedColumnIndex: 1,
     );
   }
   
@@ -166,14 +161,6 @@ class SelectionNotifier extends Notifier<SelectionState> {
   
   void setFocusedColumn(int index) {
     state = state.copyWith(focusedColumnIndex: index);
-  }
-
-  void toggleShowCompletedTasks() {
-    state = state.copyWith(showCompletedTasks: !state.showCompletedTasks);
-  }
-
-  void toggleShowCompletedSubtasks() {
-    state = state.copyWith(showCompletedSubtasks: !state.showCompletedSubtasks);
   }
 
   // --- Logic Operations ---
@@ -246,19 +233,17 @@ class SelectionNotifier extends Notifier<SelectionState> {
     } 
     else if (state.focusedColumnIndex == 1) { // Task Column
        if (pIndex == null) return;
-       // Filter tasks based on showCompletedTasks state
-       var allTasks = projects[pIndex].tasks;
-       var tasks = state.showCompletedTasks 
+       final filter = ref.read(taskFilterProvider);
+       final allTasks = projects[pIndex].tasks;
+       final tasks = filter.showCompletedTasks 
            ? allTasks 
            : allTasks.where((t) => !t.isCompleted).toList();
-       
        if (tasks.isEmpty) return;
        
        // Find current index in filtered list
        int currentFilteredIndex = -1;
-       if (tIndex != null && tIndex < allTasks.length) {
-         final currentTaskId = allTasks[tIndex].id;
-         currentFilteredIndex = tasks.indexWhere((t) => t.id == currentTaskId);
+       if (state.selectedTaskId != null) {
+         currentFilteredIndex = tasks.indexWhere((t) => t.id == state.selectedTaskId);
        }
        
        int newIndex = currentFilteredIndex + delta;
@@ -269,22 +254,21 @@ class SelectionNotifier extends Notifier<SelectionState> {
          selectedTaskId: tasks[newIndex].id,
          clearSubtask: true
        );
+       ref.invalidate(filteredTasksProvider(projects[pIndex].id));
     }
     else if (state.focusedColumnIndex == 2) { // Subtask Column
       if (pIndex == null || tIndex == null) return;
-      // Filter subtasks based on showCompletedSubtasks state
-      var allSubtasks = projects[pIndex].tasks[tIndex].subtasks;
-      var subtasks = state.showCompletedSubtasks 
+      final filter = ref.read(taskFilterProvider);
+      final allSubtasks = projects[pIndex].tasks[tIndex].subtasks;
+      final subtasks = filter.showCompletedSubtasks 
           ? allSubtasks 
           : allSubtasks.where((s) => !s.isCompleted).toList();
-      
       if (subtasks.isEmpty) return;
       
       // Find current index in filtered list
       int currentFilteredIndex = -1;
-      if (sIndex != null && sIndex < allSubtasks.length) {
-        final currentSubtaskId = allSubtasks[sIndex].id;
-        currentFilteredIndex = subtasks.indexWhere((s) => s.id == currentSubtaskId);
+      if (state.selectedSubtaskId != null) {
+        currentFilteredIndex = subtasks.indexWhere((s) => s.id == state.selectedSubtaskId);
       }
       
       int newIndex = currentFilteredIndex + delta;
@@ -292,10 +276,11 @@ class SelectionNotifier extends Notifier<SelectionState> {
       if (newIndex >= subtasks.length) newIndex = subtasks.length - 1;
 
       state = state.copyWith(selectedSubtaskId: subtasks[newIndex].id);
+      ref.invalidate(filteredSubtasksProvider(projects[pIndex].tasks[tIndex].id));
     }
   }
 
-  void changeColumn(int delta) {
+  Future<void> changeColumn(int delta) async {
      // AI Mode
     if (state.isAssistantActive) {
          int next = state.focusedColumnIndex + delta;
@@ -313,61 +298,70 @@ class SelectionNotifier extends Notifier<SelectionState> {
     _cleanupEmptyItems(dataService);
 
     final projects = dataService.projects;
-    var (pIndex, tIndex, sIndex) = _getSelectionIndices(projects);
+    final (pIndex, tIndex, _) = _getSelectionIndices(projects);
     
     // Auto-create/Auto-select logic when moving right
     int nextColumn = state.focusedColumnIndex + delta;
     
-    if (nextColumn == 1 && state.selectedProjectId == null) return;
-    if (nextColumn == 2 && state.selectedTaskId == null) return;
-
     if (nextColumn >= 0 && nextColumn <= 2) {
        // Moving Right Logic
        if (delta > 0) {
-          if (nextColumn == 1 && pIndex != null) {
-             var tasks = state.showCompletedTasks 
+          if (nextColumn == 1) {
+             if (pIndex == null) return;
+             final filter = ref.read(taskFilterProvider);
+             final tasks = filter.showCompletedTasks 
                  ? projects[pIndex].tasks 
                  : projects[pIndex].tasks.where((t) => !t.isCompleted).toList();
              
              if (tasks.isEmpty) {
                 // Auto-create task
-                dataService.addTask(projects[pIndex].id, "").then((newId) {
-                   if (newId != null) {
-                      selectTask(newId);
-                      setEditingItem(newId);
-                   }
-                });
-                return; // State will be updated by the async calls
+                final newId = await dataService.addTask(projects[pIndex].id, "");
+                if (newId != null) {
+                   state = state.copyWith(
+                     selectedTaskId: newId,
+                     focusedColumnIndex: 1,
+                     editingItemId: newId
+                   );
+                   ref.invalidate(filteredTasksProvider(projects[pIndex].id));
+                }
+                return;
              } else {
-                // BUG FIX: Even if state.selectedTaskId is already set, we MUST ensure 
-                // focusedColumnIndex is updated. If NOT set, we pick first.
                 final targetId = state.selectedTaskId ?? tasks.first.id;
-                state = state.copyWith(selectedTaskId: targetId, focusedColumnIndex: nextColumn);
+                state = state.copyWith(selectedTaskId: targetId, focusedColumnIndex: 1);
+                ref.invalidate(filteredTasksProvider(projects[pIndex].id));
                 return;
              }
-          } else if (nextColumn == 2 && pIndex != null && tIndex != null) {
-             var subtasks = state.showCompletedSubtasks 
-                 ? projects[pIndex].tasks[tIndex].subtasks 
-                 : projects[pIndex].tasks[tIndex].subtasks.where((s) => !s.isCompleted).toList();
+          } else if (nextColumn == 2) {
+             if (pIndex == null || tIndex == null) return;
+             final task = projects[pIndex].tasks[tIndex];
+             final filter = ref.read(taskFilterProvider);
+             final subtasks = filter.showCompletedSubtasks 
+                 ? task.subtasks 
+                 : task.subtasks.where((s) => !s.isCompleted).toList();
              
              if (subtasks.isEmpty) {
                 // Auto-create subtask
-                dataService.addSubtask(projects[pIndex].tasks[tIndex].id, "").then((newId) {
-                   if (newId != null) {
-                      selectSubtask(newId);
-                      setEditingItem(newId);
-                   }
-                });
+                final newId = await dataService.addSubtask(task.id, "");
+                if (newId != null) {
+                   state = state.copyWith(
+                     selectedSubtaskId: newId,
+                     focusedColumnIndex: 2,
+                     editingItemId: newId
+                   );
+                   ref.invalidate(filteredSubtasksProvider(task.id));
+                }
                 return;
              } else {
-                // BUG FIX: Ensure focusedColumnIndex is updated and subtask is selected.
                 final targetId = state.selectedSubtaskId ?? subtasks.first.id;
-                state = state.copyWith(selectedSubtaskId: targetId, focusedColumnIndex: nextColumn);
+                state = state.copyWith(selectedSubtaskId: targetId, focusedColumnIndex: 2);
+                ref.invalidate(filteredSubtasksProvider(task.id));
                 return;
              }
           }
        }
 
+       // Ensure any microtasks (like data change notifications) are processed before we finalize focus
+       await Future.microtask(() {});
        state = state.copyWith(focusedColumnIndex: nextColumn);
     }
   }
@@ -392,14 +386,42 @@ class SelectionNotifier extends Notifier<SelectionState> {
   }
 
   void _cleanupEmptyItems(DataService dataService) {
-    // Prevent modification if we are currently editing an item (though usually this runs on navigation)
-    final projects = dataService.projects;
-    for (var p in List.of(projects)) {
-       // ...
-       
-       if (p.title.isEmpty && p.tasks.isEmpty) {
-          if (p.id != state.selectedProjectId && p.id != state.editingItemId) {
+    // We use dataService.projects directly in loops to ensure we see updates
+    for (var p in List.of(dataService.projects)) {
+       // Only cleanup if it's NOT the project we are currently editing
+       if (p.title.trim().isEmpty && p.tasks.isEmpty) {
+          if (p.id != state.editingItemId) {
              dataService.deleteItem(p.id);
+             // If we just deleted the selected project, clear selection
+             if (p.id == state.selectedProjectId) {
+                state = state.copyWith(clearProject: true, clearTask: true, clearSubtask: true);
+             }
+             continue; // Project is gone, move to next
+          }
+       }
+
+       // Cleanup Tasks in this project
+       for (var t in List.of(p.tasks)) {
+          if (t.title.trim().isEmpty && t.subtasks.isEmpty) {
+             if (t.id != state.editingItemId) {
+                dataService.deleteItem(t.id);
+                if (t.id == state.selectedTaskId) {
+                   state = state.copyWith(clearTask: true, clearSubtask: true);
+                }
+                continue;
+             }
+          }
+          
+          // Cleanup Subtasks
+          for (var s in List.of(t.subtasks)) {
+             if (s.title.trim().isEmpty) {
+                if (s.id != state.editingItemId) {
+                   dataService.deleteItem(s.id);
+                   if (s.id == state.selectedSubtaskId) {
+                      state = state.copyWith(clearSubtask: true);
+                   }
+                }
+             }
           }
        }
     }
