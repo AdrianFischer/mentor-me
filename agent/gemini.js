@@ -132,7 +132,8 @@ CONSTRAINTS:
       role: turn.role,
       parts: turn.parts.map(part => {
         if (part.inlineData) {
-          return { text: "[Processed Voice Memo]" };
+          const type = part.inlineData.mimeType.startsWith('audio') ? 'Voice Memo' : 'Image';
+          return { text: `[Processed ${type}]` };
         }
         return part;
       })

@@ -52,18 +52,18 @@ describe('3. Telegram Integration', () => {
       expect.objectContaining({ audioBase64: expect.any(String) }),
       expect.any(Function)
     );
-    expect(ctx.reply).toHaveBeenCalledWith('I added the task\\.', expect.any(Object));
+    expect(ctx.reply).toHaveBeenCalledWith('I added the task.', expect.any(Object));
     expect(ctx.sendChatAction).toHaveBeenCalledWith('typing');
     
     vi.unstubAllGlobals();
     vi.useRealTimers();
   });
 
-  it('AC 16: Uses MarkdownV2 for outgoing messages', async () => {
+  it('AC 16: Uses HTML for outgoing messages', async () => {
     const bot = new BotService({ telegramToken: 'test_token' });
     const ctx = { reply: vi.fn() };
     await bot.handleStart(ctx);
-    expect(ctx.reply).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ parse_mode: 'MarkdownV2' }));
+    expect(ctx.reply).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ parse_mode: 'HTML' }));
   });
 
   it('AC 17: Provides /help command', async () => {

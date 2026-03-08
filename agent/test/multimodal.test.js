@@ -102,5 +102,28 @@ describe('Multimodal Voice Processing', () => {
       expect(mockMcp.callTool).toHaveBeenCalledWith('add_task', { title: 'Buy milk' });
       expect(response).toBe('Added task: Buy milk');
     });
+
+    it('should have a process method that handles image input objects', async () => {
+      // Mock gemini.process to return a text response
+      vi.spyOn(gemini, 'process').mockResolvedValueOnce({
+        text: 'This is a photo of a whiteboard with tasks.',
+        toolCalls: []
+      });
+
+      const imageBase64 = 'someBase64ImageData';
+      const mimeType = 'image/jpeg';
+      const caption = 'Analyze this';
+
+      const response = await brain.process({ imageBase64, mimeType, text: caption });
+
+      expect(gemini.process).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ inlineData: { data: imageBase64, mimeType } }),
+          expect.objectContaining({ text: caption })
+        ]),
+        expect.any(Array)
+      );
+      expect(response).toBe('This is a photo of a whiteboard with tasks.');
+    });
   });
 });

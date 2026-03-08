@@ -16,6 +16,18 @@ class TaggedItem {
   TaggedItem(this.id, this.title, this.type, this.originalObject);
 }
 
+class ItemPath {
+  final int projectIndex;
+  final int? taskIndex;
+  final int? subtaskIndex;
+  
+  ItemPath({required this.projectIndex, this.taskIndex, this.subtaskIndex});
+  
+  bool get isProject => taskIndex == null;
+  bool get isTask => taskIndex != null && subtaskIndex == null;
+  bool get isSubtask => subtaskIndex != null;
+}
+
 class DataService extends ChangeNotifier {
   final StorageRepository _repository;
   List<Project> _projects = [];
@@ -34,6 +46,29 @@ class DataService extends ChangeNotifier {
   List<Conversation> get conversations => _conversations;
   List<Memory> get memories => _memories;
 
+  // --- Internal Helpers ---
+
+  ItemPath? _findItemPath(String id) {
+    for (var i = 0; i < _projects.length; i++) {
+      if (_projects[i].id == id) return ItemPath(projectIndex: i);
+      
+      final project = _projects[i];
+      for (var j = 0; j < project.tasks.length; j++) {
+        if (project.tasks[j].id == id) {
+          return ItemPath(projectIndex: i, taskIndex: j);
+        }
+        
+        final task = project.tasks[j];
+        for (var k = 0; k < task.subtasks.length; k++) {
+          if (task.subtasks[k].id == id) {
+            return ItemPath(projectIndex: i, taskIndex: j, subtaskIndex: k);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   // --- Session Indexing ---
 
   void clearSessionIndex() => _sessionIndexMap.clear();
@@ -51,76 +86,82 @@ class DataService extends ChangeNotifier {
   }
 
   // --- Local Image Artifacts ---
+  
+  Future<String> saveImageArtifact(Uint8List bytes, String filename) async {
+    final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    final baseDir = home != null ? '$home/.assisted_intelligence' : 'data';
+    final imagesDir = Directory('$baseDir/artifacts/images');
+    if (!await imagesDir.exists()) {
+      await imagesDir.create(recursive: true);
+    }
+    
+    final file = File('${imagesDir.path}/$filename');
+    await file.writeAsBytes(bytes);
+    return file.absolute.path;
+  }
 
   Future<void> addLocalImagePath(String itemId, String path) async {
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      for (var j = 0; j < project.tasks.length; j++) {
-        final task = project.tasks[j];
-        if (task.id == itemId) {
-          if (task.localImagePaths.contains(path)) return;
-          final newTask = task.copyWith(localImagePaths: [...task.localImagePaths, path]);
-          final newTasksList = List<Task>.from(project.tasks);
-          newTasksList[j] = newTask;
-          _projects[i] = project.copyWith(tasks: newTasksList);
-          notifyListeners();
-          _repository.saveTask(newTask);
-          return;
-        }
-        for (var k = 0; k < task.subtasks.length; k++) {
-          final subtask = task.subtasks[k];
-          if (subtask.id == itemId) {
-            if (subtask.localImagePaths.contains(path)) return;
-            final newSubtask = subtask.copyWith(localImagePaths: [...subtask.localImagePaths, path]);
-            final newSubtasks = List<Subtask>.from(task.subtasks);
-            newSubtasks[k] = newSubtask;
-            final newTask = task.copyWith(subtasks: newSubtasks);
-            final newTasksList = List<Task>.from(project.tasks);
-            newTasksList[j] = newTask;
-            _projects[i] = project.copyWith(tasks: newTasksList);
-            notifyListeners();
-            _repository.saveTask(newTask);
-            return;
-          }
-        }
-      }
+    final pathInfo = _findItemPath(itemId);
+    if (pathInfo == null) return;
+
+    final project = _projects[pathInfo.projectIndex];
+    
+    if (pathInfo.isTask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      if (task.localImagePaths.contains(path)) return;
+      final newTask = task.copyWith(localImagePaths: [...task.localImagePaths, path]);
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _repository.saveTask(newTask);
+    } else if (pathInfo.isSubtask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      final subtask = task.subtasks[pathInfo.subtaskIndex!];
+      if (subtask.localImagePaths.contains(path)) return;
+      
+      final newSubtask = subtask.copyWith(localImagePaths: [...subtask.localImagePaths, path]);
+      final newSubtasks = List<Subtask>.from(task.subtasks)..[pathInfo.subtaskIndex!] = newSubtask;
+      final newTask = task.copyWith(subtasks: newSubtasks);
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _repository.saveTask(newTask);
     }
   }
 
   Future<void> removeLocalImagePath(String itemId, String path) async {
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      for (var j = 0; j < project.tasks.length; j++) {
-        final task = project.tasks[j];
-        if (task.id == itemId) {
-          final newPaths = List<String>.from(task.localImagePaths)..remove(path);
-          if (newPaths.length == task.localImagePaths.length) return;
-          final newTask = task.copyWith(localImagePaths: newPaths);
-          final newTasksList = List<Task>.from(project.tasks);
-          newTasksList[j] = newTask;
-          _projects[i] = project.copyWith(tasks: newTasksList);
-          notifyListeners();
-          _repository.saveTask(newTask);
-          return;
-        }
-        for (var k = 0; k < task.subtasks.length; k++) {
-          final subtask = task.subtasks[k];
-          if (subtask.id == itemId) {
-            final newPaths = List<String>.from(subtask.localImagePaths)..remove(path);
-            if (newPaths.length == subtask.localImagePaths.length) return;
-            final newSubtask = subtask.copyWith(localImagePaths: newPaths);
-            final newSubtasks = List<Subtask>.from(task.subtasks);
-            newSubtasks[k] = newSubtask;
-            final newTask = task.copyWith(subtasks: newSubtasks);
-            final newTasksList = List<Task>.from(project.tasks);
-            newTasksList[j] = newTask;
-            _projects[i] = project.copyWith(tasks: newTasksList);
-            notifyListeners();
-            _repository.saveTask(newTask);
-            return;
-          }
-        }
-      }
+    final pathInfo = _findItemPath(itemId);
+    if (pathInfo == null) return;
+
+    final project = _projects[pathInfo.projectIndex];
+
+    if (pathInfo.isTask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      final newPaths = List<String>.from(task.localImagePaths)..remove(path);
+      if (newPaths.length == task.localImagePaths.length) return;
+      
+      final newTask = task.copyWith(localImagePaths: newPaths);
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _repository.saveTask(newTask);
+    } else if (pathInfo.isSubtask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      final subtask = task.subtasks[pathInfo.subtaskIndex!];
+      final newPaths = List<String>.from(subtask.localImagePaths)..remove(path);
+      if (newPaths.length == subtask.localImagePaths.length) return;
+      
+      final newSubtask = subtask.copyWith(localImagePaths: newPaths);
+      final newSubtasks = List<Subtask>.from(task.subtasks)..[pathInfo.subtaskIndex!] = newSubtask;
+      final newTask = task.copyWith(subtasks: newSubtasks);
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _repository.saveTask(newTask);
     }
   }
 
@@ -158,11 +199,6 @@ class DataService extends ChangeNotifier {
     return items;
   }
 
-  List<String> _extractTags(String text) {
-    final regex = RegExp(r'#[\w\u00C0-\u017F-]+');
-    return regex.allMatches(text).map((m) => m.group(0)!).toList();
-  }
-
   // --- AI / UI Tool Interface ---
 
   Future<String> addProject(String title) async {
@@ -172,18 +208,16 @@ class DataService extends ChangeNotifier {
   Future<String> insertProject(String title, int index) async {
     print("[VERIFY_FLOW] Data Update: insertProject($title) at $index");
     
-    final tags = _extractTags(title);
+    final tags = title.extractTags();
     final project = Project(id: uuid.v4(), title: title, order: index.toDouble(), tags: tags);
     
-    if (_projects is! List<Project>) {
-      _projects = List.from(_projects);
-    }
-    
-    if (index >= _projects.length) {
-      _projects.add(project);
+    final newList = List<Project>.from(_projects);
+    if (index >= newList.length) {
+      newList.add(project);
     } else {
-      _projects.insert(index, project);
+      newList.insert(index, project);
     }
+    _projects = newList;
 
     // Optimistic UI: Notify immediately
     notifyListeners();
@@ -215,7 +249,7 @@ class DataService extends ChangeNotifier {
       if (pIndex == -1) return null;
 
       final project = _projects[pIndex];
-      final tags = _extractTags(title);
+      final tags = title.extractTags();
       final task = Task(id: uuid.v4(), title: title, projectId: projectId, order: index.toDouble(), tags: tags);
       
       final newTasks = List<Task>.from(project.tasks);
@@ -228,15 +262,10 @@ class DataService extends ChangeNotifier {
       // Update orders
       for (int i = 0; i < newTasks.length; i++) {
         newTasks[i] = newTasks[i].copyWith(order: i.toDouble());
-        await _repository.saveTask(newTasks[i]);
       }
 
       final newProject = project.copyWith(tasks: newTasks);
-      
-      if (_projects is! List<Project>) {
-        _projects = List.from(_projects);
-      }
-      _projects[pIndex] = newProject;
+      _projects = List<Project>.from(_projects)..[pIndex] = newProject;
       
       // Optimistic UI
       notifyListeners();
@@ -274,7 +303,7 @@ class DataService extends ChangeNotifier {
       
       if (taskIndex != -1) {
         final task = project.tasks[taskIndex];
-        final tags = _extractTags(title);
+        final tags = title.extractTags();
         final subtask = Subtask(id: uuid.v4(), title: title, order: index.toDouble(), tags: tags);
         
         final newSubtasks = List<Subtask>.from(task.subtasks);
@@ -294,7 +323,7 @@ class DataService extends ChangeNotifier {
         newTasksList[taskIndex] = newTask;
         
         final newProject = project.copyWith(tasks: newTasksList);
-        _projects[i] = newProject;
+        _projects = List<Project>.from(_projects)..[i] = newProject;
         
         // Optimistic UI
         notifyListeners();
@@ -309,78 +338,68 @@ class DataService extends ChangeNotifier {
   }
 
   void setTaskGoal(String taskId, TaskGoal goal) {
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      final taskIndex = project.tasks.indexWhere((t) => t.id == taskId);
-      if (taskIndex != -1) {
-        final task = project.tasks[taskIndex];
-        final newTask = task.copyWith(goal: goal);
-        
-        final newTasksList = List<Task>.from(project.tasks);
-        newTasksList[taskIndex] = newTask;
-        
-        final newProject = project.copyWith(tasks: newTasksList);
-        _projects[i] = newProject;
-        
-        notifyListeners();
-        _repository.saveTask(newTask);
-        return;
-      }
-    }
+    final pathInfo = _findItemPath(taskId);
+    if (pathInfo == null || !pathInfo.isTask) return;
+
+    final project = _projects[pathInfo.projectIndex];
+    final task = project.tasks[pathInfo.taskIndex!];
+    final newTask = task.copyWith(goal: goal);
+    
+    final newTasksList = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+    final newProject = project.copyWith(tasks: newTasksList);
+    _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+    
+    notifyListeners();
+    _repository.saveTask(newTask);
   }
 
   void recordGoalProgress(String taskId, {double? amount, bool? isSuccess, String? note}) {
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      final taskIndex = project.tasks.indexWhere((t) => t.id == taskId);
-      
-      if (taskIndex != -1) {
-        final task = project.tasks[taskIndex];
-        if (task.goal == null) return;
-        
-        TaskGoal? newGoal;
-        
-        task.goal!.map(
-          numeric: (n) {
-             if (amount == null) return;
-             final newCurrent = n.current + amount;
-             final transaction = GoalTransaction(
-               id: uuid.v4(),
-               amount: amount,
-               date: DateTime.now(),
-               note: note
-             );
-             newGoal = n.copyWith(
-               current: newCurrent,
-               history: [...n.history, transaction]
-             );
-          }, 
-          habit: (h) {
-            if (isSuccess == null) return;
-            final entry = HabitRecord(
-               date: DateTime.now(),
-               isSuccess: isSuccess,
-               note: note
-            );
-            newGoal = h.copyWith(
-               history: [...h.history, entry]
-            );
-          }
+    final pathInfo = _findItemPath(taskId);
+    if (pathInfo == null || !pathInfo.isTask) return;
+
+    final project = _projects[pathInfo.projectIndex];
+    final task = project.tasks[pathInfo.taskIndex!];
+    if (task.goal == null) return;
+    
+    TaskGoal? newGoal;
+    
+    task.goal!.map(
+      numeric: (n) {
+          if (amount == null) return;
+          final newCurrent = n.current + amount;
+          final transaction = GoalTransaction(
+            id: uuid.v4(),
+            amount: amount,
+            date: DateTime.now(),
+            note: note
+          );
+          newGoal = n.copyWith(
+            current: newCurrent,
+            history: [...n.history, transaction]
+          );
+      }, 
+      habit: (h) {
+        if (isSuccess == null) return;
+        final entry = HabitRecord(
+            date: DateTime.now(),
+            isSuccess: isSuccess,
+            note: note
         );
-        
-        if (newGoal != null) {
-           final newTask = task.copyWith(goal: newGoal);
-           final newTasksList = List<Task>.from(project.tasks);
-           newTasksList[taskIndex] = newTask;
-           
-           final newProject = project.copyWith(tasks: newTasksList);
-           _projects[i] = newProject;
-           
-           notifyListeners();
-           _repository.saveTask(newTask);
-        }
-        return;
+        newGoal = h.copyWith(
+            history: [...h.history, entry]
+        );
       }
+    );
+    
+    if (newGoal != null) {
+        final newTask = task.copyWith(goal: newGoal);
+        final newTasksList = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+        
+        final newProject = project.copyWith(tasks: newTasksList);
+        _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+        
+        notifyListeners();
+        _repository.saveTask(newTask);
     }
   }
 
@@ -388,11 +407,13 @@ class DataService extends ChangeNotifier {
 
   void upsertProject(Project project) {
     final index = _projects.indexWhere((p) => p.id == project.id);
+    final newList = List<Project>.from(_projects);
     if (index != -1) {
-      _projects[index] = project;
+      newList[index] = project;
     } else {
-      _projects.add(project);
+      newList.add(project);
     }
+    _projects = newList;
     notifyListeners();
     _repository.saveProject(project);
   }
@@ -418,7 +439,7 @@ class DataService extends ChangeNotifier {
     }
     
     final newProject = project.copyWith(tasks: newTasks);
-    _projects[pIndex] = newProject;
+    _projects = List<Project>.from(_projects)..[pIndex] = newProject;
     
     notifyListeners();
     _repository.saveTask(task);
@@ -429,52 +450,39 @@ class DataService extends ChangeNotifier {
     int projectIndex = _projects.indexWhere((p) => p.id == itemId);
     if (projectIndex != -1) {
        _cancelDebounce(itemId); // Prevent race condition
-       _projects.removeAt(projectIndex);
+       _projects = List<Project>.from(_projects)..removeAt(projectIndex);
        _repository.deleteProject(itemId);
        notifyListeners();
        return;
     }
     
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      // Check if it is a Task
-      final taskIndex = project.tasks.indexWhere((t) => t.id == itemId);
-      if (taskIndex != -1) {
-        final task = project.tasks[taskIndex];
-        
-        _cancelDebounce(itemId); // Prevent race condition
-        
-        final newTasks = List<Task>.from(project.tasks)..removeAt(taskIndex);
-        final newProject = project.copyWith(tasks: newTasks);
-        _projects[i] = newProject;
-        
-        _repository.deleteTask(task.id);
-        notifyListeners();
-        return;
-      }
+    final pathInfo = _findItemPath(itemId);
+    if (pathInfo == null) return;
+
+    final project = _projects[pathInfo.projectIndex];
+
+    if (pathInfo.isTask) {
+      _cancelDebounce(itemId); // Prevent race condition
       
-      // Check if it is a Subtask
-      for (var j = 0; j < project.tasks.length; j++) {
-        final task = project.tasks[j];
-        final subIndex = task.subtasks.indexWhere((s) => s.id == itemId);
-        
-        if (subIndex != -1) {
-           _cancelDebounce(task.id); // Prevent race condition (subtasks are debounced on task)
-           
-           final newSubtasks = List<Subtask>.from(task.subtasks)..removeAt(subIndex);
-           final newTask = task.copyWith(subtasks: newSubtasks);
-           
-           final newTasksList = List<Task>.from(project.tasks);
-           newTasksList[j] = newTask;
-           
-           final newProject = project.copyWith(tasks: newTasksList);
-           _projects[i] = newProject;
-           
-           _repository.saveTask(newTask);
-           notifyListeners();
-           return;
-        }
-      }
+      final newTasks = List<Task>.from(project.tasks)..removeAt(pathInfo.taskIndex!);
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      
+      _repository.deleteTask(itemId);
+      notifyListeners();
+    } else if (pathInfo.isSubtask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      _cancelDebounce(task.id); // Prevent race condition (subtasks are debounced on task)
+      
+      final newSubtasks = List<Subtask>.from(task.subtasks)..removeAt(pathInfo.subtaskIndex!);
+      final newTask = task.copyWith(subtasks: newSubtasks);
+      
+      final newTasksList = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasksList);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      
+      _repository.saveTask(newTask);
+      notifyListeners();
     }
   }
 
@@ -489,41 +497,30 @@ class DataService extends ChangeNotifier {
     // Cancel any pending debounce saves to prevent overwriting
     _cancelDebounce(itemId);
 
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      for (var j = 0; j < project.tasks.length; j++) {
-        final task = project.tasks[j];
-        
-        if (task.id == itemId) {
-          final newTask = task.copyWith(isCompleted: isCompleted);
-          final newTasksList = List<Task>.from(project.tasks);
-          newTasksList[j] = newTask;
-          
-          final newProject = project.copyWith(tasks: newTasksList);
-          _projects[i] = newProject;
-          notifyListeners();
-          _repository.saveTask(newTask);
-          return;
-        }
-        
-        for (var k = 0; k < task.subtasks.length; k++) {
-          final subtask = task.subtasks[k];
-          if (subtask.id == itemId) {
-            final newSubtask = subtask.copyWith(isCompleted: isCompleted);
-            final newSubtasks = List<Subtask>.from(task.subtasks);
-            newSubtasks[k] = newSubtask;
-            
-            final newTask = task.copyWith(subtasks: newSubtasks);
-            final newTasksList = List<Task>.from(project.tasks);
-            newTasksList[j] = newTask;
-            
-            final newProject = project.copyWith(tasks: newTasksList);
-                      _projects[i] = newProject;
-                      notifyListeners();
-                      _repository.saveTask(newTask);
-                      return;          }
-        }
-      }
+    final pathInfo = _findItemPath(itemId);
+    if (pathInfo == null) return;
+
+    final project = _projects[pathInfo.projectIndex];
+
+    if (pathInfo.isTask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      final newTask = task.copyWith(isCompleted: isCompleted);
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _repository.saveTask(newTask);
+    } else if (pathInfo.isSubtask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      final subtask = task.subtasks[pathInfo.subtaskIndex!];
+      final newSubtask = subtask.copyWith(isCompleted: isCompleted);
+      final newSubtasks = List<Subtask>.from(task.subtasks)..[pathInfo.subtaskIndex!] = newSubtask;
+      final newTask = task.copyWith(subtasks: newSubtasks);
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _repository.saveTask(newTask);
     }
   }
 
@@ -533,154 +530,104 @@ class DataService extends ChangeNotifier {
     
     // If status is done, also mark as completed
     final shouldComplete = status == AiStatus.done;
-    
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      for (var j = 0; j < project.tasks.length; j++) {
-        final task = project.tasks[j];
-        
-        if (task.id == itemId) {
-          final newTask = task.copyWith(
-            aiStatus: status,
-            isCompleted: shouldComplete ? true : task.isCompleted,
-          );
-          final newTasksList = List<Task>.from(project.tasks);
-          newTasksList[j] = newTask;
-          
-          final newProject = project.copyWith(tasks: newTasksList);
-          _projects[i] = newProject;
-          notifyListeners();
-          _repository.saveTask(newTask);
-          return;
-        }
-        
-        for (var k = 0; k < task.subtasks.length; k++) {
-          final subtask = task.subtasks[k];
-          if (subtask.id == itemId) {
-            final newSubtask = subtask.copyWith(
-              aiStatus: status,
-              isCompleted: shouldComplete ? true : subtask.isCompleted,
-            );
-            final newSubtasks = List<Subtask>.from(task.subtasks);
-            newSubtasks[k] = newSubtask;
-            
-            final newTask = task.copyWith(subtasks: newSubtasks);
-            final newTasksList = List<Task>.from(project.tasks);
-            newTasksList[j] = newTask;
-            
-            final newProject = project.copyWith(tasks: newTasksList);
-                      _projects[i] = newProject;
-                      notifyListeners();
-                      _repository.saveTask(newTask);
-                      return;          }
-        }
-      }
+
+    final pathInfo = _findItemPath(itemId);
+    if (pathInfo == null) return;
+
+    final project = _projects[pathInfo.projectIndex];
+
+    if (pathInfo.isTask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      final newTask = task.copyWith(
+        aiStatus: status,
+        isCompleted: shouldComplete ? true : task.isCompleted,
+      );
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _repository.saveTask(newTask);
+    } else if (pathInfo.isSubtask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      final subtask = task.subtasks[pathInfo.subtaskIndex!];
+      final newSubtask = subtask.copyWith(
+        aiStatus: status,
+        isCompleted: shouldComplete ? true : subtask.isCompleted,
+      );
+      final newSubtasks = List<Subtask>.from(task.subtasks)..[pathInfo.subtaskIndex!] = newSubtask;
+      final newTask = task.copyWith(subtasks: newSubtasks);
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _repository.saveTask(newTask);
     }
   }
 
   void updateTitle(String itemId, String newTitle) {
-    final tags = _extractTags(newTitle);
+    final tags = newTitle.extractTags();
+    final pathInfo = _findItemPath(itemId);
+    if (pathInfo == null) return;
 
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      
-      if (project.id == itemId) {
-        final newProject = project.copyWith(title: newTitle, tags: tags);
-        _projects[i] = newProject;
-        notifyListeners();
-        _debounceSave(newProject);
-        return;
-      }
-      
-      for (var j = 0; j < project.tasks.length; j++) {
-        final task = project.tasks[j];
-        
-        if (task.id == itemId) {
-          final newTask = task.copyWith(title: newTitle, tags: tags);
-          final newTasksList = List<Task>.from(project.tasks);
-          newTasksList[j] = newTask;
-          
-          final newProject = project.copyWith(tasks: newTasksList);
-          _projects[i] = newProject;
-          
-          notifyListeners();
-          _debounceSave(newProject, task: newTask);
-          return;
-        }
-        
-        for (var k = 0; k < task.subtasks.length; k++) {
-          final subtask = task.subtasks[k];
-          
-          if (subtask.id == itemId) {
-            final newSubtask = subtask.copyWith(title: newTitle, tags: tags);
-            final newSubtasks = List<Subtask>.from(task.subtasks);
-            newSubtasks[k] = newSubtask;
-            
-            final newTask = task.copyWith(subtasks: newSubtasks);
-            final newTasksList = List<Task>.from(project.tasks);
-            newTasksList[j] = newTask;
-            
-            final newProject = project.copyWith(tasks: newTasksList);
-            _projects[i] = newProject;
-            
-            notifyListeners();
-            _debounceSave(newProject, task: newTask);
-            return;
-          }
-        }
-      }
+    final project = _projects[pathInfo.projectIndex];
+
+    if (pathInfo.isProject) {
+      final newProject = project.copyWith(title: newTitle, tags: tags);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _debounceSave(newProject);
+    } else if (pathInfo.isTask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      final newTask = task.copyWith(title: newTitle, tags: tags);
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _debounceSave(newProject, task: newTask);
+    } else if (pathInfo.isSubtask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      final subtask = task.subtasks[pathInfo.subtaskIndex!];
+      final newSubtask = subtask.copyWith(title: newTitle, tags: tags);
+      final newSubtasks = List<Subtask>.from(task.subtasks)..[pathInfo.subtaskIndex!] = newSubtask;
+      final newTask = task.copyWith(subtasks: newSubtasks);
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _debounceSave(newProject, task: newTask);
     }
   }
 
   void updateNotes(String itemId, String newNotes) {
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      
-      if (project.id == itemId) {
-        final newProject = project.copyWith(notes: newNotes);
-        _projects[i] = newProject;
-        notifyListeners();
-        _debounceSave(newProject);
-        return;
-      }
-      
-      for (var j = 0; j < project.tasks.length; j++) {
-        final task = project.tasks[j];
-        
-        if (task.id == itemId) {
-          final newTask = task.copyWith(notes: newNotes);
-          final newTasksList = List<Task>.from(project.tasks);
-          newTasksList[j] = newTask;
-          
-          final newProject = project.copyWith(tasks: newTasksList);
-          _projects[i] = newProject;
-          
-          notifyListeners();
-          _debounceSave(newProject, task: newTask);
-          return;
-        }
-        
-        for (var k = 0; k < task.subtasks.length; k++) {
-          final subtask = task.subtasks[k];
-          
-          if (subtask.id == itemId) {
-            final newSubtask = subtask.copyWith(notes: newNotes);
-            final newSubtasks = List<Subtask>.from(task.subtasks);
-            newSubtasks[k] = newSubtask;
-            
-            final newTask = task.copyWith(subtasks: newSubtasks);
-            final newTasksList = List<Task>.from(project.tasks);
-            newTasksList[j] = newTask;
-            
-            final newProject = project.copyWith(tasks: newTasksList);
-            _projects[i] = newProject;
-            
-            notifyListeners();
-            _debounceSave(newProject, task: newTask);
-            return;
-          }
-        }
-      }
+    final pathInfo = _findItemPath(itemId);
+    if (pathInfo == null) return;
+
+    final project = _projects[pathInfo.projectIndex];
+
+    if (pathInfo.isProject) {
+      final newProject = project.copyWith(notes: newNotes);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _debounceSave(newProject);
+    } else if (pathInfo.isTask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      final newTask = task.copyWith(notes: newNotes);
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _debounceSave(newProject, task: newTask);
+    } else if (pathInfo.isSubtask) {
+      final task = project.tasks[pathInfo.taskIndex!];
+      final subtask = task.subtasks[pathInfo.subtaskIndex!];
+      final newSubtask = subtask.copyWith(notes: newNotes);
+      final newSubtasks = List<Subtask>.from(task.subtasks)..[pathInfo.subtaskIndex!] = newSubtask;
+      final newTask = task.copyWith(subtasks: newSubtasks);
+      final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;
+      final newProject = project.copyWith(tasks: newTasks);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _debounceSave(newProject, task: newTask);
     }
   }
   
@@ -743,13 +690,13 @@ class DataService extends ChangeNotifier {
 
   Future<void> saveMemory(String fact) async {
     final memory = Memory(fact: fact);
-    _memories.insert(0, memory);
+    _memories = List<Memory>.from(_memories)..insert(0, memory);
     notifyListeners();
     await _repository.saveMemory(memory);
   }
 
   Future<void> deleteMemory(String id) async {
-    _memories.removeWhere((m) => m.id == id);
+    _memories = List<Memory>.from(_memories)..removeWhere((m) => m.id == id);
     notifyListeners();
     await _repository.deleteMemory(id);
   }
@@ -758,7 +705,7 @@ class DataService extends ChangeNotifier {
 
   String createConversation(String title) {
     final conversation = Conversation(title: title);
-    _conversations.insert(0, conversation); // Prepend
+    _conversations = List<Conversation>.from(_conversations)..insert(0, conversation); // Prepend
     notifyListeners();
     _repository.saveConversation(conversation);
     return conversation.id;
@@ -768,7 +715,7 @@ class DataService extends ChangeNotifier {
     final index = _conversations.indexWhere((c) => c.id == id);
     if (index != -1) {
       final updated = _conversations[index].copyWith(title: title, lastModified: DateTime.now());
-      _conversations[index] = updated;
+      _conversations = List<Conversation>.from(_conversations)..[index] = updated;
       notifyListeners();
       _repository.saveConversation(updated);
     }
@@ -778,14 +725,14 @@ class DataService extends ChangeNotifier {
     final index = _conversations.indexWhere((c) => c.id == id);
     if (index != -1) {
       final updated = _conversations[index].copyWith(notes: notes, lastModified: DateTime.now());
-      _conversations[index] = updated;
+      _conversations = List<Conversation>.from(_conversations)..[index] = updated;
       notifyListeners();
       _repository.saveConversation(updated);
     }
   }
 
   void deleteConversation(String id) {
-    _conversations.removeWhere((c) => c.id == id);
+    _conversations = List<Conversation>.from(_conversations)..removeWhere((c) => c.id == id);
     notifyListeners();
     _repository.deleteConversation(id);
   }
@@ -796,15 +743,16 @@ class DataService extends ChangeNotifier {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
-    final item = _projects.removeAt(oldIndex);
-    _projects.insert(newIndex, item);
+    final newList = List<Project>.from(_projects);
+    final item = newList.removeAt(oldIndex);
+    newList.insert(newIndex, item);
     
     // Recalculate order
-    for (int i = 0; i < _projects.length; i++) {
-        _projects[i] = _projects[i].copyWith(order: i.toDouble());
-        _repository.saveProject(_projects[i]);
+    for (int i = 0; i < newList.length; i++) {
+        newList[i] = newList[i].copyWith(order: i.toDouble());
+        _repository.saveProject(newList[i]);
     }
-
+    _projects = newList;
     notifyListeners();
   }
 
@@ -828,7 +776,7 @@ class DataService extends ChangeNotifier {
     }
 
     final newProject = project.copyWith(tasks: newTasks);
-    _projects[pIndex] = newProject;
+    _projects = List<Project>.from(_projects)..[pIndex] = newProject;
     notifyListeners();
   }
 
@@ -857,7 +805,7 @@ class DataService extends ChangeNotifier {
         newTasks[tIndex] = newTask;
         
         final newProject = project.copyWith(tasks: newTasks);
-        _projects[i] = newProject;
+        _projects = List<Project>.from(_projects)..[i] = newProject;
         
         _repository.saveTask(newTask);
         notifyListeners();
@@ -904,8 +852,8 @@ class DataService extends ChangeNotifier {
   }
 
   void clear() {
-    _projects.clear();
-    _conversations.clear();
+    _projects = [];
+    _conversations = [];
     notifyListeners();
   }
   

@@ -97,10 +97,11 @@ flutter test
 *   **Test-Driven Specification:** For complex integrations like the Telegram Agent, a detailed list of Acceptance Criteria (ACs) must be defined and translated into automated tests *before* implementation begins.
 *   **Empirical Verification (MANDATORY):** Never return a task as "complete" without verifying the logic changes. Every new method or critical sequence (like startup retries) must be exercised via an automated test or a dedicated verification script (e.g., `test_logger.js`).
 *   **Secret Management:** Never commit API keys or tokens. Redact immediately and use `.env` files located in the `app/` directory, which are ignored by Git. If a secret is committed, GitHub's Push Protection requires manual unblocking and a potential history rewrite.
-*   **Multimodal Audio (Direct Processing):** Gemini 1.5+ supports native `.ogg` (Opus) audio processing. To process Telegram voice memos efficiently:
-    1.  Download the `.ogg` file from Telegram and convert to a base64 string.
-    2.  Send to Gemini as `inlineData` with `mimeType: 'audio/ogg'`.
-    3.  **CRITICAL:** Strip raw `inlineData` from the chat history after the initial turn (replace with a text placeholder like `[Processed Voice Memo]`). Failure to do so causes the audio bytes to be resent in every subsequent turn, leading to massive token waste and high latency.
+*   **Multimodal Media (Direct Processing):** Gemini 1.5+ supports native `.ogg` (Opus) audio and image processing (`image/jpeg`, `image/png`, etc.). To process Telegram media efficiently:
+    1.  Download the file from Telegram and convert to a base64 string.
+    2.  Send to Gemini as `inlineData` with the appropriate `mimeType`.
+    3.  **CRITICAL:** Strip raw `inlineData` (both audio and image) from the chat history after the initial turn (replace with a text placeholder like `[Processed Image]`). Failure to do so causes the media bytes to be resent in every subsequent turn, leading to massive token waste and high latency.
+*   **Telegram Reliability (HTML):** Use HTML parse mode for Telegram responses instead of Markdown. It is significantly more reliable and less prone to parsing errors. Supported tags include `<b>`, `<i>`, and `<code>`. Use '•' for bullet points.
 *   **Telegram Timeout Constraints:** The `telegraf` library has a default `handlerTimeout` of 90 seconds. For heavy multimodal processing or complex tool-call chains, this MUST be increased (e.g., to 300s/5m) to prevent `TimeoutError` crashes.
 *   **Continuous Feedback (Typing Status):** Telegram's "typing" indicator expires after ~5 seconds. To keep it active during long "thinking" sessions, implement a heartbeat that sends `ctx.sendChatAction('typing')` every 4 seconds.
 *   **AI Persona (Human-in-the-Loop):** To avoid robotic output (like listing tool names), the agent is configured as a **Senior Executive Assistant**. If tool execution results in an empty response text, the brain should perform a "Final Summary Turn" to force a human-friendly explanation of actions taken.

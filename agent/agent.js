@@ -25,12 +25,17 @@ export class AgentBrain {
         { inlineData: { data: input.audioBase64, mimeType: input.mimeType || 'audio/ogg' } },
         { text: "The user sent a voice memo. Please listen and respond or execute tools as requested. IMPORTANT: Always provide a textual response summarizing exactly what you did, including names of items created or updated." }
       ];
+    } else if (input.imageBase64) {
+      prompt = [
+        { inlineData: { data: input.imageBase64, mimeType: input.mimeType || 'image/jpeg' } },
+        { text: input.text || "The user sent an image. Please analyze it and respond or execute tools as requested." }
+      ];
     } else {
       throw new Error('Invalid input format to Brain.process()');
     }
 
-    const isVoice = Array.isArray(prompt);
-    logger.info(`Processing ${isVoice ? 'Voice' : 'Text'}: ${isVoice ? '[Audio Data]' : `"${prompt}"`}`);
+    const isMultimodal = Array.isArray(prompt);
+    logger.info(`Processing ${isMultimodal ? 'Multimodal' : 'Text'}: ${isMultimodal ? '[Media Data]' : `"${prompt}"`}`);
     onStatus('Discovering tools...');
 
     try {
@@ -43,12 +48,19 @@ export class AgentBrain {
 
       // 3. Tool execution loop
       const executedTools = [];
+      let finalImageBase64 = null;
+
       while (toolCalls && toolCalls.length > 0) {
         for (const call of toolCalls) {
           onStatus(`Executing ${call.name}...`);
           logger.info(`Calling tool: ${call.name} with ${JSON.stringify(call.args)}`);
           const result = await this.mcp.callTool(call.name, call.args);
           executedTools.push(call.name);
+
+          // If tool returned image data, store it for the final response
+          if (result.base64 && result.result === 'success') {
+            finalImageBase64 = result.base64;
+          }
 
           // Feed result back to Gemini
           onStatus(`Analyzing result of ${call.name}...`);
@@ -71,11 +83,16 @@ export class AgentBrain {
       // 5. Catch-all fallback if still empty
       if (!responseText || responseText.trim() === '') {
         if (executedTools.length > 0) {
-          return "✅ I've processed your request and updated your task list accordingly. Is there anything else I can help with?";
+          responseText = "✅ I've processed your request and updated your task list accordingly. Is there anything else I can help with?";
+        } else {
+          logger.warn('Gemini returned an empty response. Using fallback.');
+          responseText = "I've handled that for you. What's next on our agenda?";
         }
-        
-        logger.warn('Gemini returned an empty response. Using fallback.');
-        return "I've handled that for you. What's next on our agenda?";
+      }
+
+      // Return both text and image if available
+      if (finalImageBase64) {
+        return { text: responseText, imageBase64: finalImageBase64 };
       }
 
       return responseText;

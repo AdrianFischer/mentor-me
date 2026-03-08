@@ -26,6 +26,15 @@ export class BotService {
     this.telegraf.action('set_model_fast', (ctx) => this.handleSetModel(ctx, 'fast'));
     this.telegraf.action('set_model_smart', (ctx) => this.handleSetModel(ctx, 'smart'));
 
+    this.telegraf.on('photo', async (ctx) => {
+      try {
+        await this.handlePhoto(ctx);
+      } catch (error) {
+        logger.error('Unhandled photo error', error);
+        await ctx.reply('❌ An unexpected error occurred while processing your photo.');
+      }
+    });
+
     this.telegraf.on('message', async (ctx) => {
       try {
         await this.handleMessage(ctx);
@@ -125,15 +134,63 @@ export class BotService {
   }
 
   /**
-   * Safely replies with HTML, falling back to plain text if parsing fails.
+   * Safely replies with HTML or Photo, falling back to plain text if parsing fails.
    */
-  async safeReply(ctx, text) {
+  async safeReply(ctx, response) {
+    const text = typeof response === 'string' ? response : response.text;
+    const imageBase64 = response.imageBase64;
+
     try {
-      // Try with HTML (most reliable for bots)
-      await ctx.reply(text, { parse_mode: 'HTML' });
+      if (imageBase64) {
+        const buffer = Buffer.from(imageBase64, 'base64');
+        await ctx.replyWithPhoto({ source: buffer }, { 
+          caption: text,
+          parse_mode: 'HTML' 
+        });
+      } else {
+        // Try with HTML (most reliable for bots)
+        await ctx.reply(text, { parse_mode: 'HTML' });
+      }
     } catch (error) {
-      logger.warn('HTML parsing failed, sending as plain text.', error.message);
+      logger.warn('Rich reply failed, sending as plain text.', error.message);
       await ctx.reply(text); // Final fallback to plain text
+    }
+  }
+
+  async handlePhoto(ctx) {
+    try {
+      const photos = ctx.message.photo;
+      if (!photos || photos.length === 0) return;
+      
+      // Highest resolution is the last one in the array
+      const photo = photos[photos.length - 1];
+      logger.info(`Received photo: ${photo.file_id} (${photo.width}x${photo.height})`);
+      
+      // 1. Get file link from Telegram
+      const link = await ctx.telegram.getFileLink(photo.file_id);
+      
+      // 2. Download the file
+      const response = await fetch(link.href);
+      if (!response.ok) throw new Error(`Failed to download photo: ${response.statusText}`);
+      
+      const buffer = await response.arrayBuffer();
+      const imageBase64 = Buffer.from(buffer).toString('base64');
+      
+      // 3. Process with Brain
+      const aiResponse = await this.withTyping(ctx, () => 
+        this.brain.process({ 
+          imageBase64, 
+          mimeType: 'image/jpeg',
+          text: ctx.message.caption 
+        }, (status) => {
+          logger.info(`Status update: ${status}`);
+        })
+      );
+      
+      await this.safeReply(ctx, aiResponse);
+    } catch (error) {
+      logger.error('Photo Processing Error', error);
+      await ctx.reply('❌ Sorry, I had trouble seeing that photo.');
     }
   }
 

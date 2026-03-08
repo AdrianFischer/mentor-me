@@ -16,6 +16,8 @@ import 'implementations/set_ai_status_tool.dart';
 import 'implementations/list_todos_by_status_tool.dart';
 import 'implementations/update_todo_by_index_tool.dart';
 import 'implementations/manage_todo_images_tool.dart';
+import 'implementations/upload_image_tool.dart';
+import 'implementations/get_image_tool.dart';
 
 class ToolRegistry {
   final DataService _dataService;
@@ -38,6 +40,8 @@ class ToolRegistry {
     _register(ListTodosByStatusTool());
     _register(UpdateTodoByIndexTool());
     _register(ManageTodoImagesTool());
+    _register(UploadImageTool());
+    _register(GetImageTool());
   }
 
   void register(AiTool tool) {
