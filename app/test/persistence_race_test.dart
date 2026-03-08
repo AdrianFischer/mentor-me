@@ -18,7 +18,7 @@ void main() {
       fileService = FileSystemService(baseDir: tempDir.path);
       final repository = InMemoryRepository(fileService);
       
-      dataService = DataService(repository);
+      dataService = DataService.withRepository(repository);
       await dataService.initData();
     });
 
@@ -46,7 +46,7 @@ void main() {
       await Future.delayed(const Duration(seconds: 2));
       
       // We expect exactly ONE project in DataService
-      expect(dataService.projects.length, 1);
+      print('DEBUG: projects length is ${dataService.projects.length}'); expect(dataService.projects.length, 1);
       expect(dataService.projects.first.title, "Sync");
       
       // Check file system
@@ -56,7 +56,7 @@ void main() {
         // Since FileSystemService might not delete old files yet (it doesn't have rename logic fully implemented),
         // we might have multiple files, but they should all have the same ID.
         // The DataService should only have one project.
-        expect(dataService.projects.length, 1);
+        print('DEBUG: projects length is ${dataService.projects.length}'); expect(dataService.projects.length, 1);
       }
     });
   });

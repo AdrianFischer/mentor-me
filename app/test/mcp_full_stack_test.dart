@@ -22,7 +22,7 @@ void main() {
       // 1. Setup Server & Data
       final repository = MemoryStorageRepository();
       
-      dataService = DataService(repository);
+      dataService = DataService.withRepository(repository);
       await dataService.initData();
       
       toolRegistry = ToolRegistry(dataService);

@@ -12,7 +12,7 @@ void main() {
 
     setUp(() async {
       repository = FakeStorageRepository();
-      dataService = DataService(repository);
+      dataService = DataService.withRepository(repository);
       await dataService.initData();
     });
 

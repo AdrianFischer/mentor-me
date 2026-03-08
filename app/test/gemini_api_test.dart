@@ -7,7 +7,7 @@ void main() {
     late DataService dataService;
 
     setUp(() {
-      dataService = DataService(FakeStorageRepository());
+      dataService = DataService.withRepository(FakeStorageRepository());
     });
 
     test('DataService initializes with empty projects', () {

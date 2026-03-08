@@ -26,7 +26,7 @@ void main() {
 
       repository = InMemoryRepository(filePersistence);
       
-      dataService = DataService(repository);
+      dataService = DataService.withRepository(repository);
     });
 
     test('addProject should update InMemoryRepository', () async {
