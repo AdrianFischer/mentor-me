@@ -134,3 +134,5 @@ flutter test
     3.  **Network Resilience:** Cloud-based repositories (Firebase) should implement exponential backoff retry wrappers for all GET/SET operations to handle transient connectivity issues gracefully.
 *   **Project Completion State:** The "isCompleted" flag should be explicitly modeled at the `Project` level, not just for tasks. This requires updating the Markdown frontmatter parser/generator, the `ProjectService` mutation logic (mapping project IDs to the correct branch in `setItemStatus`), and the UI filter providers to ensure completed projects can be toggled/hidden correctly.
 
+
+*   **Efficient Log Monitoring (Performance):** Background routines can generate massive log files. Tools that read these logs (e.g., `get_active_tasks_and_logs`) must avoid reading the entire file into memory (e.g., `fs.readFileSync`). Instead, use `fs.openSync`, `fs.readSync`, and seek to the end of the file to only read the last few KB. This ensures near-instant response times and low memory overhead even for multi-gigabyte logs.
