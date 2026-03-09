@@ -1,17 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import { logger } from './logger.js';
+import { RoutinesManager } from './routines_manager.js';
 
 export class AgentBrain {
   constructor(services = {}) {
     this.mcp = services.mcp;
     this.gemini = services.gemini;
     this.bot = services.bot;
-    this.routinesDir = path.resolve('../data/routines');
-    
-    if (!fs.existsSync(this.routinesDir)) {
-      fs.mkdirSync(this.routinesDir, { recursive: true });
-    }
+    this.routinesManager = new RoutinesManager();
   }
 
   setModel(type) {
@@ -92,51 +89,15 @@ export class AgentBrain {
 
   async _gatherTools() {
     const mcpTools = await this.mcp.discoverTools();
+    const localTools = this.routinesManager.getTools();
 
-    return [
-      ...mcpTools,
-      {
-        name: 'list_routines',
-        description: 'Lists all currently configured autonomous routines and their schedules.',
-        inputSchema: { type: 'object', properties: {} }
-      },
-      {
-        name: 'update_routine',
-        description: 'Creates or updates an autonomous routine definition. Use this to change frequency, tasks, or add "learned" context for next runs.',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            filename: { type: 'string', description: 'The filename (e.g., daily_cleanup.json).' },
-            name: { type: 'string', description: 'Human readable name.' },
-            execute_every_seconds: { type: 'number', description: 'Interval in seconds.' },
-            task: { type: 'string', description: 'The task description for Gemini CLI.' },
-            context: { type: 'string', description: 'Context and learned strategies for the routine.' },
-            timeout: { type: 'number', description: 'Max runtime in seconds.' }
-          },
-          required: ['filename', 'name', 'task', 'execute_every_seconds']
-        }
-      },
-      {
-        name: 'delete_routine',
-        description: 'Removes an autonomous routine.',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            filename: { type: 'string' }
-          },
-          required: ['filename']
-        }
-      }
-    ];
+    return [...mcpTools, ...localTools];
   }
 
   async _executeTool(call) {
-    if (call.name === 'list_routines') {
-      return this._listRoutines();
-    } else if (call.name === 'update_routine') {
-      return this._updateRoutine(call.args);
-    } else if (call.name === 'delete_routine') {
-      return this._deleteRoutine(call.args);
+    const localToolNames = this.routinesManager.getTools().map(t => t.name);
+    if (localToolNames.includes(call.name)) {
+      return this.routinesManager.executeTool(call);
     } else {
       return await this.mcp.callTool(call.name, call.args);
     }
@@ -165,73 +126,5 @@ export class AgentBrain {
     }
 
     return finalResponseText;
-  }
-
-  _listRoutines() {
-    try {
-      if (!fs.existsSync(this.routinesDir)) return { result: 'success', routines: [] };
-      const files = fs.readdirSync(this.routinesDir).filter(f => f.endsWith('.json'));
-      const routines = files.map(f => {
-        try {
-          const content = JSON.parse(fs.readFileSync(path.join(this.routinesDir, f), 'utf-8'));
-          return { filename: f, ...content };
-        } catch (err) {
-          logger.error(`Error reading routine ${f}`, err);
-          return { filename: f, error: 'Invalid JSON' };
-        }
-      });
-      return { result: 'success', routines };
-    } catch (e) {
-      return { result: 'error', message: e.message };
-    }
-  }
-
-  _updateRoutine(args) {
-    try {
-      const filePath = path.join(this.routinesDir, args.filename);
-      const data = { ...args };
-      delete data.filename; // Don't store filename inside the file
-      
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-      return { result: 'success', message: `Routine ${args.filename} updated successfully.` };
-    } catch (e) {
-      return { result: 'error', message: e.message };
-    }
-  }
-
-  _deleteRoutine(args) {
-    try {
-      const filePath = path.join(this.routinesDir, args.filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-        return { result: 'success', message: `Routine ${args.filename} deleted.` };
-      }
-      return { result: 'error', message: 'File not found.' };
-    } catch (e) {
-      return { result: 'error', message: e.message };
-    }
-  }
-
-  // Keep processInput for tests compatibility
-  async processInput(text) {
-    const input = text.toLowerCase();
-    let resText = 'Listing...';
-    let toolCalls = [];
-
-    if (input.includes('finished') || input.includes('completed')) {
-      toolCalls.push({ name: 'list_todos_by_status', args: { status: 'completed' } });
-    } else if (input.includes('tasks') || input.includes('todo')) {
-      toolCalls.push({ name: 'list_todos_by_status', args: { status: 'active' } });
-    } else if (input.includes('mark') || input.includes('complete')) {
-      toolCalls.push({ name: 'update_todo_by_index', args: { index: 2, is_completed: true } });
-    } else if (input.includes('notes')) {
-      toolCalls.push({ name: 'update_todo_by_index', args: { index: 1, notes: 'Check the reactor' } });
-    } else if (input.includes('remember')) {
-      toolCalls.push({ name: 'save_memory', args: { fact: text } });
-    } else if (input.includes('update')) {
-      resText = 'Which task should I update?';
-    }
-
-    return { text: resText, toolCalls };
   }
 }
