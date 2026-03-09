@@ -8,8 +8,8 @@ export class GithubTools {
       {
         name: 'get_github_branches',
         description: 'Fetches recent pull requests and branches from the GitHub repository.',
-        inputSchema: { 
-          type: 'object', 
+        inputSchema: {
+          type: 'object',
           properties: {
             repo: { type: 'string', description: 'Optional repository name (e.g. noyes-tech/nys_monorepo). Defaults to local repo if omitted.' },
             limit: { type: 'number', description: 'Number of PRs/branches to fetch (default 10).' }
@@ -35,8 +35,22 @@ export class GithubTools {
           type: 'object',
           properties: {
             repo: { type: 'string', description: 'Optional repository name (e.g. noyes-tech/nys_monorepo). Defaults to local repo if omitted.' },
-            limit: { type: 'number', description: 'Number of runs to fetch (default 10).' }
+            limit: { type: 'number', description: 'Number of runs to fetch (default 10).' },
+            branch: { type: 'string', description: 'Optional branch name to filter runs by (e.g., develop).' },
+            status: { type: 'string', description: 'Optional status filter (e.g., failure, success).' }
           }
+        }
+      },
+      {
+        name: 'get_github_failed_run_logs',
+        description: 'Fetches the logs for any failed steps in a specific GitHub Actions workflow run.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            repo: { type: 'string', description: 'Optional repository name (e.g. noyes-tech/nys_monorepo). Defaults to local repo if omitted.' },
+            run_id: { type: 'number', description: 'The databaseId (run_id) of the run to fetch failed logs for.' }
+          },
+          required: ['run_id']
         }
       }
     ];
@@ -49,6 +63,8 @@ export class GithubTools {
       return this._getPrComments(call.args);
     } else if (call.name === 'get_github_runs') {
       return this._getRuns(call.args);
+    } else if (call.name === 'get_github_failed_run_logs') {
+      return this._getFailedRunLogs(call.args);
     }
     throw new Error('Unknown github tool: ' + call.name);
   }
@@ -58,6 +74,18 @@ export class GithubTools {
       const output = execSync(command, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
       if (!output || output.trim() === '') return [];
       return JSON.parse(output);
+    } catch (error) {
+      return { 
+        error: 'GitHub CLI Error', 
+        details: error.stderr ? error.stderr.toString() : error.message 
+      };
+    }
+  }
+
+  _runGhCommandRaw(command) {
+    try {
+      const output = execSync(command, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
+      return output;
     } catch (error) {
       return { 
         error: 'GitHub CLI Error', 
@@ -81,6 +109,25 @@ export class GithubTools {
   _getRuns(args) {
     const limit = args.limit || 10;
     const repoFlag = args.repo ? ` -R ${args.repo}` : '';
-    return this._runGhCommand('gh run list' + repoFlag + ' --json name,status,conclusion,updatedAt,url,headBranch --limit ' + limit);
+    const branchFlag = args.branch ? ` -b ${args.branch}` : '';
+    const statusFlag = args.status ? ` -s ${args.status}` : '';
+    
+    return this._runGhCommand('gh run list' + repoFlag + branchFlag + statusFlag + ' --json databaseId,name,status,conclusion,updatedAt,url,headBranch --limit ' + limit);
+  }
+
+  _getFailedRunLogs(args) {
+    if (!args.run_id) return { error: 'run_id is required' };
+    const repoFlag = args.repo ? ` -R ${args.repo}` : '';
+    
+    const logs = this._runGhCommandRaw('gh run view ' + args.run_id + repoFlag + ' --log-failed');
+    
+    if (typeof logs === 'string') {
+      const maxLength = 50000;
+      if (logs.length > maxLength) {
+        return `...[Logs truncated. Showing last ${maxLength} chars]...
+` + logs.substring(logs.length - maxLength);
+      }
+    }
+    return logs;
   }
 }
