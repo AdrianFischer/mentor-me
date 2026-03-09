@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from './logger.js';
 import { RoutinesManager } from './routines_manager.js';
+import { GithubTools } from './github_tools.js';
 
 export class AgentBrain {
   constructor(services = {}) {
@@ -9,6 +10,7 @@ export class AgentBrain {
     this.gemini = services.gemini;
     this.bot = services.bot;
     this.routinesManager = new RoutinesManager();
+    this.githubTools = new GithubTools();
   }
 
   setModel(type) {
@@ -90,14 +92,19 @@ export class AgentBrain {
   async _gatherTools() {
     const mcpTools = await this.mcp.discoverTools();
     const localTools = this.routinesManager.getTools();
+    const ghTools = this.githubTools.getTools();
 
-    return [...mcpTools, ...localTools];
+    return [...mcpTools, ...localTools, ...ghTools];
   }
 
   async _executeTool(call) {
     const localToolNames = this.routinesManager.getTools().map(t => t.name);
+    const ghToolNames = this.githubTools.getTools().map(t => t.name);
+    
     if (localToolNames.includes(call.name)) {
       return this.routinesManager.executeTool(call);
+    } else if (ghToolNames.includes(call.name)) {
+      return this.githubTools.executeTool(call);
     } else {
       return await this.mcp.callTool(call.name, call.args);
     }
