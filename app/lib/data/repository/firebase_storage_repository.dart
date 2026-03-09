@@ -7,6 +7,22 @@ import '../../models/ai_models.dart';
 import 'storage_repository.dart';
 
 class FirebaseStorageRepository implements StorageRepository {
+
+  Future<T> _withRetry<T>(Future<T> Function() action, {int maxAttempts = 3}) async {
+    int attempt = 0;
+    while (true) {
+      try {
+        attempt++;
+        return await action();
+      } catch (e) {
+        if (attempt >= maxAttempts) {
+          debugPrint("FirebaseStorageRepository Error after $maxAttempts attempts: $e");
+          rethrow;
+        }
+        await Future.delayed(Duration(milliseconds: 500 * attempt));
+      }
+    }
+  }
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
@@ -97,11 +113,11 @@ class FirebaseStorageRepository implements StorageRepository {
     }
     try {
       // 1. Fetch all projects
-      final projectsSnapshot = await _userDoc.collection('projects').get();
+      final projectsSnapshot = await _withRetry(() => _userDoc.collection('projects').get());
       final projectsData = projectsSnapshot.docs.map((doc) => doc.data()).toList();
 
       // 2. Fetch all tasks
-      final tasksSnapshot = await _userDoc.collection('tasks').get();
+      final tasksSnapshot = await _withRetry(() => _userDoc.collection('tasks').get());
       final tasksData = tasksSnapshot.docs.map((doc) => doc.data()).toList();
 
       // 3. Map tasks by projectId
@@ -157,7 +173,7 @@ class FirebaseStorageRepository implements StorageRepository {
     final json = project.toJson();
     json.remove('tasks'); // Remove the embedded tasks
     
-    await _userDoc.collection('projects').doc(project.id).set(json);
+    await _withRetry(() => _userDoc.collection('projects').doc(project.id).set(json));
     
     // Also save all tasks? Isar does "cascade" save usually.
     // For now, we assume tasks are saved via saveTask individually, 
@@ -172,12 +188,12 @@ class FirebaseStorageRepository implements StorageRepository {
   @override
   Future<void> deleteProject(String projectId) async {
     if (_currentUserId == null) return;
-    await _userDoc.collection('projects').doc(projectId).delete();
+    await _withRetry(() => _userDoc.collection('projects').doc(projectId).delete());
     
     // Delete associated tasks
-    final tasksSnapshot = await _userDoc.collection('tasks').where('projectId', isEqualTo: projectId).get();
+    final tasksSnapshot = await _withRetry(() => _userDoc.collection('tasks').where('projectId', isEqualTo: projectId).get());
     for (var doc in tasksSnapshot.docs) {
-      await _userDoc.collection('tasks').doc(doc.id).delete();
+      await _withRetry(() => _userDoc.collection('tasks').doc(doc.id).delete());
     }
   }
 
@@ -199,13 +215,13 @@ class FirebaseStorageRepository implements StorageRepository {
     // Wait, my _convertTimestamps helper above assumed Timestamps. 
     // If I store as Strings, I don't need _convertTimestamps.
     
-    await _userDoc.collection('tasks').doc(task.id).set(json);
+    await _withRetry(() => _userDoc.collection('tasks').doc(task.id).set(json));
   }
 
   @override
   Future<void> deleteTask(String taskId) async {
      if (_currentUserId == null) return;
-     await _userDoc.collection('tasks').doc(taskId).delete();
+     await _withRetry(() => _userDoc.collection('tasks').doc(taskId).delete());
   }
 
   // --- Conversations & Chat ---
@@ -219,13 +235,13 @@ class FirebaseStorageRepository implements StorageRepository {
       'lastModified': _toTimestamp(conversation.lastModified),
       'notes': conversation.notes,
     };
-    await _userDoc.collection('conversations').doc(conversation.id).set(data);
+    await _withRetry(() => _userDoc.collection('conversations').doc(conversation.id).set(data));
   }
 
   @override
   Future<List<Conversation>> getAllConversations() async {
     if (_currentUserId == null) return [];
-    final snapshot = await _userDoc.collection('conversations').orderBy('lastModified', descending: true).get();
+    final snapshot = await _withRetry(() => _userDoc.collection('conversations').orderBy('lastModified', descending: true).get());
     return snapshot.docs.map((doc) {
       final data = doc.data();
       return Conversation(
@@ -240,11 +256,11 @@ class FirebaseStorageRepository implements StorageRepository {
   @override
   Future<void> deleteConversation(String conversationId) async {
     if (_currentUserId == null) return;
-    await _userDoc.collection('conversations').doc(conversationId).delete();
+    await _withRetry(() => _userDoc.collection('conversations').doc(conversationId).delete());
     // Delete messages for this conversation
-    final messages = await _userDoc.collection('chat_messages').where('conversationId', isEqualTo: conversationId).get();
+    final messages = await _withRetry(() => _userDoc.collection('chat_messages').where('conversationId', isEqualTo: conversationId).get());
     for (var doc in messages.docs) {
-       await _userDoc.collection('chat_messages').doc(doc.id).delete();
+       await _withRetry(() => _userDoc.collection('chat_messages').doc(doc.id).delete());
     }
   }
 
@@ -261,7 +277,7 @@ class FirebaseStorageRepository implements StorageRepository {
       'conversationId': message.conversationId,
       'mode': mode, // Keep mode just in case
     };
-    await _userDoc.collection('chat_messages').doc(message.id).set(data);
+    await _withRetry(() => _userDoc.collection('chat_messages').doc(message.id).set(data));
   }
 
   @override
@@ -298,7 +314,7 @@ class FirebaseStorageRepository implements StorageRepository {
      // This seems duplicated with deleteConversation logic, but specific to messages
      final msgs = await getChatHistory(mode, conversationId: conversationId);
      for (var msg in msgs) {
-       await _userDoc.collection('chat_messages').doc(msg.id).delete();
+       await _withRetry(() => _userDoc.collection('chat_messages').doc(msg.id).delete());
      }
   }
 
@@ -313,13 +329,13 @@ class FirebaseStorageRepository implements StorageRepository {
       'createdAt': _toTimestamp(knowledge.createdAt),
       'updatedAt': _toTimestamp(knowledge.updatedAt),
     };
-    await _userDoc.collection('knowledge').doc(knowledge.id).set(data);
+    await _withRetry(() => _userDoc.collection('knowledge').doc(knowledge.id).set(data));
   }
 
   @override
   Future<List<Knowledge>> getAllKnowledge() async {
     if (_currentUserId == null) return [];
-    final snapshot = await _userDoc.collection('knowledge').orderBy('updatedAt', descending: true).get();
+    final snapshot = await _withRetry(() => _userDoc.collection('knowledge').orderBy('updatedAt', descending: true).get());
     return snapshot.docs.map((doc) {
       final data = doc.data();
       return Knowledge(
@@ -334,7 +350,7 @@ class FirebaseStorageRepository implements StorageRepository {
   @override
   Future<void> deleteKnowledge(String id) async {
     if (_currentUserId == null) return;
-    await _userDoc.collection('knowledge').doc(id).delete();
+    await _withRetry(() => _userDoc.collection('knowledge').doc(id).delete());
   }
 
   // --- Memory ---
@@ -347,13 +363,13 @@ class FirebaseStorageRepository implements StorageRepository {
       'fact': memory.fact,
       'timestamp': _toTimestamp(memory.timestamp),
     };
-    await _userDoc.collection('memories').doc(memory.id).set(data);
+    await _withRetry(() => _userDoc.collection('memories').doc(memory.id).set(data));
   }
 
   @override
   Future<List<Memory>> getAllMemories() async {
     if (_currentUserId == null) return [];
-    final snapshot = await _userDoc.collection('memories').orderBy('timestamp', descending: true).get();
+    final snapshot = await _withRetry(() => _userDoc.collection('memories').orderBy('timestamp', descending: true).get());
     return snapshot.docs.map((doc) {
       final data = doc.data();
       return Memory(
@@ -367,7 +383,7 @@ class FirebaseStorageRepository implements StorageRepository {
   @override
   Future<void> deleteMemory(String id) async {
     if (_currentUserId == null) return;
-    await _userDoc.collection('memories').doc(id).delete();
+    await _withRetry(() => _userDoc.collection('memories').doc(id).delete());
   }
   
   // Recursive helper to convert Timestamps to ISO8601 Strings if they exist in the Map
