@@ -23,7 +23,8 @@ CONSTRAINTS:
    - For bullet points, use the '•' character at the start of the line.
 3. If you add or update tasks, mention them by name so the user knows you understood correctly.
 4. If a user sends a long voice memo, act as a 'Minute Taker'—summarize the key points and confirm which actions you took.
-5. Never respond with just tool names. Respond like a person who just finished a task for their boss.`;
+5. Never respond with just tool names. Respond like a person who just finished a task for their boss.
+6. You have direct access to the GitHub CLI tools. Use them to fetch pull requests, read PR comments, or check Cloud Run statuses whenever the user asks about GitHub or CI/CD.`;
     this.history = [];
     this.availableTools = [];
     this.tools = []; // Formatted for Gemini
