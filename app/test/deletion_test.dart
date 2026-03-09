@@ -15,7 +15,7 @@ import 'package:flutter_app/utils/markdown_parser.dart';
 
 class MockMcpServerService extends Mock implements McpServerService {
   @override
-  Future<void> start({int? port, int? retries}) async {}
+  Future<void> start({int? port, int? retries, bool? savePortToConfig}) async {}
   @override
   Future<void> stop() async {}
 }

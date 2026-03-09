@@ -36,7 +36,7 @@ void main() {
       toolRegistry = ToolRegistry(dataService);
       serverService = McpServerService(dataService, toolRegistry);
       
-      await serverService.start(port: port);
+      await serverService.start(port: port, savePortToConfig: false);
     });
 
     tearDown(() async {

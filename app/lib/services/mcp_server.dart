@@ -20,7 +20,7 @@ class McpServerService {
 
   McpServerService(this._dataService, this._toolRegistry);
 
-  Future<void> start({int port = 8081, int retries = 5}) async {
+  Future<void> start({int port = 8081, int retries = 5, bool savePortToConfig = true}) async {
     if (kIsWeb) {
       print('[MCP] Skipping MCP Server on Web.');
       return;
@@ -91,16 +91,18 @@ class McpServerService {
         print('MCP Server listening on http://localhost:$currentPort/mcp');
         
         // Save port for auto-discovery
-        try {
-          final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
-          if (home != null) {
-            final configDir = Directory('$home/.assisted_intelligence');
-            if (!configDir.existsSync()) configDir.createSync();
-            final portFile = File('${configDir.path}/mcp_port');
-            portFile.writeAsStringSync(currentPort.toString());
+        if (savePortToConfig) {
+          try {
+            final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+            if (home != null) {
+              final configDir = Directory('$home/.assisted_intelligence');
+              if (!configDir.existsSync()) configDir.createSync();
+              final portFile = File('${configDir.path}/mcp_port');
+              portFile.writeAsStringSync(currentPort.toString());
+            }
+          } catch (e) {
+            print('Failed to save MCP port to config: $e');
           }
-        } catch (e) {
-          print('Failed to save MCP port to config: $e');
         }
         return;
       } on SocketException catch (e) {
@@ -213,9 +215,9 @@ class McpServerService {
      );
   }
 
-  Future<void> restart({int port = 8081, int retries = 5}) async {
+  Future<void> restart({int port = 8081, int retries = 5, bool savePortToConfig = true}) async {
     await stop();
-    await start(port: port, retries: retries);
+    await start(port: port, retries: retries, savePortToConfig: savePortToConfig);
   }
 
   Future<void> stop() async {

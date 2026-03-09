@@ -5,23 +5,28 @@ import 'dart:io';
 void main(List<String> args) async {
   String? baseUrl;
 
-  // Try auto-discovery
-  try {
-    final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
-    if (home != null) {
-      final portFile = File('$home/.assisted_intelligence/mcp_port');
-      if (portFile.existsSync()) {
-        final port = portFile.readAsStringSync().trim();
-        baseUrl = 'http://localhost:$port/mcp';
-        stderr.writeln('[Bridge] Auto-discovered server at $baseUrl');
+  if (args.isNotEmpty) {
+    baseUrl = args[0];
+    stderr.writeln('[Bridge] Using provided server URL: $baseUrl');
+  } else {
+    // Try auto-discovery
+    try {
+      final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+      if (home != null) {
+        final portFile = File('$home/.assisted_intelligence/mcp_port');
+        if (portFile.existsSync()) {
+          final port = portFile.readAsStringSync().trim();
+          baseUrl = 'http://localhost:$port/mcp';
+          stderr.writeln('[Bridge] Auto-discovered server at $baseUrl');
+        }
       }
+    } catch (e) {
+      stderr.writeln('[Bridge] Auto-discovery failed: $e');
     }
-  } catch (e) {
-    stderr.writeln('[Bridge] Auto-discovery failed: $e');
   }
 
-  // Fallback to args or default
-  baseUrl ??= args.isNotEmpty ? args[0] : 'http://localhost:8081/mcp';
+  // Fallback to default
+  baseUrl ??= 'http://localhost:8081/mcp';
   
   stderr.writeln('[Bridge] Connecting to $baseUrl...');
 
