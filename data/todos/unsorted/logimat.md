@@ -10,7 +10,7 @@ version: 1
 # LogiMAT
 
 
-- [ ] Workflow: Student <!-- id: ad539d27-3eba-4f4f-93d1-30fb3cf38c53 -->
+- [x] Workflow: Student <!-- id: ad539d27-3eba-4f4f-93d1-30fb3cf38c53 -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
   **2. Identifikation**
@@ -20,7 +20,7 @@ version: 1
   - **Karriere-Pitch ("mit 2% ködern"):** Auf offene Stellen, Praktika oder Werkstudentenjobs verweisen.
   - **Aktion:** Auf die Karriere-Website oder den HR-Kontakt verweisen und das Gespräch höflich, aber zügig beenden, um Kapazitäten für andere Besucher freizuhalten.
 
-- [ ] Workflow: Wettbewerber <!-- id: 2f673e99-e10b-41d9-a987-143708ca13ce -->
+- [x] Workflow: Wettbewerber <!-- id: 2f673e99-e10b-41d9-a987-143708ca13ce -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
   **2. Identifikation**
@@ -31,7 +31,7 @@ version: 1
   - **Fokus wahren:** Höflich darauf hinweisen, dass man aktuell primär für aktive Kundenanfragen zur Verfügung steht.
   - **Aktion (Abwimmeln):** Das Gespräch sehr zügig und höflich abbrechen.
 
-- [ ] Workflow: Integrator <!-- id: c7c3e5a4-3e44-49c1-9025-d58785e08b7d -->
+- [x] Workflow: Integrator <!-- id: c7c3e5a4-3e44-49c1-9025-d58785e08b7d -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
   **2. Identifikation**
@@ -42,7 +42,7 @@ version: 1
   - **Partnerschaft pitchen:** Erklären, wie unser System das aktuelle Portfolio des Integrators perfekt ergänzt.
   - **Aktion:** Technische Kontaktdaten austauschen für ein tiefergehendes Partner-Gespräch nach der Messe.
 
-- [ ] Workflow: Berater <!-- id: 590f704c-a79f-4794-886e-33fc072a4595 -->
+- [x] Workflow: Berater <!-- id: 590f704c-a79f-4794-886e-33fc072a4595 -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
   **2. Identifikation**
@@ -53,7 +53,7 @@ version: 1
   - **Material anbieten:** Whitepapers, Factsheets und technisches Infomaterial anbieten, das er seinen Kunden zeigen kann.
   - **Aktion:** Kontakt aufnehmen (Lead erfassen), um für anstehende Kundenprojekte im Gedächtnis zu bleiben.
 
-- [ ] Workflow: Endkunde <!-- id: 8c4613c7-9d71-4f50-bdcd-1d95fb40567f -->
+- [x] Workflow: Endkunde <!-- id: 8c4613c7-9d71-4f50-bdcd-1d95fb40567f -->
   **1. Eisbrecher-Frage**
   "Flitzen bei Ihnen in der Anlage / im Lager eigentlich schon Roboter rum?"
   **2. Identifikation**
