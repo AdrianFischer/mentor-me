@@ -53,10 +53,16 @@ export class RoutineRunner {
         if (routine.context) args.push(routine.context);
       }
 
+      
+      const taskId = timestamp + '_' + Math.random().toString(36).substr(2, 5);
+      
       const child = spawn(this.geminiPath, args, {
         detached: true,
         stdio: ['ignore', 'pipe', 'pipe']
       });
+      
+      this._addActiveTask(taskId, routine.name, logFile, child.pid);
+
 
       let output = '';
       let errorOutput = '';
@@ -72,13 +78,20 @@ export class RoutineRunner {
       });
 
       const timer = setTimeout(() => {
-        logger.warn(`Routine ${routine.name} timed out after ${timeoutSeconds}s. Killing...`);
-        child.kill('SIGKILL');
+        logger.warn(`Routine ${routine.name} timed out after ${timeoutSeconds}s. Killing process group...`);
+        try {
+          process.kill(-child.pid, 'SIGKILL');
+        } catch (e) {
+          child.kill('SIGKILL');
+        }
         logStream.write('\n[TIMEOUT_ERROR] Process killed by Watchdog due to timeout.');
       }, timeoutMs);
 
+      
       child.on('close', (code) => {
+        this._removeActiveTask(taskId);
         clearTimeout(timer);
+
         logStream.end();
         
         logger.info(`Routine ${routine.name} finished with code ${code}`);
@@ -87,21 +100,20 @@ export class RoutineRunner {
         let finalResponse = output.trim();
 
         if (this.geminiPath.includes('gemini') && output.trim()) {
-          try {
-            // Isolate the JSON block from any noisy prefix (like "MCP issues detected...")
-            const jsonStart = output.indexOf('{');
-            const jsonEnd = output.lastIndexOf('}');
-            
-            if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-              const cleanJsonStr = output.substring(jsonStart, jsonEnd + 1);
+          const lastSessionIdMatch = output.lastIndexOf('{\n  "session_id"');
+          const startIndex = lastSessionIdMatch !== -1 ? lastSessionIdMatch : output.lastIndexOf('{');
+          
+          if (startIndex !== -1) {
+            const cleanJsonStr = output.substring(startIndex);
+            try {
               const parsed = JSON.parse(cleanJsonStr);
               
-              // Extract the actual response text
               if (parsed.response) {
                 finalResponse = parsed.response;
+              } else if (parsed.error) {
+                finalResponse = `API Error: ${parsed.error.message || JSON.stringify(parsed.error)}`;
               }
 
-              // Extract and sum tokens from the CLI's internal stats object
               if (parsed.stats && parsed.stats.models) {
                 let totalTokens = 0;
                 for (const modelKey of Object.keys(parsed.stats.models)) {
@@ -110,9 +122,18 @@ export class RoutineRunner {
                 }
                 usage.total_tokens = totalTokens;
               }
+            } catch (e) {
+              logger.warn('Failed to parse Gemini JSON output for telemetry', e.message);
+              // Fallback to last 1500 chars to avoid massive log dumps on error
+              if (finalResponse.length > 1500) {
+                finalResponse = '... ' + finalResponse.substring(finalResponse.length - 1500);
+              }
             }
-          } catch (e) {
-            logger.warn('Failed to parse Gemini JSON output for telemetry', e.message);
+          } else {
+             // Fallback for non-JSON output
+             if (finalResponse.length > 1500) {
+                finalResponse = '... ' + finalResponse.substring(finalResponse.length - 1500);
+             }
           }
         }
 
@@ -128,8 +149,11 @@ export class RoutineRunner {
         });
       });
 
+      
       child.on('error', (err) => {
+        if (taskId) this._removeActiveTask(taskId);
         clearTimeout(timer);
+
         logger.error(`Failed to start routine ${routine.name}`, err);
         logStream.write(`\n[SPAWN_ERROR] ${err.message}`);
         logStream.end();
@@ -159,6 +183,36 @@ export class RoutineRunner {
       child.on('error', (err) => reject(err));
       setTimeout(() => child.kill('SIGKILL'), 30000); 
     });
+  }
+
+
+  _addActiveTask(taskId, routineName, logFile, pid) {
+    const activeTasksFile = path.join(this.logsDir, 'active_tasks.json');
+    let data = {};
+    try {
+      if (!fs.existsSync(this.logsDir)) fs.mkdirSync(this.logsDir, { recursive: true });
+      if (fs.existsSync(activeTasksFile)) {
+        data = JSON.parse(fs.readFileSync(activeTasksFile, 'utf-8') || '{}');
+      }
+      data[taskId] = { routine: routineName, start_time: new Date().toISOString(), log_file: logFile, pid };
+      fs.writeFileSync(activeTasksFile, JSON.stringify(data, null, 2));
+    } catch (e) {
+      logger.error('Failed to update active_tasks.json', e);
+    }
+  }
+
+  _removeActiveTask(taskId) {
+    const activeTasksFile = path.join(this.logsDir, 'active_tasks.json');
+    let data = {};
+    try {
+      if (fs.existsSync(activeTasksFile)) {
+        data = JSON.parse(fs.readFileSync(activeTasksFile, 'utf-8') || '{}');
+        delete data[taskId];
+        fs.writeFileSync(activeTasksFile, JSON.stringify(data, null, 2));
+      }
+    } catch (e) {
+      logger.error('Failed to update active_tasks.json', e);
+    }
   }
 
   _logTelemetry(routineName, usage) {

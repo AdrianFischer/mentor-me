@@ -3,10 +3,14 @@ import path from 'path';
 import { logger } from './logger.js';
 
 export class RoutinesManager {
-  constructor(routinesDir = path.resolve('../data/routines')) {
+  constructor(routinesDir = path.resolve('../data/routines'), logsDir = path.resolve('../logs/routines')) {
     this.routinesDir = routinesDir;
+    this.logsDir = logsDir;
     if (!fs.existsSync(this.routinesDir)) {
       fs.mkdirSync(this.routinesDir, { recursive: true });
+    }
+    if (!fs.existsSync(this.logsDir)) {
+      fs.mkdirSync(this.logsDir, { recursive: true });
     }
   }
 
@@ -43,6 +47,25 @@ export class RoutinesManager {
           },
           required: ['filename']
         }
+      },
+      {
+        name: 'get_active_tasks_and_logs',
+        description: 'Checks which background routines are currently running and returns their latest log output so you can report progress to the user.',
+        inputSchema: {
+          type: 'object',
+          properties: {}
+        }
+      },
+      {
+        name: 'get_recent_routine_logs',
+        description: 'Reads the log file of recently executed background tasks. Use this to see what a completed routine actually did.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            routine_name: { type: 'string', description: 'Optional. Filter to a specific routine name.' },
+            lines: { type: 'number', description: 'Number of lines to read from the end of the log (default 50).' }
+          }
+        }
       }
     ];
   }
@@ -54,6 +77,10 @@ export class RoutinesManager {
       return this._updateRoutine(call.args);
     } else if (call.name === 'delete_routine') {
       return this._deleteRoutine(call.args);
+    } else if (call.name === 'get_active_tasks_and_logs') {
+      return this._getActiveTasksAndLogs(call.args);
+    } else if (call.name === 'get_recent_routine_logs') {
+      return this._getRecentRoutineLogs(call.args);
     }
     throw new Error(`Unknown tool: ${call.name}`);
   }
@@ -99,6 +126,81 @@ export class RoutinesManager {
       }
       return { result: 'error', message: 'File not found.' };
     } catch (e) {
+      return { result: 'error', message: e.message };
+    }
+  }
+
+
+  _getActiveTasksAndLogs(args) {
+    try {
+      const activeTasksFile = path.join(this.logsDir, 'active_tasks.json');
+      if (!fs.existsSync(activeTasksFile)) {
+        return { result: 'success', active_tasks: {}, message: 'No background tasks are currently running.' };
+      }
+      
+      const activeTasks = JSON.parse(fs.readFileSync(activeTasksFile, 'utf-8') || '{}');
+      const taskDetails = [];
+
+      for (const [taskId, taskInfo] of Object.entries(activeTasks)) {
+        let tailLog = 'No log available yet.';
+        if (taskInfo.log_file && fs.existsSync(taskInfo.log_file)) {
+          // Read the last 1500 chars roughly (~50 lines) to prevent massive payloads
+          const logContent = fs.readFileSync(taskInfo.log_file, 'utf-8');
+          tailLog = logContent.length > 2000 ? '...' + logContent.substring(logContent.length - 2000) : logContent;
+        }
+        
+        taskDetails.push({
+          id: taskId,
+          routine: taskInfo.routine,
+          start_time: taskInfo.start_time,
+          log_tail: tailLog
+        });
+      }
+
+      return { result: 'success', active_tasks: taskDetails };
+    } catch (e) {
+      logger.error('Error reading active tasks', e);
+      return { result: 'error', message: e.message };
+    }
+  }
+
+  _getRecentRoutineLogs(args) {
+    try {
+      const telemetryFile = path.join(this.logsDir, 'telemetry.json');
+      let recentRuns = [];
+      if (fs.existsSync(telemetryFile)) {
+         recentRuns = JSON.parse(fs.readFileSync(telemetryFile, 'utf-8') || '[]');
+      }
+      
+      let logsList = fs.readdirSync(this.logsDir).filter(f => f.endsWith('.log'));
+      logsList.sort((a, b) => {
+        return fs.statSync(path.join(this.logsDir, b)).mtimeMs - fs.statSync(path.join(this.logsDir, a)).mtimeMs;
+      });
+
+      if (args.routine_name) {
+         logsList = logsList.filter(f => f.startsWith(args.routine_name.replace(/\s+/g, '_')));
+      }
+
+      if (logsList.length === 0) {
+         return { result: 'success', message: 'No logs found for the specified routine.' };
+      }
+
+      const fileToRead = logsList[0]; // Most recent
+      const logContent = fs.readFileSync(path.join(this.logsDir, fileToRead), 'utf-8');
+      
+      const lines = args.lines || 50;
+      const logLines = logContent.split('\n');
+      const tail = logLines.slice(-lines).join('\n');
+
+      return { 
+        result: 'success', 
+        file: fileToRead,
+        recent_telemetry: recentRuns.slice(-5),
+        log_tail: tail 
+      };
+
+    } catch (e) {
+      logger.error('Error reading recent logs', e);
       return { result: 'error', message: e.message };
     }
   }

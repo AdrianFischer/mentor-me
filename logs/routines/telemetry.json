@@ -1,150 +1,5 @@
 [
   {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-08T12:32:57.010Z",
-    "total_tokens": 32007
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-08T12:33:09.071Z",
-    "total_tokens": 31065
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-08T12:33:48.996Z",
-    "total_tokens": 87577
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-08T12:34:41.172Z",
-    "total_tokens": 32396
-  },
-  {
-    "routine": "Tenth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:50.543Z",
-    "total_tokens": 29134
-  },
-  {
-    "routine": "Seventh Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:50.951Z",
-    "total_tokens": 29075
-  },
-  {
-    "routine": "Fifteenth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:51.766Z",
-    "total_tokens": 29041
-  },
-  {
-    "routine": "Stability Test",
-    "timestamp": "2026-03-08T12:35:52.198Z",
-    "total_tokens": 29432
-  },
-  {
-    "routine": "Twentieth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:52.450Z",
-    "total_tokens": 29046
-  },
-  {
-    "routine": "Eleventh Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:52.753Z",
-    "total_tokens": 29148
-  },
-  {
-    "routine": "Twelfth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:53.195Z",
-    "total_tokens": 29131
-  },
-  {
-    "routine": "Third Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:53.482Z",
-    "total_tokens": 29149
-  },
-  {
-    "routine": "Ninth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:53.586Z",
-    "total_tokens": 29089
-  },
-  {
-    "routine": "Twenty-Second Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:53.923Z",
-    "total_tokens": 29397
-  },
-  {
-    "routine": "Eighteenth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:54.457Z",
-    "total_tokens": 29323
-  },
-  {
-    "routine": "Thirteenth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:54.738Z",
-    "total_tokens": 29099
-  },
-  {
-    "routine": "Sixth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:55.723Z",
-    "total_tokens": 29225
-  },
-  {
-    "routine": "Fourth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:55.772Z",
-    "total_tokens": 29280
-  },
-  {
-    "routine": "Fifth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:55.915Z",
-    "total_tokens": 29182
-  },
-  {
-    "routine": "Nineteenth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:55.930Z",
-    "total_tokens": 29144
-  },
-  {
-    "routine": "Twenty-First Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:56.368Z",
-    "total_tokens": 29120
-  },
-  {
-    "routine": "Sixteenth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:56.720Z",
-    "total_tokens": 29201
-  },
-  {
-    "routine": "Fourteenth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:57.133Z",
-    "total_tokens": 29168
-  },
-  {
-    "routine": "Voice Memo Stability Test",
-    "timestamp": "2026-03-08T12:35:57.606Z",
-    "total_tokens": 29272
-  },
-  {
-    "routine": "Second Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:57.826Z",
-    "total_tokens": 29145
-  },
-  {
-    "routine": "Eighth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:58.018Z",
-    "total_tokens": 29155
-  },
-  {
-    "routine": "Twenty-Fourth Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:58.683Z",
-    "total_tokens": 29336
-  },
-  {
-    "routine": "Stability Test Routine",
-    "timestamp": "2026-03-08T12:35:59.145Z",
-    "total_tokens": 29532
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-08T12:35:59.458Z",
-    "total_tokens": 31631
-  },
-  {
     "routine": "Twenty-Third Stability Test Routine",
     "timestamp": "2026-03-08T12:36:01.093Z",
     "total_tokens": 29119
@@ -498,5 +353,150 @@
     "routine": "Flutter MCP Auto-Worker",
     "timestamp": "2026-03-09T09:14:50.027Z",
     "total_tokens": 2869580
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-09T09:50:13.886Z",
+    "total_tokens": 59574
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-09T09:50:20.241Z",
+    "total_tokens": 334039
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-09T09:58:58.006Z",
+    "total_tokens": 896636
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-09T10:49:41.598Z",
+    "total_tokens": 33928
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-09T10:51:10.475Z",
+    "total_tokens": 121311
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-09T10:52:47.644Z",
+    "total_tokens": 168710
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-09T11:49:52.906Z",
+    "total_tokens": 119976
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-09T11:57:14.945Z",
+    "total_tokens": 1054876
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-09T12:07:43.470Z",
+    "total_tokens": 895608
+  },
+  {
+    "routine": "Hourly PR Status Check",
+    "timestamp": "2026-03-09T12:10:38.535Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-09T13:02:53.167Z",
+    "total_tokens": 50780
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-09T13:49:57.423Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-09T14:21:36.117Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-09T14:37:41.677Z",
+    "total_tokens": 34129
+  },
+  {
+    "routine": "Hourly PR Status Check",
+    "timestamp": "2026-03-09T14:48:31.243Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "Hourly PR Status Check",
+    "timestamp": "2026-03-09T14:48:43.772Z",
+    "total_tokens": 227565
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-09T14:52:36.383Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-09T14:53:08.308Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-09T15:06:30.309Z",
+    "total_tokens": 35292
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-09T15:06:40.703Z",
+    "total_tokens": 47387
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-09T15:07:21.307Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "Hourly PR Status Check",
+    "timestamp": "2026-03-09T15:23:58.713Z",
+    "total_tokens": 133572
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-09T16:06:31.006Z",
+    "total_tokens": 131706
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-09T16:06:40.983Z",
+    "total_tokens": 48177
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-09T16:10:35.678Z",
+    "total_tokens": 411420
+  },
+  {
+    "routine": "Hourly PR Status Check",
+    "timestamp": "2026-03-09T16:26:29.837Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-09T17:06:09.467Z",
+    "total_tokens": 47172
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-09T17:06:16.430Z",
+    "total_tokens": 54700
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-09T17:06:50.122Z",
+    "total_tokens": 0
   }
 ]

@@ -1,14 +1,20 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { logger } from './logger.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export class GeminiService {
   constructor(config) {
     this.apiKey = config.geminiApiKey;
     this.genAI = new GoogleGenerativeAI(this.apiKey);
     
-    this.models = {
+        this.models = {
       smart: "gemini-3.1-pro-preview",
-      fast: "gemini-2.0-flash"
+      fast: "gemini-3-flash-preview", // User preferred fast/preview model
+      instant: "gemini-2.5-flash"
     };
     
     this.modelName = this.models.smart;
@@ -25,12 +31,43 @@ CONSTRAINTS:
 4. If a user sends a long voice memo, act as a 'Minute Taker'—summarize the key points and confirm which actions you took.
 5. Never respond with just tool names. Respond like a person who just finished a task for their boss.
 6. You have direct access to the GitHub CLI tools. Use them to fetch pull requests, read PR comments, or check Cloud Run statuses whenever the user asks about GitHub or CI/CD.`;
-    this.history = [];
+    this.historyFile = path.join(__dirname, 'data', 'chat_history.json');
+    this.history = this._loadHistory();
     this.availableTools = [];
     this.tools = []; // Formatted for Gemini
   }
 
+  
+  _loadHistory() {
+    try {
+      if (fs.existsSync(this.historyFile)) {
+        return JSON.parse(fs.readFileSync(this.historyFile, 'utf-8'));
+      }
+    } catch (e) {
+      logger.error('Failed to load chat history', e);
+    }
+    return [];
+  }
+
+  _saveHistory() {
+    try {
+      const dir = path.dirname(this.historyFile);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(this.historyFile, JSON.stringify(this.history, null, 2));
+    } catch (e) {
+      logger.error('Failed to save chat history', e);
+    }
+  }
+
+
+  clearHistory() {
+    this.history = [];
+    this._saveHistory();
+    logger.info('Chat history cleared.');
+  }
+
   setModel(type) {
+
     if (this.models[type]) {
       this.modelName = this.models[type];
       logger.info(`Switched to ${type} model: ${this.modelName}`);
@@ -57,6 +94,7 @@ CONSTRAINTS:
       this.history = this.history.slice(-20);
       if (this.history[0].role !== 'user') this.history.shift();
     }
+    this._saveHistory();
   }
 
   async process(prompt, mcpTools = []) {
@@ -112,6 +150,7 @@ CONSTRAINTS:
     }
     
     this.history = newHistory;
+    this._saveHistory();
     
     if (!response.candidates || response.candidates.length === 0) {
       return { text: "", toolCalls: [] };

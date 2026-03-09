@@ -103,6 +103,15 @@ export class Watchdog {
 
     if (!result.success) {
       logger.warn(`Routine "${routine.name}" failed with code ${result.code}: ${result.error || 'Check logs'}`);
+      
+      let errorContext = result.error ? `\n\n<i>${result.error}</i>` : '';
+      if (result.output && !result.error) {
+         // sanitize HTML for Telegram
+         const safeOutput = result.output.replace(/</g, '&lt;').replace(/>/g, '&gt;').substring(0, 400);
+         errorContext = `\n\n<b>Last Output:</b>\n<pre>${safeOutput}</pre>`;
+      }
+
+      this.onWorkAccomplished(`🚨 <b>Routine Failed</b>: "${routine.name}" encountered an error (Code: ${result.code}).${errorContext}`);
       return;
     }
 
@@ -115,7 +124,9 @@ export class Watchdog {
     }
 
     // Otherwise, notify user of work done
-    const message = `🤖 <b>Routine Report</b>: "${routine.name}"\n\n${output}\n\n<i>Tokens used: ${result.usage?.total_tokens || 0}</i>`;
+    // sanitize output to ensure Telegram HTML parse mode doesn't break
+    const safeOutput = output.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const message = `🤖 <b>Routine Report</b>: "${routine.name}"\n\n${safeOutput}\n\n<i>Tokens used: ${result.usage?.total_tokens || 0}</i>`;
     this.onWorkAccomplished(message);
   }
 }

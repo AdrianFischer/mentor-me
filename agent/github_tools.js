@@ -5,14 +5,29 @@ export class GithubTools {
 
   getTools() {
     return [
+
       {
-        name: 'get_github_branches',
-        description: 'Fetches recent pull requests and branches from the GitHub repository.',
+        name: 'get_github_pr_details',
+        description: 'Fetches details for a specific GitHub Pull Request, such as the branch name (headRefName), status, and title. Useful to find out what branch a PR is associated with.',
         inputSchema: {
           type: 'object',
           properties: {
             repo: { type: 'string', description: 'Optional repository name (e.g. noyes-tech/nys_monorepo). Defaults to local repo if omitted.' },
-            limit: { type: 'number', description: 'Number of PRs/branches to fetch (default 10).' }
+            pr_number: { type: 'number', description: 'The PR number to fetch details for.' }
+          },
+          required: ['pr_number']
+        }
+      },
+      {
+        name: 'get_github_branches',
+        description: 'Fetches a list of Pull Requests from the GitHub repository. Useful to see what PRs are open or authored by specific people.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            repo: { type: 'string', description: 'Optional repository name (e.g. noyes-tech/nys_monorepo). Defaults to local repo if omitted.' },
+            limit: { type: 'number', description: 'Number of PRs to fetch (default 10).' },
+            state: { type: 'string', description: 'Filter by state: open, closed, merged, or all (default open).' },
+            author: { type: 'string', description: 'Filter by author (e.g. @me for your own PRs).' }
           }
         }
       },
@@ -48,7 +63,8 @@ export class GithubTools {
           type: 'object',
           properties: {
             repo: { type: 'string', description: 'Optional repository name (e.g. noyes-tech/nys_monorepo). Defaults to local repo if omitted.' },
-            run_id: { type: 'number', description: 'The databaseId (run_id) of the run to fetch failed logs for.' }
+            run_id: { type: 'number', description: 'The databaseId (run_id) of the run to fetch failed logs for.' },
+            lines: { type: 'number', description: 'Number of lines to read from the end of the failed logs (default 100).' }
           },
           required: ['run_id']
         }
@@ -59,7 +75,10 @@ export class GithubTools {
   async executeTool(call) {
     if (call.name === 'get_github_branches') {
       return this._getBranches(call.args);
-    } else if (call.name === 'get_github_pr_comments') {
+    
+    } else if (call.name === 'get_github_pr_details') {
+      return this._getPrDetails(call.args);
+} else if (call.name === 'get_github_pr_comments') {
       return this._getPrComments(call.args);
     } else if (call.name === 'get_github_runs') {
       return this._getRuns(call.args);
@@ -94,13 +113,24 @@ export class GithubTools {
     }
   }
 
-  _getBranches(args) {
+    _getBranches(args) {
     const limit = args.limit || 10;
+    const state = args.state || 'open';
     const repoFlag = args.repo ? ` -R ${args.repo}` : '';
-    return this._runGhCommand('gh pr list' + repoFlag + ' --state all --json number,title,headRefName,updatedAt,state,author --limit ' + limit);
+    const authorFlag = args.author ? ` --author ${args.author}` : '';
+    
+    return this._runGhCommand(`gh pr list${repoFlag} --state ${state}${authorFlag} --json number,title,headRefName,updatedAt,state,author --limit ${limit}`);
+  }
+
+  
+  _getPrDetails(args) {
+    if (!args.pr_number) return { error: 'pr_number is required' };
+    const repoFlag = args.repo ? ` -R ${args.repo}` : '';
+    return this._runGhCommand('gh pr view ' + args.pr_number + repoFlag + ' --json number,title,headRefName,baseRefName,state,author,url');
   }
 
   _getPrComments(args) {
+
     if (!args.pr_number) return { error: 'pr_number is required' };
     const repoFlag = args.repo ? ` -R ${args.repo}` : '';
     return this._runGhCommand('gh pr view ' + args.pr_number + repoFlag + ' --comments --json comments');
@@ -115,8 +145,25 @@ export class GithubTools {
     return this._runGhCommand('gh run list' + repoFlag + branchFlag + statusFlag + ' --json databaseId,name,status,conclusion,updatedAt,url,headBranch --limit ' + limit);
   }
 
-  _getFailedRunLogs(args) {
+    _getFailedRunLogs(args) {
     if (!args.run_id) return { error: 'run_id is required' };
+    const repoFlag = args.repo ? ` -R ${args.repo}` : '';
+    
+    const logs = this._runGhCommandRaw('gh run view ' + args.run_id + repoFlag + ' --log-failed');
+    
+    if (typeof logs === 'string') {
+      const lines = args.lines || 100;
+      const logLines = logs.split('\n');
+      const tail = logLines.slice(-lines).join('\n');
+      
+      const maxLength = 15000;
+      if (tail.length > maxLength) {
+        return `...[Logs truncated to last ${lines} lines / ${maxLength} chars]...\n` + tail.substring(tail.length - maxLength);
+      }
+      return tail;
+    }
+    return logs;
+  };
     const repoFlag = args.repo ? ` -R ${args.repo}` : '';
     
     const logs = this._runGhCommandRaw('gh run view ' + args.run_id + repoFlag + ' --log-failed');

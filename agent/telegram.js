@@ -40,10 +40,18 @@ export class BotService {
     this.telegraf.command('model', (ctx) => this.handleModelCommand(ctx));
     
     // Workflow Commands
+    // Workflow Commands
     this.telegraf.command('start_day', (ctx) => this.handleWorkflow(ctx, 'start-day'));
     this.telegraf.command('end_day', (ctx) => this.handleWorkflow(ctx, 'end-day'));
     
+    // Clear History Command
+    this.telegraf.command('clear', async (ctx) => {
+      this.brain.gemini.clearHistory();
+      await ctx.reply('🧹 My chat memory has been wiped clean. What would you like to discuss?');
+    });
+    
     // Actions for model selection
+    this.telegraf.action('set_model_instant', (ctx) => this.handleSetModel(ctx, 'instant'));
     this.telegraf.action('set_model_fast', (ctx) => this.handleSetModel(ctx, 'fast'));
     this.telegraf.action('set_model_smart', (ctx) => this.handleSetModel(ctx, 'smart'));
 
@@ -79,7 +87,7 @@ export class BotService {
   }
 
   async handleHelp(ctx) {
-    await this.safeReply(ctx, '📖 *Assisted Intelligence Help*\n\nUsage examples:\n• "Show my tasks"\n• "Mark task 1 as completed"\n• "Remember that I like blue"\n• /model - Switch between fast and smart AI models\n• /start_day - Analyze today\'s priorities\n• /end_day - Summarize wins and plan tomorrow');
+    await this.safeReply(ctx, '📖 *Assisted Intelligence Help*\n\nUsage examples:\n• "Show my tasks"\n• "Mark task 1 as completed"\n• "Remember that I like blue"\n• /model - Switch between Instant, Fast, and Smart models\n• /start_day - Analyze today\'s priorities\n• /end_day - Summarize wins and plan tomorrow');
   }
 
   async handleWorkflow(ctx, type) {
@@ -100,10 +108,14 @@ export class BotService {
   }
 
   async handleModelCommand(ctx) {
-    await ctx.reply('🤖 *Select AI Model*\n\n• *Fast*: Gemini 2.0 Flash (Quick responses)\n• *Smart*: Gemini 3.1 Pro (Better reasoning)', {
+        await ctx.reply('🤖 *Select AI Model*\n\n• *Instant*: Gemini 2.5 Flash (Super fast)\n• *Fast*: Gemini 3 Flash (Quick responses)\n• *Smart*: Gemini 3.1 Pro (Better reasoning)', {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
-        [Markup.button.callback('⚡ Fast', 'set_model_fast'), Markup.button.callback('🧠 Smart', 'set_model_smart')]
+        [
+          Markup.button.callback('💨 Instant', 'set_model_instant'),
+          Markup.button.callback('⚡ Fast', 'set_model_fast'), 
+          Markup.button.callback('🧠 Smart', 'set_model_smart')
+        ]
       ])
     });
   }

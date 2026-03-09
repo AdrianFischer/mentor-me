@@ -1,0 +1,355 @@
+[
+  {
+    "parts": [
+      {
+        "text": "It looks like I couldn't find any open pull requests for you at the moment. This could mean that all your PRs have been merged or closed, or there might be an issue with fetching them.\n\nIf you believe there should be open PRs, please let me know if there's a specific repository I should check, or if you have any other details that might help me locate them!"
+      }
+    ],
+    "role": "model"
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "text": "Check again in nys_monorepo"
+      }
+    ]
+  },
+  {
+    "parts": [
+      {
+        "functionCall": {
+          "name": "get_github_branches",
+          "args": {
+            "repo": "noyes-tech/nys_monorepo"
+          }
+        },
+        "thoughtSignature": "CqsDAb4+9vu1hfhNjpME2mrSSXlmdBeO6VMbbHhHo5UqUjBCEFDljPzUuZEg5dWaw4iXKfSijCRdR9JyhfAGhbDnoTVhCUn9Ya8+qbYTVDnDM56O9c6mtgrngfP+r2gdKr13+ftMKtfrmhGTOrlPpUfXggnQaGT5s4DsvKA8V3SIc/ZnjotG+ff/kdy/+Vp92ZohC+D0OmFcXLZXhmzFjdmFkZyTBSBVXELsbpfy9UObR0ySVmId56BJQoecuo3WI2QYPgoLHL/6psCMMYCqggZTv4uxV3RDkscVPsrQ1zR+2USfX4E2geMq/DzhkvpAm7vJtpM5aX6H+nwNFYkZJf5aU5iUFEEJUp4wQcU2gGd+qRUi/6G1lXTp563Kf/Q1QfqwU/f9U4oqtGUWrPZ/O5aeu/vzEitusHV3L8swHZNoEqcVdcSmGltwsKzornshnnYkJ8z910SIqy72IShto9SrqxiHMsykz1gA8bV156ZEsuvx4uUekU4GMXhW3ROS+oIiBrjaXh9PMX+2Vwg47bKghongSzvZ7yX38HMHI66LFqKRXJyn4lxuRw3B0w=="
+      }
+    ],
+    "role": "model"
+  },
+  {
+    "role": "function",
+    "parts": [
+      {
+        "functionResponse": {
+          "name": "get_github_branches",
+          "response": {
+            "result": [
+              {
+                "author": {
+                  "id": "MDQ6VXNlcjM4MzQ0MTEy",
+                  "is_bot": false,
+                  "login": "mayershoc",
+                  "name": "Christopher Mayershofer"
+                },
+                "headRefName": "security/cis-workbook-safeguard-structure",
+                "number": 737,
+                "state": "OPEN",
+                "title": "Security: reorganize CIS docs and safeguard verification",
+                "updatedAt": "2026-03-09T16:27:05Z"
+              },
+              {
+                "author": {
+                  "id": "MDQ6VXNlcjQwMDM2NzI3",
+                  "is_bot": false,
+                  "login": "AdrianFischer",
+                  "name": "Adi"
+                },
+                "headRefName": "feature/provide_granular_request_status_via_api",
+                "number": 736,
+                "state": "OPEN",
+                "title": "feat: unified request progress tracking with granular counters",
+                "updatedAt": "2026-03-09T10:47:26Z"
+              },
+              {
+                "author": {
+                  "id": "MDQ6VXNlcjM4MzQ0MTEy",
+                  "is_bot": false,
+                  "login": "mayershoc",
+                  "name": "Christopher Mayershofer"
+                },
+                "headRefName": "chore/add-create-commit-skill",
+                "number": 735,
+                "state": "MERGED",
+                "title": "Chore: Add create-commit skill for structured commits",
+                "updatedAt": "2026-03-09T15:34:26Z"
+              },
+              {
+                "author": {
+                  "id": "MDQ6VXNlcjM4MzQ0MTEy",
+                  "is_bot": false,
+                  "login": "mayershoc",
+                  "name": "Christopher Mayershofer"
+                },
+                "headRefName": "change/enforce-german-noyesstorage-declension",
+                "number": 734,
+                "state": "MERGED",
+                "title": "Change: Enforce German NoyesStorage declension wording",
+                "updatedAt": "2026-03-09T15:35:31Z"
+              },
+              {
+                "author": {
+                  "id": "MDQ6VXNlcjM4MzQ0MTEy",
+                  "is_bot": false,
+                  "login": "mayershoc",
+                  "name": "Christopher Mayershofer"
+                },
+                "headRefName": "codex/fix-drift-alert-restarts",
+                "number": 733,
+                "state": "OPEN",
+                "title": "Fix: Prevent duplicate drift alerts at threshold",
+                "updatedAt": "2026-03-09T15:52:45Z"
+              },
+              {
+                "author": {
+                  "id": "MDQ6VXNlcjM4MzQ0MTEy",
+                  "is_bot": false,
+                  "login": "mayershoc",
+                  "name": "Christopher Mayershofer"
+                },
+                "headRefName": "change/reorganize-security-docs-and-knapp-extracts",
+                "number": 732,
+                "state": "MERGED",
+                "title": "Change: Reorganize security docs and KNAPP extracts",
+                "updatedAt": "2026-03-09T15:35:52Z"
+              },
+              {
+                "author": {
+                  "id": "MDQ6VXNlcjk5OTM1NDM=",
+                  "is_bot": false,
+                  "login": "BenStringer3",
+                  "name": "Ben Stringer"
+                },
+                "headRefName": "fix/mkcert-install",
+                "number": 731,
+                "state": "OPEN",
+                "title": "Fix: Trust mkcert CA in Firefox for localhost and deployment fixes",
+                "updatedAt": "2026-03-09T15:37:19Z"
+              },
+              {
+                "author": {
+                  "id": "MDQ6VXNlcjk5OTM1NDM=",
+                  "is_bot": false,
+                  "login": "BenStringer3",
+                  "name": "Ben Stringer"
+                },
+                "headRefName": "fix/visualization-healthcheck",
+                "number": 730,
+                "state": "OPEN",
+                "title": "Chore: Fix visualization healthcheck and deployment tweaks",
+                "updatedAt": "2026-03-09T15:36:51Z"
+              },
+              {
+                "author": {
+                  "id": "MDQ6VXNlcjUyMzE3Nzgx",
+                  "is_bot": false,
+                  "login": "Sajsaaa",
+                  "name": "shahiryar"
+                },
+                "headRefName": "shadcn_alignment",
+                "number": 729,
+                "state": "OPEN",
+                "title": "Change: Align dashboard UI with shadcn-kit",
+                "updatedAt": "2026-03-09T15:41:55Z"
+              },
+              {
+                "author": {
+                  "id": "MDQ6VXNlcjM4MzQ0MTEy",
+                  "is_bot": false,
+                  "login": "mayershoc",
+                  "name": "Christopher Mayershofer"
+                },
+                "headRefName": "codex/fix-temperature-event-cascade",
+                "number": 728,
+                "state": "OPEN",
+                "title": "Fix: Cascade charging temperature alerts to stop spam",
+                "updatedAt": "2026-03-09T15:52:55Z"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "parts": [
+      {
+        "text": "Certainly! I've checked the <code>noyes-tech/nys_monorepo</code>, and here are the open pull requests I found:\n\n• PR #737 by @mayershoc: <i>\"Security: reorganize CIS docs and safeguard verification\"</i>\n• PR #736 by @AdrianFischer: <i>\"feat: unified request progress tracking with granular counters\"</i>\n• PR #733 by @mayershoc: <i>\"Fix: Prevent duplicate drift alerts at threshold\"</i>\n• PR #731 by @BenStringer3: <i>\"Fix: Trust mkcert CA in Firefox for localhost and deployment fixes\"</i>\n• PR #730 by @BenStringer3: <i>\"Chore: Fix visualization healthcheck and deployment tweaks\"</i>\n• PR #729 by @Sajsaaa: <i>\"Change: Align dashboard UI with shadcn-kit\"</i>\n• PR #728 by @mayershoc: <i>\"Fix: Cascade charging temperature alerts to stop spam\"</i>\n\nIs there a particular PR you'd like me to look into further, or perhaps you're interested in something else?",
+        "thoughtSignature": "CqkCAb4+9vuWCKZPaDusGiSGmLdQBYOBTWyldc7Ze05HOG3WtT7lUYtSZ2B5IflGhXIlW8DJZC3LNWl5EYW6nRT4p2kAeIf/Zvr5Hzwcw1n0V00anI6I6WcVaebEbiTsoKnPDuqKAB10cp+++n0+dsjk2v6jdQXxZgxIHhOk7HYyLAkshM6eJQKsUUFd1NwUM0gisTDnBUK40vXa8uMBgYi1dDCc23rLlhzk2eq0v9FIXtkVKyRm4xAIhsIva2oPApcKTgGwxfkmEiH5wqEJKd+kqPIULXtukqlRYkDkU/yr22tPfiZ+El1jzYXTxUkfSBjIEKGJOZPWwOL0wh3oUXJblMsQd5Lo/BBsiqBlCenrgpLLGGaUohCByb19DHHHIy74JFam2UwVMJv4"
+      }
+    ],
+    "role": "model"
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "text": "I am adrian"
+      }
+    ]
+  },
+  {
+    "parts": [
+      {
+        "functionCall": {
+          "name": "save_memory",
+          "args": {
+            "fact": "The user's name is Adrian."
+          }
+        },
+        "thoughtSignature": "CusCAb4+9vtebs3pi/AtaDbmT/wNYiZiPuOjgAOLLVILPiopZMitlYNxuR/UGh5LWy1zKjtYWryNWv5OMUpqJ+GY+qkyC5ZuXFlumYNXmUCKVmRde0//MHfoE3RQFNMJ35cskLbSi20Fcw/fpFsVrtINKWcjB6yc8If+k95p8OWZofYt2rbvzLoF6N80R/+Hzh5/5H8mxTVVo7nZjy8L+u1ISwqa/6LF/xGrlkYjjzmgIw1vAWllWwukArkEmlvQLoe0MA4tx7BrBDlP6qIwJbQ5FUg34scRIrO4b9D/HKMdIsArKcWNFmzSyTgm95Epj3iTsKMXj7VddmIJ7idbr1WsixFMwGGxozdZfYFNJCe1ltSSE2s9E2fLPFptrTQLespvpGHernJOhVoXGdgGhV0kJUsZrjW6wV0/z1EYsq2B258hA/YrDLR/LY0d/TragvHWzZBP5u3KA7aHQ5Ywl1IwQ2ilka+hfFRkf3vQ"
+      }
+    ],
+    "role": "model"
+  },
+  {
+    "role": "function",
+    "parts": [
+      {
+        "functionResponse": {
+          "name": "save_memory",
+          "response": {
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "{\"result\":\"success\",\"message\":\"Memory saved.\"}"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "parts": [
+      {
+        "text": "It's a pleasure to meet you, Adrian! I've made a note of that.\n\nHow can I assist you further today, Adrian?"
+      }
+    ],
+    "role": "model"
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "text": "Are there any test failures on github on my prs?"
+      }
+    ]
+  },
+  {
+    "parts": [
+      {
+        "functionCall": {
+          "name": "get_github_runs",
+          "args": {
+            "repo": "noyes-tech/nys_monorepo",
+            "status": "failure",
+            "branch": "feature/provide_granular_request_status_via_api"
+          }
+        },
+        "thoughtSignature": "CrcJAb4+9vvsOyGlLwHLWtodK5FNE3vef3ISyjamGyXEDmlqHAnC10n2CKWm1FX8kVy4CYSAwz3xV+yDdICyTmvZSBFhfevlsUPCwZnFM71lyx+ZSxq6/0t5frogzcAoExCLYcdO/gC2rXfUXBPSA8sY+cfH1YKFBllLDOdPTSb/9Eq0kHc3ckaiKNXn4XNq9bPAaz9kezA+kwhfg4f0nYgrCIUa7wTMVX+VjQCfLoR5l4y1qhxuBLccQLhv6JqSdZg+r8dudAb46P5asre4LOFIuBMaT6mayIkOfCOnI5uSFwCGo3g+HQebb7TluOD3dni4ZHcgRBbJtpOqUScUshcjQm67Q0uZ3Zdi+SbQmAgxzyDWS/M6kqJr+SkmXA2kOswlOOqVryP+MxJknkOGVNKudaTacoUq1tDX8wmOI/wQUCSCPI0k0lkhgPe0d1BiqMi4MT3/OZ1iyuKD+Ndh+vy4zEiTi2zw6674xTArKb1M4kW5COtLqOz3NLdtlf2WBRzo2EFtQx7c6efiDBz7ImHKsZEmkNaAJUZg5lUeKG/VT52xk2Vs5HeD3I8AHHzVdljOBMjHU3LFg5bzk+rKo53OB+4pI6zyv+hW3d0PhKZRQWjHv2Q2PhcBdsZeYb6qWBWaLo31/wFE0cZN1WQ055wwMReWNxcIFggVSrLsaF9lj1feKlm7+7AvLeV03oKOeFWwcwEpEQpcZuiLPShwmz2DNhHM6Uf8MRHd9sc6SlcvX0cwo6iwu19eDSFeCc125FnDFuhmgQQafWRsClDXLAu4onogOB1GKKfD/VzVLm/VZe7CE7fgiGnBFC8EPa3WrUM6Yr+fssrfm35w5NOxI2LLW6k8AF0KY5iWDthA/z3Mdk3YvqqnlJs3s9LXpjhbfptQRPuM+Am50RuDNoqQl7zwJ1mkX03o0/+ql3wI6U3d215hRkcA6oJJ8yckWIhJH7llYDKPn3lkcjCZwtFZXJDVIcxRJMHZmLlRwTPG6b2d+m4pQtHMhCaj5dStlMSx4R5hRZ0cXXv15lT0L3NUj1zZL4SGDsKPT+DX2PRPGJF0ydXHdY8GC5BCjuRESJeIMj9bbl54n9RYHSBx/lAgHxeKfou5Or16lpzWjT3XprA1W1lYcUbkUIxzVsu+Ew1zpJEhPV/sVzV5gYpkHe0Jz3crwmDhsm25UltiFiNUg/Nm+SwcpBn1d6wxNXfLsPCXvRVMrNxaQ+6vmM4ciOvK3gldL39iP3AbQk5MsRSXyiWxcwmU1IvzYpf9Iq4K3Xc5UjDYBj6hQp3v9C473XqrxW4mDUWD6td2H5tDD0Tl3IeJjLNi/S2thAoMDeEeq0n/hrkbCqRGsxpHGlfC2RcZ5JKk4v+ZrOZUMV6mQhfNC57vdb30xuxq8FWd61sGb2xlJoBJSb9N1wi+t/Yf3zbKw6k5ws+KXDFtasyeCGFLpuww31cABW4FaXen0zf8bWBtqBb4bg0PXnDoiscek8Tu94ZVrksCnGplicg/ry4OGe2EmuR34DUb8ql81HwY+X1ujH+vkpPUOpT1gMid4bodv4xo0/prLx9nNWJuxX9mGCR4Bjj0ucML7dGGFtpNtBMoqaWblqwk6XgF6A=="
+      }
+    ],
+    "role": "model"
+  },
+  {
+    "role": "function",
+    "parts": [
+      {
+        "functionResponse": {
+          "name": "get_github_runs",
+          "response": {
+            "result": [
+              {
+                "conclusion": "failure",
+                "databaseId": 22849470399,
+                "headBranch": "feature/provide_granular_request_status_via_api",
+                "name": "CI",
+                "status": "completed",
+                "updatedAt": "2026-03-09T14:23:25Z",
+                "url": "https://github.com/noyes-tech/nys_monorepo/actions/runs/22849470399"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "parts": [
+      {
+        "text": "Hello Adrian,\n\nI've checked for test failures on your open pull request, <b>PR #736: \"feat: unified request progress tracking with granular counters\"</b>, in the <code>noyes-tech/nys_monorepo</code>.\n\nIt looks like there was one CI run that <i>failed</i>.\n• <b>Run ID:</b> <code>22849470399</code>\n• <b>Workflow:</b> CI\n• <b>Status:</b> Completed with failure\n• <b>Last Updated:</b> 2026-03-09 at 2:23 PM UTC\n\nWould you like me to fetch the logs for this failed run so you can review the specific errors?"
+      }
+    ],
+    "role": "model"
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "text": "Yes please"
+      }
+    ]
+  },
+  {
+    "parts": [
+      {
+        "functionCall": {
+          "name": "get_github_failed_run_logs",
+          "args": {
+            "run_id": 22849470399,
+            "repo": "noyes-tech/nys_monorepo"
+          }
+        },
+        "thoughtSignature": "EvAFCu0FAb4+9vutStVJKWO5h/F3PhZnSkNKg5tm4XgRZ+PtJx6aKoIwrhFT2aeunq4iRh6SS+KGSSNFRkzjvk/EVW7lM1kQjVb5gh8i2KzB41PTvoxbvGSZmMP8O7Lt7VMRw115WmJ5b/hSlOf3A0uZOvInZvS/cPYdA4jiSYLnfPAASJ9W6P7Wec3BpZ+aMZ9QIcKsNKWWACLyqCSSwtAxmpNAm6w6ZHwl/XpbHQSg6UsgrdZykdbyeSXMQDLFG6ZtmOClyDIiU9TtQG9XkRxasGz2s5wf2ouo8AxWvaTn7E8YPYYXt5Y+M1201eS2RiGzmpOapRcAd8kmuWyIqnJqGsJXz9RUweC95LwMRpZCYtvk5IOmYkW9HLkxBv7pZra4TZmsnTnZtYRCrd17ZtFZY/VgsIA1voUAm72ZuJvyXOfjnY9Ix3QDt443KLfwiR2el4MP+2QNi2lmHv8HiDj0J8QYH45qQ+DQdE6BgyLprpesQuN02x558cfyc4uBO/QlVGdiKTBDmGIdoffw/0tjWFtWSFIVErU7bwwuEIEwmThSf4tWfAyvSWJh857VENsz6thuKhHAXmvOR3bkniKVFf6aPSCEcQINJZqgM8nXxjPYYFH9+2g7qKdcJdg6mq2EH+gvMQ+9BoqSTK4uJfGKCC2gqX1QEmtuc04OjMeJrK5d4r8BgQotzqyz7kAI73lPhbZ0Gu7sujXBHVpK4lA4Bn5x8ec/XWr1Tr24tlF5p7i4izT+FyypxWAkL3+yLpdaxxmgWVNVIITbfw3Fkj1mhs+koiv0m6YN4kXsxvFZyEHp1XhnTuZ65AGOGLxYCqPfOsCC2M3F8lrDOP3/HwcmC3pbIIV1k9hoyazFLKVMvfaeiYeBSSvMVkdk7lvjIW0eelvR8Px3xypjHJ5lFx7G8prgnn8HKjXUBO00ZxKWO13VfcwJpDezPhlTbDz9puMX1DLkQTxIjgtI2MF395XIQhlsCWPwuhnDGxCpHvJLtjo="
+      }
+    ],
+    "role": "model"
+  },
+  {
+    "role": "function",
+    "parts": [
+      {
+        "functionResponse": {
+          "name": "get_github_failed_run_logs",
+          "response": {
+            "result": {
+              "error": "GitHub CLI Error",
+              "details": "spawnSync /bin/sh ENOBUFS"
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "parts": [
+      {
+        "text": "Adrian, I attempted to fetch the logs for the failed run, but I received a system error (<code>ENOBUFS</code>) because the log output is exceptionally large and exceeded the buffer limit.\n\nThe good news is you can view the complete logs directly on GitHub by visiting this link:\n• <b>Direct URL:</b> <a href=\"https://github.com/noyes-tech/nys_monorepo/actions/runs/22849470399\">Failed CI Run Logs</a>\n\nWould you like me to add a task to your to-do list to remind you to review these test failures and fix the PR later today?",
+        "thoughtSignature": "EtAICs0IAb4+9vtCVKWPqi/o+WxxIMkWHl1EUU3JlLAzwf8wULQKM3rYK4F8nbBfCMakZulIZBWLWlekL3S7mXvhSz9eLKYBNhViCZlbgGHViF9uZJHBcV/ox78tlM0/DWHMErXwKQnfMiu3h0KkgDn3nYu0QD3n03rECb32Ruki6BeGJuYnqXMVuWpGCUIknxU2tNG18s8mLy2yfBBVP6A7w8sX+8jFIKv8gtxRxtuBCRe2wArbSdlb9Z2zuUgmBbhKVsvRPd6CoQjfUjlTiNH4YJR9Q+CqP5snxoH/LCBIwG0GgIwEFL5ej50rOdBKSjNrvVdN5ZvlOjUCLag0iInMF/ftZ7/sWue0tW46bT/cchmCPW05Npt8h7wJs9lAvDoW01WrfKOsgufyZYrOUFt9JR53S2yNCKWvf63JyOY/9mEGBcfaob7uQBfEP9kUR2WyO4NbMQgu2FHWtn6UIjwgkaGvVQGibk1kOAF1rBolmlpW31LUIKkJDjHtAja/PMjDO/V1AxhjltqAOXzT0K5emHul9MlbS5tU1MhH3swuzpTSqmGMaR3J3QHKwQUSg7llpPj9VVe+MTJvKgbUgpNcnwzLm/bBgINsAMcpDcoyELHeY71CiC3bqAT2q0EvM8gGzoBEqH6JVOIY4Yj/tJT2ECeKMjFUThCFV02OZXCXiRHUKmRhpvyHv0Crc7yKjy39venXq8E/1fQvuoRORmZ/GI7EdDauTkwG5veRiNlwvkzVYzRqXy+eM4qfHh1u+eqarCpjQH4IERCWeUVgmjv3kDwQKzHuMgHiARyXMndzgBPF7uBX9I94rR74I1rE1PPnTB2lKsfm1q/NJlZjh24Cf3e1Vykq3qUZCL+MA2ezZlwHZwFpy5RMdSojmvpj0m0hlZXThZjqHT7ugWktqQ30CRaclOadvWB9j33YJT5Ca1XHAX5mLO57GMrMFH+b6RAZY4Gm3cwo9FXXoAzrp2NePtEUbBRGjAQbkQuMGgYrlcTXqTNufZOEn7afx4/5wkTcFrsPeArMezkB+ueBORptLHUWB05tIdSUIah83cBY1tvu7zSw6LTEhtXjVNPvT9TQUEuUaUHaab2mk9+M1xk40BXj5CeHbmlk5A+x99YMCqsPCBg+XQTMEFkdDO8HAvW08Ho0BawMjeM/rXul1/5fnr//53nFMaVizPEu/qBeAE/0BfYla/Jxffqz4A3ovgguT63HVAhjF6pC43ym/iA9wvXgRp8tlCL3HVA0a3/0h9UH8RZMnNs6HPwU/FeZbYMTKTKRnBDxwrisgDIdZ1eOwafwf7JFoxohfj0vTBwzVpQGK1ihX6rXxtvl0Vsi7dywFNIzVjmQxC6+K6GU0PWB5ml/y2qblHckz1f/ClM66jpwlu46ZZ0vIh0/is0VJlkdoYSm4r4CSZ873DoaBdzptFS6npkxYvml4mAnWSurKqEuOz/DtiiYtH2i9VBDVgdR"
+      }
+    ],
+    "role": "model"
+  },
+  {
+    "role": "user",
+    "parts": [
+      {
+        "text": "Just check the last 100 lines of it"
+      }
+    ]
+  },
+  {
+    "parts": [
+      {
+        "text": "Unfortunately, because of the way the system retrieves the logs, the command itself is crashing before I even get the chance to read the text and filter it down to the last 100 lines. The sheer size of the output is overwhelming the system buffer (`ENOBUFS`).\n\nTo see the exact errors, you'll need to check the logs directly on GitHub using the link:\n• <b><a href=\"https://github.com/noyes-tech/nys_monorepo/actions/runs/22849470399\">Failed CI Run Logs</a></b>\n\nWould you like me to add a task to your project board so you don't forget to look into these test failures?",
+        "thoughtSignature": "EtoKCtcKAb4+9vtNhXHySvyude6/75AIAhNRGAOzw8su0cyvmqHJtg1B1E3nVKgktAA0xUM0RB86pygz8Km8r6IGl0igdRSN+RAOk2B8ZmergDlbkOcnkEyXNTMrz3yJVCyVVhwXwi+CK3a2JGlGA2e/s+FF1nJf7sHXZlwohBZlHg17dQlH6Y/iGGaLvZnSh6DDK+pVpp0gaavehGYIfR4ePFNJFmliFyIF5ryIc7CVtIj9mZdwIsS5LCThb7i/x0zF3H8Hts8vLtSxB0awXVUTbQeFDAMSPjJxHwuiMa9LIzLlo5Mz+t5Ox9yWJ29oi7K3bX3NTJUQu63voUIxcFYS9yVsnxP762Nd+M6Zyx01uVtlVd9ZZPj6useDCEJSpZEssw0vvSn9CPoLXx/1EsyfayOpDdNJoJpIYY+PPmMI/8HzRdiiO2g04ZSRIiTpq5g/XBLt12twoquosP9edFTzhRp0TZ3uEMC27Ko2LEParZVtFdSuchUbBQVZYblQHVpbwAWeYkKZZIKGR2zfwgUHGhbBE42XulxG64pTh6msID3+zjQpXVf64w9hjauhsEkB0x5sbcXmK6Ni8wehn6stffrjhjhMEZyYC93Kv13fnRgG/0KfCww9Fd1epjMWnK+hHiLT1eQ9kEISlbibIrEOVa4f0IxVInhEI1Oye6ZHMaRMMXwux4Ruh+KDqVnz4BCqXEpMlmUEu465es2E/JEzZ8JV+PY88cOEt5MNCUeVeqVnXwy5lvReSIV6jO8hcV+jkF7Iok/yunhnDhfbwa3ZD5bB2od9+OAdnBmfU6ZTHVJ18wCAr/b7VKwBdwH7eHRn27aZuzzqnI6GBCYugOidBeunhGpL4OsV0KBpkdFAJ3TkMaVzbZ2DG7g6bgPaQOG6V3KLPGLzg0ygIBB3jxnHULQM4e2qXWaz3az+sZ+g5yB4+/okDL49Eoz2/e2vvMZUmXoP5Q/p7RXQcCkUFjyiMUA3zibrHHPFCrNl/QmDiYPIwIZgpzF56qog6cjH5CsbtI93lze690/ZNr6ZMnClxP4eYQjIaJ2tlb2GrHP6AG/VoJVdq2q09FIILLyjyRvBzXmAU5RKbEKYQeNOg5w2om2efxRXYB7Tx7L+VbuCGFMqT3b907p5KiBN+r4bfOz6QGmHXbhenHHiGr+sAOR1+gM2QQZ60GsyMufov0gGN/5BnInJMAhtUYWaQhbbTYRG/bVOxsCz71P5FgFc3ZK4qeY53T09+uF4u8etO2jtvjdfFOv9cnnwkAZ4moLAk5X6mePfeQnB59BQzAJXoGhqooR1yyevNqXeEO8oOw56UctgG0J3bFvgTE1FPbLNbGA9OAtwFulz+DSln9wqu45mZPxpTD0Y9opT41ot8Q6y+C8RHsXjLtIj5qxd69Ye/AghJjwUStcGTWkihA/zu8yMuFEs7mRmR1uvnzui1ZPIomDFpqIOZw40I/nqm8dD6G/2c/co7COaHqcoifbRFLEcf1IYBtPC+tNZzkWJr5LNYlJEvICgGxwbOIXwISo5BPBGLKX/zKziFuqCdvrsAwue5RynRl6WEwPl/GrxYtrFAdR3TH0mEZzS/RUZMfXdtvB9VP7ryv+n7eonEEEVUZ7kyLMj6zGUEKlDg0BJE+MAsyUESb4V09zIFq5V/lHTEKUrePxwN/BQuK0fqF9l8bBu5KHuLu3dPX1mgGRUL6WxuE4c0tWCmHYL02zRh0kntUx/Fwa5f0U8xyIh9iwI6jReYulxaqthzz/Zr2PKTHfeFH1U0SJLOFQq0JTHiG6iEo2hSuTqo6s15P2yi3CbHRIzPNhngEy2hNDHGuo="
+      }
+    ],
+    "role": "model"
+  }
+]
