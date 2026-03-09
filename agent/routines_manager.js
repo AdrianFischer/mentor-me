@@ -131,6 +131,23 @@ export class RoutinesManager {
   }
 
 
+
+  _readLastBytes(filePath, bytes) {
+    try {
+      const stats = fs.statSync(filePath);
+      const size = stats.size;
+      const readSize = Math.min(size, bytes);
+      const buffer = Buffer.alloc(readSize);
+      const fd = fs.openSync(filePath, 'r');
+      fs.readSync(fd, buffer, 0, readSize, size - readSize);
+      fs.closeSync(fd);
+      return buffer.toString('utf-8');
+    } catch (e) {
+      logger.error('Error reading file tail', e);
+      return 'Error reading log tail.';
+    }
+  }
+
   _getActiveTasksAndLogs(args) {
     try {
       const activeTasksFile = path.join(this.logsDir, 'active_tasks.json');
@@ -144,9 +161,9 @@ export class RoutinesManager {
       for (const [taskId, taskInfo] of Object.entries(activeTasks)) {
         let tailLog = 'No log available yet.';
         if (taskInfo.log_file && fs.existsSync(taskInfo.log_file)) {
-          // Read the last 1500 chars roughly (~50 lines) to prevent massive payloads
-          const logContent = fs.readFileSync(taskInfo.log_file, 'utf-8');
-          tailLog = logContent.length > 2000 ? '...' + logContent.substring(logContent.length - 2000) : logContent;
+          // Efficiently read only the last 2000 bytes
+          tailLog = this._readLastBytes(taskInfo.log_file, 2000);
+          if (tailLog.length === 2000) tailLog = '...' + tailLog;
         }
         
         taskDetails.push({
@@ -186,11 +203,11 @@ export class RoutinesManager {
       }
 
       const fileToRead = logsList[0]; // Most recent
-      const logContent = fs.readFileSync(path.join(this.logsDir, fileToRead), 'utf-8');
+      const filePath = path.join(this.logsDir, fileToRead);
       
-      const lines = args.lines || 50;
-      const logLines = logContent.split('\n');
-      const tail = logLines.slice(-lines).join('\n');
+      // Efficiently read only the last 5000 bytes (roughly 50-100 lines)
+      let tail = this._readLastBytes(filePath, 5000);
+      if (tail.length === 5000) tail = '...' + tail;
 
       return { 
         result: 'success', 
