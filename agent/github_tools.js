@@ -11,6 +11,7 @@ export class GithubTools {
         inputSchema: { 
           type: 'object', 
           properties: {
+            repo: { type: 'string', description: 'Optional repository name (e.g. noyes-tech/nys_monorepo). Defaults to local repo if omitted.' },
             limit: { type: 'number', description: 'Number of PRs/branches to fetch (default 10).' }
           }
         }
@@ -21,6 +22,7 @@ export class GithubTools {
         inputSchema: {
           type: 'object',
           properties: {
+            repo: { type: 'string', description: 'Optional repository name (e.g. noyes-tech/nys_monorepo). Defaults to local repo if omitted.' },
             pr_number: { type: 'number', description: 'The PR number to fetch comments for.' }
           },
           required: ['pr_number']
@@ -32,6 +34,7 @@ export class GithubTools {
         inputSchema: {
           type: 'object',
           properties: {
+            repo: { type: 'string', description: 'Optional repository name (e.g. noyes-tech/nys_monorepo). Defaults to local repo if omitted.' },
             limit: { type: 'number', description: 'Number of runs to fetch (default 10).' }
           }
         }
@@ -65,16 +68,19 @@ export class GithubTools {
 
   _getBranches(args) {
     const limit = args.limit || 10;
-    return this._runGhCommand('gh pr list --state all --json number,title,headRefName,updatedAt,state,author --limit ' + limit);
+    const repoFlag = args.repo ? ` -R ${args.repo}` : '';
+    return this._runGhCommand('gh pr list' + repoFlag + ' --state all --json number,title,headRefName,updatedAt,state,author --limit ' + limit);
   }
 
   _getPrComments(args) {
     if (!args.pr_number) return { error: 'pr_number is required' };
-    return this._runGhCommand('gh pr view ' + args.pr_number + ' --comments --json comments');
+    const repoFlag = args.repo ? ` -R ${args.repo}` : '';
+    return this._runGhCommand('gh pr view ' + args.pr_number + repoFlag + ' --comments --json comments');
   }
 
   _getRuns(args) {
     const limit = args.limit || 10;
-    return this._runGhCommand('gh run list --json name,status,conclusion,updatedAt,url,headBranch --limit ' + limit);
+    const repoFlag = args.repo ? ` -R ${args.repo}` : '';
+    return this._runGhCommand('gh run list' + repoFlag + ' --json name,status,conclusion,updatedAt,url,headBranch --limit ' + limit);
   }
 }
