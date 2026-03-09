@@ -126,5 +126,11 @@ flutter test
     4.  **Telemetry:** Every execution captures token usage metadata into `logs/routines/telemetry.json` for auditability.
     5.  **Timeout:** Mandatory `timeout` (seconds) per routine to prevent zombie processes.
     *   **Management:** Native Brain tools (`list_routines`, `update_routine`, `delete_routine`) allow managing schedules and "learning" context from Telegram.
+    *   **Modular Brain Architecture:** The `AgentBrain` should delegate non-core AI logic (like routine file management) to specialized managers (e.g., `RoutinesManager`). This keeps the AI loop clean and improves testability by decoupling the LLM processing from side-effect heavy file operations.
     *   **Robust Routine Parsing:** Subprocess-based routines (Watchdog) often emit noisy CLI output (e.g., [dotenv] injection notices). The `RoutineRunner` must use a robust JSON extractor that handles leading/trailing noise and sums `total_tokens` across multiple model responses (e.g., when a tool call and a summary turn both consume tokens). An independent test harness (`agent/test_runner.js`) should be used to verify this parsing logic without the overhead of a full bot session.
+*   **Sync Stability (Flutter File System):**
+    1.  **Loop Prevention:** Time-based loop prevention in file watchers (e.g., ignoring events within 2s of a local write) must be applied *after* initial filtering (e.g., file extension) but *before* expensive debounce aggregation to ensure internal writes don't trigger unnecessary reloads.
+    2.  **Renaming Resilience:** When an item's title changes (causing a file rename in a file-first system), the persistence layer must explicitly delete the old file by ID before writing the new one. Simply overwriting causes orphaned files and data duplication.
+    3.  **Network Resilience:** Cloud-based repositories (Firebase) should implement exponential backoff retry wrappers for all GET/SET operations to handle transient connectivity issues gracefully.
+*   **Project Completion State:** The "isCompleted" flag should be explicitly modeled at the `Project` level, not just for tasks. This requires updating the Markdown frontmatter parser/generator, the `ProjectService` mutation logic (mapping project IDs to the correct branch in `setItemStatus`), and the UI filter providers to ensure completed projects can be toggled/hidden correctly.
 
