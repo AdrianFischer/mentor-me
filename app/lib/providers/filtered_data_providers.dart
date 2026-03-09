@@ -4,13 +4,15 @@ import '../models/models.dart';
 import 'data_provider.dart';
 
 class TaskFilterState {
+  final bool showCompletedProjects;
   final bool showCompletedTasks;
   final bool showCompletedSubtasks;
   
-  TaskFilterState({this.showCompletedTasks = true, this.showCompletedSubtasks = true});
+  TaskFilterState({this.showCompletedProjects = true, this.showCompletedTasks = true, this.showCompletedSubtasks = true});
   
-  TaskFilterState copyWith({bool? showCompletedTasks, bool? showCompletedSubtasks}) {
+  TaskFilterState copyWith({bool? showCompletedProjects, bool? showCompletedTasks, bool? showCompletedSubtasks}) {
     return TaskFilterState(
+      showCompletedProjects: showCompletedProjects ?? this.showCompletedProjects,
       showCompletedTasks: showCompletedTasks ?? this.showCompletedTasks,
       showCompletedSubtasks: showCompletedSubtasks ?? this.showCompletedSubtasks,
     );
@@ -20,6 +22,7 @@ class TaskFilterState {
 class TaskFilterNotifier extends StateNotifier<TaskFilterState> {
   TaskFilterNotifier() : super(TaskFilterState());
   
+  void toggleProjects() => state = state.copyWith(showCompletedProjects: !state.showCompletedProjects);
   void toggleTasks() => state = state.copyWith(showCompletedTasks: !state.showCompletedTasks);
   void toggleSubtasks() => state = state.copyWith(showCompletedSubtasks: !state.showCompletedSubtasks);
 }
@@ -29,7 +32,13 @@ final taskFilterProvider = StateNotifierProvider<TaskFilterNotifier, TaskFilterS
 /// Provider for filtered projects
 final filteredProjectsProvider = Provider<List<Project>>((ref) {
   final projects = ref.watch(dataServiceProvider.select((ds) => ds.projects));
-  return projects;
+  final showCompleted = ref.watch(taskFilterProvider.select((s) => s.showCompletedProjects));
+
+  if (showCompleted) {
+    return projects;
+  } else {
+    return projects.where((p) => !p.isCompleted).toList();
+  }
 });
 
 /// Provider for tasks of a specific project, filtered by completion status

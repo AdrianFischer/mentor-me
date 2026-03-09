@@ -23,6 +23,7 @@ class ProjectColumn extends ConsumerWidget {
     final selectionState = ref.watch(selectionProvider);
     final projects = ref.watch(filteredProjectsProvider);
     final dataService = ref.watch(dataServiceProvider);
+    final showCompleted = ref.watch(taskFilterProvider.select((s) => s.showCompletedProjects));
 
     // Resolve selection index
     int? pIndex;
@@ -37,6 +38,8 @@ class ProjectColumn extends ConsumerWidget {
       backgroundColor: const Color(0xFFF5F5F7),
       selectedIndex: selectionState.isAssistantActive ? null : pIndex,
       isActiveColumn: selectionState.focusedColumnIndex == 0,
+      showCompleted: showCompleted,
+      onToggleShowCompleted: () => ref.read(taskFilterProvider.notifier).toggleProjects(),
       header: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -44,12 +47,15 @@ class ProjectColumn extends ConsumerWidget {
           _TagsList(),
         ],
       ),
-      items: projects.map((p) => EditableItem(id: p.id, text: p.title, notes: p.notes)).toList(),
+      items: projects.map((p) => EditableItem(id: p.id, text: p.title, notes: p.notes, isCompleted: p.isCompleted)).toList(),
       editingItemId: selectionState.editingItemId,
       onNotesUpdate: (index, val) {
         dataService.updateNotes(projects[index].id, val);
       },
       onExitEdit: () => Actions.invoke(context, const StopEditIntent()),
+      onCheckChanged: (index, isChecked) {
+        dataService.setItemStatus(projects[index].id, isChecked);
+      },
       onItemSelected: (index) {
         ref.read(selectionProvider.notifier).selectProject(projects[index].id);
         if (isMobile) {

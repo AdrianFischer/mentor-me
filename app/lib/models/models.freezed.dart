@@ -1558,6 +1558,7 @@ Project _$ProjectFromJson(Map<String, dynamic> json) {
 mixin _$Project {
   String get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
+  bool get isCompleted => throw _privateConstructorUsedError;
   List<Task> get tasks => throw _privateConstructorUsedError;
   double get order => throw _privateConstructorUsedError;
   List<String> get tags => throw _privateConstructorUsedError;
@@ -1576,6 +1577,7 @@ abstract class $ProjectCopyWith<$Res> {
   $Res call(
       {String id,
       String title,
+      bool isCompleted,
       List<Task> tasks,
       double order,
       List<String> tags,
@@ -1597,6 +1599,7 @@ class _$ProjectCopyWithImpl<$Res, $Val extends Project>
   $Res call({
     Object? id = null,
     Object? title = null,
+    Object? isCompleted = null,
     Object? tasks = null,
     Object? order = null,
     Object? tags = null,
@@ -1611,6 +1614,10 @@ class _$ProjectCopyWithImpl<$Res, $Val extends Project>
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String,
+      isCompleted: null == isCompleted
+          ? _value.isCompleted
+          : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
       tasks: null == tasks
           ? _value.tasks
           : tasks // ignore: cast_nullable_to_non_nullable
@@ -1641,6 +1648,7 @@ abstract class _$$ProjectImplCopyWith<$Res> implements $ProjectCopyWith<$Res> {
   $Res call(
       {String id,
       String title,
+      bool isCompleted,
       List<Task> tasks,
       double order,
       List<String> tags,
@@ -1660,6 +1668,7 @@ class __$$ProjectImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? title = null,
+    Object? isCompleted = null,
     Object? tasks = null,
     Object? order = null,
     Object? tags = null,
@@ -1674,6 +1683,10 @@ class __$$ProjectImplCopyWithImpl<$Res>
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String,
+      isCompleted: null == isCompleted
+          ? _value.isCompleted
+          : isCompleted // ignore: cast_nullable_to_non_nullable
+              as bool,
       tasks: null == tasks
           ? _value._tasks
           : tasks // ignore: cast_nullable_to_non_nullable
@@ -1700,6 +1713,7 @@ class _$ProjectImpl implements _Project {
   const _$ProjectImpl(
       {required this.id,
       required this.title,
+      this.isCompleted = false,
       final List<Task> tasks = const [],
       this.order = 0.0,
       final List<String> tags = const [],
@@ -1714,6 +1728,9 @@ class _$ProjectImpl implements _Project {
   final String id;
   @override
   final String title;
+  @override
+  @JsonKey()
+  final bool isCompleted;
   final List<Task> _tasks;
   @override
   @JsonKey()
@@ -1740,7 +1757,7 @@ class _$ProjectImpl implements _Project {
 
   @override
   String toString() {
-    return 'Project(id: $id, title: $title, tasks: $tasks, order: $order, tags: $tags, notes: $notes)';
+    return 'Project(id: $id, title: $title, isCompleted: $isCompleted, tasks: $tasks, order: $order, tags: $tags, notes: $notes)';
   }
 
   @override
@@ -1750,6 +1767,8 @@ class _$ProjectImpl implements _Project {
             other is _$ProjectImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.title, title) || other.title == title) &&
+            (identical(other.isCompleted, isCompleted) ||
+                other.isCompleted == isCompleted) &&
             const DeepCollectionEquality().equals(other._tasks, _tasks) &&
             (identical(other.order, order) || other.order == order) &&
             const DeepCollectionEquality().equals(other._tags, _tags) &&
@@ -1762,6 +1781,7 @@ class _$ProjectImpl implements _Project {
       runtimeType,
       id,
       title,
+      isCompleted,
       const DeepCollectionEquality().hash(_tasks),
       order,
       const DeepCollectionEquality().hash(_tags),
@@ -1785,6 +1805,7 @@ abstract class _Project implements Project {
   const factory _Project(
       {required final String id,
       required final String title,
+      final bool isCompleted,
       final List<Task> tasks,
       final double order,
       final List<String> tags,
@@ -1796,6 +1817,8 @@ abstract class _Project implements Project {
   String get id;
   @override
   String get title;
+  @override
+  bool get isCompleted;
   @override
   List<Task> get tasks;
   @override

@@ -346,7 +346,12 @@ class ProjectService extends ChangeNotifier {
     if (pathInfo == null) return;
     final project = _projects[pathInfo.projectIndex];
 
-    if (pathInfo.isTask) {
+    if (pathInfo.isProject) {
+      final newProject = project.copyWith(isCompleted: isCompleted);
+      _projects = List<Project>.from(_projects)..[pathInfo.projectIndex] = newProject;
+      notifyListeners();
+      _repository.saveProject(newProject);
+    } else if (pathInfo.isTask) {
       final task = project.tasks[pathInfo.taskIndex!];
       final newTask = task.copyWith(isCompleted: isCompleted);
       final newTasks = List<Task>.from(project.tasks)..[pathInfo.taskIndex!] = newTask;

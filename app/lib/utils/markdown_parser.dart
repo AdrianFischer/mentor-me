@@ -153,9 +153,12 @@ class MarkdownParser {
 
     // 3. Construct Project
     final projectId = frontmatter['id']?.toString() ?? _uuid.v4();
+    final isCompleted = frontmatter['is_completed'] == true || frontmatter['isCompleted'] == true;
+
     return Project(
       id: projectId,
       title: title,
+      isCompleted: isCompleted,
       tags: (frontmatter['tags'] as List?)?.map((e) => e.toString()).toList() ?? [],
       notes: projectNotesBuffer.isNotEmpty ? projectNotesBuffer.toString().trim() : null,
       tasks: mutableTasks.map((t) => t.toTask(projectId)).toList(),
@@ -171,6 +174,9 @@ class MarkdownParser {
       // Handle list formatting manually or trust toString? 
       // [tag1, tag2] is valid flow YAML
       buffer.writeln('tags: [${project.tags.join(', ')}]\n');
+    }
+    if (project.isCompleted) {
+      buffer.writeln('is_completed: true\n');
     }
     buffer.writeln('version: 1\n'); 
     buffer.writeln('---\n');

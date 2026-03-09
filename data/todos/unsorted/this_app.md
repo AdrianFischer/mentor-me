@@ -27,3 +27,6 @@ version: 1
   - [x] 3. Refactor AgentBrain to Delegate (_gatherTools and _executeTool) <!-- id: 4e30fc02-3025-4e15-928b-e1f37ff93902 -->
   - [x] 4. Remove Test Artifacts (delete processInput, mock gemini service) <!-- id: 1e2caecd-40f6-4da1-9945-0e8146bb2a5c -->
 
+- [x] Fix Flutter app state sync for completed projects <!-- id: a3b56e9c-d4c3-4a92-90e3-2709f64d03f8 -->
+  **Problem Description:**\nProjects marked as completed on the backend are not updating to reflect their completed status in the Flutter app UI.\n\n**Current State:**\n- There is no manual pull-to-refresh implemented.\n- There is no real-time synchronization or local cache invalidation occurring when a project's `is_completed` status changes via the API.\n\n**Agent Action Required:**\n- Investigate the local caching and state management logic in the Flutter app.\n- Implement a reliable mechanism (such as WebSockets, polling, or proper local state invalidation) to ensure UI updates seamlessly when projects are completed.\n- Add manual refresh capabilities if appropriate.
+
