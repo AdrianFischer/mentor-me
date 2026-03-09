@@ -54,18 +54,20 @@ class FileSystemService implements FilePersistenceService {
     final fileName = _generateFileName(project.title);
     final filePath = '$_baseDir/todos/$category/$fileName.md';
     
-    // Normalize path for consistency
-    final normalizedPath = File(filePath).absolute.path;
-    _recentInternalWrites[normalizedPath] = DateTime.now();
-
     final file = File(filePath);
+    final normalizedPath = file.absolute.path;
 
-    // TODO: Handle renaming (if title changed, old file needs deletion)
-    // For now, we assume simple overwrite or we need to track old paths.
-    // In "File-First", the file name IS the identity in a way, but we have internal ID.
-    // Ideally we find the old file by ID and delete it if path is different.
+    // Handle renaming (if title changed, old file needs deletion)
+    final oldFile = await _findFileByProjectId(project.id);
+    if (oldFile != null && oldFile.absolute.path != normalizedPath) {
+      _recentInternalWrites[oldFile.absolute.path] = DateTime.now();
+      if (await oldFile.exists()) {
+        await oldFile.delete();
+      }
+    }
+
+    _recentInternalWrites[normalizedPath] = DateTime.now();
     
-    // Simple approach for now:
     await _ensureDirectory(file.parent);
     
     final markdown = MarkdownParser.toMarkdown(project);
@@ -78,7 +80,8 @@ class FileSystemService implements FilePersistenceService {
     
     // Find file by ID
     final file = await _findFileByProjectId(projectId);
-    if (file != null) {
+    if (file != null && await file.exists()) {
+      _recentInternalWrites[file.absolute.path] = DateTime.now();
       await file.delete();
     }
   }
@@ -90,37 +93,25 @@ class FileSystemService implements FilePersistenceService {
     final dir = Directory('$_baseDir/todos');
     if (!dir.existsSync()) dir.createSync(recursive: true);
 
-    // We can emit the full list on every change, or diffs.
-    // The interface returns Stream<List<Project>>.
-    // This implies we reload ALL projects on change? That's heavy.
-    // Maybe the interface should be Stream<ProjectChange>?
-    // But for now, let's stick to the interface or just trigger a reload signal.
-    
-    // Actually, FilePersistenceService interface I defined:
-    // Stream<List<Project>> watchProjects();
-    
-    // Implementing a full reload on every event:
     return dir.watch(recursive: true)
-      .transform(_debounce(const Duration(milliseconds: 200)))
-      .asyncMap((event) async {
-      if (event.path.endsWith('.md')) {
+      .where((event) {
+         if (!event.path.endsWith('.md')) return false;
          final absolutePath = File(event.path).absolute.path;
          final lastWrite = _recentInternalWrites[absolutePath];
          
          if (lastWrite != null) {
             final difference = DateTime.now().difference(lastWrite);
             if (difference.inSeconds < 2) {
-               print("[DEBUG] FileSystemService: Ignoring internal write event for $absolutePath (diff: ${difference.inMilliseconds}ms)");
-               return <Project>[];
+               return false; // Ignore internal write
             }
          }
-
-         print("[DEBUG] FileSystemService: External change detected for ${event.path}. Reloading...");
-         final projects = await loadAllProjects();
-         return projects;
-      }
-      return <Project>[]; 
-    }).where((list) => list.isNotEmpty);
+         return true;
+      })
+      .transform(_debounce(const Duration(milliseconds: 500)))
+      .asyncMap((_) async {
+         print("[DEBUG] FileSystemService: External change detected. Reloading...");
+         return await loadAllProjects();
+      });
   }
 
   // Simple debounce transformer

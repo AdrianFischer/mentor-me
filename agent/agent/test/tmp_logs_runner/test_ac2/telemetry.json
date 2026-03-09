@@ -23,5 +23,20 @@
     "routine": "Test Routine",
     "timestamp": "2026-03-08T12:40:44.425Z",
     "total_tokens": 0
+  },
+  {
+    "routine": "Test Routine",
+    "timestamp": "2026-03-09T09:00:12.385Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "Test Routine",
+    "timestamp": "2026-03-09T09:02:43.129Z",
+    "total_tokens": 0
+  },
+  {
+    "routine": "Test Routine",
+    "timestamp": "2026-03-09T09:04:46.697Z",
+    "total_tokens": 0
   }
 ]

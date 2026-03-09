@@ -15,7 +15,7 @@ version: 1
 - [x] Persist last execution time for routines <!-- id: d00e1b07-512e-4fe3-be76-5c17cbf985d4 -->
   Note down in the routine when it was executed last. This ensures that restarting the agent doesn't automatically trigger all routines, but only those that are due for execution based on their schedule.
 
-- [ ] Improve Flutter app sync stability <!-- id: df3ef8d8-bac3-4eee-8808-90b0bd096a3a -->
+- [x] Improve Flutter app sync stability <!-- id: df3ef8d8-bac3-4eee-8808-90b0bd096a3a -->
 
 - [x] Refactor AgentBrain (agent/agent.js) for modularity <!-- id: 2129ced0-d590-435d-9354-efcf5c31d2bf -->
   **WHY it should be refactored:**
