@@ -163,18 +163,5 @@ export class GithubTools {
       return tail;
     }
     return logs;
-  };
-    const repoFlag = args.repo ? ` -R ${args.repo}` : '';
-    
-    const logs = this._runGhCommandRaw('gh run view ' + args.run_id + repoFlag + ' --log-failed');
-    
-    if (typeof logs === 'string') {
-      const maxLength = 50000;
-      if (logs.length > maxLength) {
-        return `...[Logs truncated. Showing last ${maxLength} chars]...
-` + logs.substring(logs.length - maxLength);
-      }
-    }
-    return logs;
   }
 }

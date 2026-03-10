@@ -16,6 +16,27 @@ export class RoutinesManager {
 
   getTools() {
     return [
+
+      {
+        name: 'pause_routines',
+        description: 'Pauses all background autonomous routines from running (e.g., when the user goes to sleep or asks to pause).',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            reason: { type: 'string', description: 'Optional reason for pausing.' }
+          }
+        }
+      },
+      {
+        name: 'resume_routines',
+        description: 'Resumes all background autonomous routines if they were previously paused.',
+        inputSchema: { type: 'object', properties: {} }
+      },
+      {
+        name: 'get_routines_status',
+        description: 'Checks whether background routines are currently paused or running.',
+        inputSchema: { type: 'object', properties: {} }
+      },
       {
         name: 'list_routines',
         description: 'Lists all currently configured autonomous routines and their schedules.',
@@ -79,7 +100,14 @@ export class RoutinesManager {
       return this._deleteRoutine(call.args);
     } else if (call.name === 'get_active_tasks_and_logs') {
       return this._getActiveTasksAndLogs(call.args);
-    } else if (call.name === 'get_recent_routine_logs') {
+    
+    } else if (call.name === 'pause_routines') {
+      return this._pauseRoutines(call.args);
+    } else if (call.name === 'resume_routines') {
+      return this._resumeRoutines(call.args);
+    } else if (call.name === 'get_routines_status') {
+      return this._getRoutinesStatus(call.args);
+} else if (call.name === 'get_recent_routine_logs') {
       return this._getRecentRoutineLogs(call.args);
     }
     throw new Error(`Unknown tool: ${call.name}`);
@@ -132,7 +160,47 @@ export class RoutinesManager {
 
 
 
+  
+  _pauseRoutines(args) {
+    try {
+      const stateFile = path.join(this.logsDir, 'watchdog_state.json');
+      const state = { paused: true, reason: args.reason || 'Manual pause', timestamp: new Date().toISOString() };
+      fs.writeFileSync(stateFile, JSON.stringify(state, null, 2));
+      return { result: 'success', message: 'Background routines have been paused.' };
+    } catch (e) {
+      return { result: 'error', message: e.message };
+    }
+  }
+
+  _resumeRoutines(args) {
+    try {
+      const stateFile = path.join(this.logsDir, 'watchdog_state.json');
+      if (fs.existsSync(stateFile)) {
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+        state.paused = false;
+        state.resumed_at = new Date().toISOString();
+        fs.writeFileSync(stateFile, JSON.stringify(state, null, 2));
+      }
+      return { result: 'success', message: 'Background routines have been resumed.' };
+    } catch (e) {
+      return { result: 'error', message: e.message };
+    }
+  }
+
+  _getRoutinesStatus(args) {
+    try {
+      const stateFile = path.join(this.logsDir, 'watchdog_state.json');
+      if (fs.existsSync(stateFile)) {
+        return { result: 'success', state: JSON.parse(fs.readFileSync(stateFile, 'utf8')) };
+      }
+      return { result: 'success', state: { paused: false } };
+    } catch (e) {
+      return { result: 'error', message: e.message };
+    }
+  }
+
   _readLastBytes(filePath, bytes) {
+
     try {
       const stats = fs.statSync(filePath);
       const size = stats.size;

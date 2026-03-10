@@ -50,9 +50,24 @@ export class Watchdog {
   /**
    * Single tick logic: scan routines and trigger if due.
    */
+  
   async tick() {
     try {
+      const stateFile = path.join(this.logsDir, 'watchdog_state.json');
+      if (fs.existsSync(stateFile)) {
+        try {
+          const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+          if (state.paused) {
+             // Silently skip if paused
+             return;
+          }
+        } catch (e) {
+          logger.error('Failed to parse watchdog_state.json', e);
+        }
+      }
+
       const files = fs.readdirSync(this.routinesDir).filter(f => f.endsWith('.yaml') || f.endsWith('.json'));
+
       const now = Date.now();
 
       for (const file of files) {

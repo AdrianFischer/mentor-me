@@ -7,7 +7,7 @@ describe('4. Gemini AI Integration', () => {
     expect(gemini.modelName).toBe('gemini-3.1-pro-preview'); // Default smart
     
     gemini.setModel('fast');
-    expect(gemini.modelName).toBe('gemini-2.0-flash');
+    expect(gemini.modelName).toBe('gemini-3-flash-preview');
     
     gemini.setModel('smart');
     expect(gemini.modelName).toBe('gemini-3.1-pro-preview');

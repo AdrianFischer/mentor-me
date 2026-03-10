@@ -43,6 +43,8 @@ export class BotService {
     // Workflow Commands
     this.telegraf.command('start_day', (ctx) => this.handleWorkflow(ctx, 'start-day'));
     this.telegraf.command('end_day', (ctx) => this.handleWorkflow(ctx, 'end-day'));
+    this.telegraf.command('pause', (ctx) => this.handlePauseResume(ctx, 'pause'));
+    this.telegraf.command('resume', (ctx) => this.handlePauseResume(ctx, 'resume'));
     
     // Clear History Command
     this.telegraf.command('clear', async (ctx) => {
@@ -87,7 +89,7 @@ export class BotService {
   }
 
   async handleHelp(ctx) {
-    await this.safeReply(ctx, '📖 *Assisted Intelligence Help*\n\nUsage examples:\n• "Show my tasks"\n• "Mark task 1 as completed"\n• "Remember that I like blue"\n• /model - Switch between Instant, Fast, and Smart models\n• /start_day - Analyze today\'s priorities\n• /end_day - Summarize wins and plan tomorrow');
+    await this.safeReply(ctx, '📖 *Assisted Intelligence Help*\n\nUsage examples:\n• "Show my tasks"\n• "Mark task 1 as completed"\n• "Remember that I like blue"\n• /model - Switch between Instant, Fast, and Smart models\n• /start_day - Analyze today\'s priorities\n• /end_day - Summarize wins and plan tomorrow\n• /pause & /resume - Control background routines');
   }
 
   async handleWorkflow(ctx, type) {
@@ -97,7 +99,7 @@ export class BotService {
       
       const prompt = type === 'start-day' 
         ? "System: User is starting their day. Please analyze their current tasks and suggest the top 3 priorities for today based on their long-term goals and boss's expectations."
-        : "System: User is ending their day. Please summarize their wins, check for any overdue tasks, and suggest a rough plan for tomorrow.";
+        : "System: User is ending their day (saying good night). Please summarize their wins, check for any overdue tasks, suggest a rough plan for tomorrow, AND MUST explicitly use the `pause_routines` tool to pause all background activity so they don't run overnight.";
       
       const response = await this.brain.handleUserMessage(prompt);
       await this.safeReply(ctx, response);
@@ -107,7 +109,24 @@ export class BotService {
     }
   }
 
+  
+  async handlePauseResume(ctx, action) {
+    try {
+      if (action === 'pause') {
+        const result = this.brain.routinesManager._pauseRoutines({ reason: 'Manual slash command' });
+        await ctx.reply('⏸️ ' + result.message);
+      } else {
+        const result = this.brain.routinesManager._resumeRoutines({});
+        await ctx.reply('▶️ ' + result.message);
+      }
+    } catch (error) {
+      logger.error('Pause/Resume Error', error);
+      await ctx.reply('❌ Failed to ' + action + ' routines.');
+    }
+  }
+
   async handleModelCommand(ctx) {
+
         await ctx.reply('🤖 *Select AI Model*\n\n• *Instant*: Gemini 2.5 Flash (Super fast)\n• *Fast*: Gemini 3 Flash (Quick responses)\n• *Smart*: Gemini 3.1 Pro (Better reasoning)', {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
