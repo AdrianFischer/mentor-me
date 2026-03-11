@@ -1,0 +1,6 @@
+{
+  "task": "Check for open PRs authored by the user (@me) in the noyes-tech/nys_monorepo repository. Then, check the recent GitHub Actions workflow runs for the branches associated with those PRs. If there are any new test failures or newly completed runs, note the details and summarize them so the user can be updated on their PR statuses.",
+  "execute_every_seconds": 1800,
+  "name": "Monitor PR Test Results",
+  "last_executed_at": 1773158446418
+}

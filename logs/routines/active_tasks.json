@@ -1,1 +1,32 @@
-{}
+{
+  "2026-03-09T18-28-54-259Z_4ghtc": {
+    "routine": "Flutter MCP Auto-Worker",
+    "start_time": "2026-03-09T18:28:54.263Z",
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-09T18-28-54-259Z.log",
+    "pid": 9132
+  },
+  "2026-03-09T18-28-54-265Z_dnvzn": {
+    "routine": "Hourly PR Status Check",
+    "start_time": "2026-03-09T18:28:54.266Z",
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Hourly_PR_Status_Check_2026-03-09T18-28-54-265Z.log",
+    "pid": 9134
+  },
+  "2026-03-09T18-28-54-267Z_n4f5y": {
+    "routine": "Monitor PR Test Results",
+    "start_time": "2026-03-09T18:28:54.268Z",
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Monitor_PR_Test_Results_2026-03-09T18-28-54-267Z.log",
+    "pid": 9136
+  },
+  "2026-03-09T18-28-54-269Z_hq22m": {
+    "routine": "Hourly Security Guard",
+    "start_time": "2026-03-09T18:28:54.269Z",
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Hourly_Security_Guard_2026-03-09T18-28-54-269Z.log",
+    "pid": 9138
+  },
+  "2026-03-09T18-28-54-270Z_tqogn": {
+    "routine": "System Health Check",
+    "start_time": "2026-03-09T18:28:54.271Z",
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/System_Health_Check_2026-03-09T18-28-54-270Z.log",
+    "pid": 9140
+  }
+}

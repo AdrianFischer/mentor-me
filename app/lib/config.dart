@@ -1,10 +1,11 @@
 import 'dart:io';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Config {
   static String get screenshotDir {
     const fromEnv = String.fromEnvironment('SCREENSHOT_DIR');
     if (fromEnv.isNotEmpty) return fromEnv;
-    return ''; // Default empty if not from environment
+    return dotenv.env['SCREENSHOT_DIR'] ?? ''; // Default empty if not from environment
   }
 
   static String? get dataDir {

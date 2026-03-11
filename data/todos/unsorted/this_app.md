@@ -30,3 +30,5 @@ version: 1
 - [x] Fix Flutter app state sync for completed projects <!-- id: a3b56e9c-d4c3-4a92-90e3-2709f64d03f8 -->
   **Problem Description:**\nProjects marked as completed on the backend are not updating to reflect their completed status in the Flutter app UI.\n\n**Current State:**\n- There is no manual pull-to-refresh implemented.\n- There is no real-time synchronization or local cache invalidation occurring when a project's `is_completed` status changes via the API.\n\n**Agent Action Required:**\n- Investigate the local caching and state management logic in the Flutter app.\n- Implement a reliable mechanism (such as WebSockets, polling, or proper local state invalidation) to ensure UI updates seamlessly when projects are completed.\n- Add manual refresh capabilities if appropriate.
 
+- [ ] Oft werden Leerzeichen in Tasks nicht getippt. <!-- id: 621f7e07-b385-429f-b47c-ff07d549f203 -->
+

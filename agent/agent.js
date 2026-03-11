@@ -3,6 +3,7 @@ import path from 'path';
 import { logger } from './logger.js';
 import { RoutinesManager } from './routines_manager.js';
 import { GithubTools } from './github_tools.js';
+import { SharedFolderManager } from './shared_folder_manager.js';
 
 export class AgentBrain {
   constructor(services = {}) {
@@ -11,6 +12,7 @@ export class AgentBrain {
     this.bot = services.bot;
     this.routinesManager = new RoutinesManager();
     this.githubTools = new GithubTools();
+    this.sharedFolderManager = new SharedFolderManager();
   }
 
   setModel(type) {
@@ -93,18 +95,22 @@ export class AgentBrain {
     const mcpTools = await this.mcp.discoverTools();
     const localTools = this.routinesManager.getTools();
     const ghTools = this.githubTools.getTools();
+    const sharedTools = this.sharedFolderManager.getTools();
 
-    return [...mcpTools, ...localTools, ...ghTools];
+    return [...mcpTools, ...localTools, ...ghTools, ...sharedTools];
   }
 
   async _executeTool(call) {
     const localToolNames = this.routinesManager.getTools().map(t => t.name);
     const ghToolNames = this.githubTools.getTools().map(t => t.name);
+    const sharedToolNames = this.sharedFolderManager.getTools().map(t => t.name);
     
     if (localToolNames.includes(call.name)) {
       return this.routinesManager.executeTool(call);
     } else if (ghToolNames.includes(call.name)) {
       return this.githubTools.executeTool(call);
+    } else if (sharedToolNames.includes(call.name)) {
+      return this.sharedFolderManager.executeTool(call);
     } else {
       return await this.mcp.callTool(call.name, call.args);
     }
@@ -118,7 +124,7 @@ export class AgentBrain {
       onStatus('Summarizing actions...');
       logger.info('Tools were executed but no response text was provided. Forcing summary turn.');
       
-      const summary = await this.gemini.process("Please summarize what you just did for me in a human-friendly, professional tone, listing the key items you've added or updated.");
+      const summary = await this.gemini.process("[System: Please summarize what you just did for me in a human-friendly, professional tone, listing the key items you've added or updated. IMPORTANT: You MUST reply in the exact same language the user has been using with you.]");
       finalResponseText = summary.text;
     }
 

@@ -98,8 +98,8 @@ export class BotService {
       await ctx.sendChatAction('typing');
       
       const prompt = type === 'start-day' 
-        ? "System: User is starting their day. Please analyze their current tasks and suggest the top 3 priorities for today based on their long-term goals and boss's expectations."
-        : "System: User is ending their day (saying good night). Please summarize their wins, check for any overdue tasks, suggest a rough plan for tomorrow, AND MUST explicitly use the `pause_routines` tool to pause all background activity so they don't run overnight.";
+        ? "[System: User is starting their day. Please analyze their current tasks and suggest the top 3 priorities for today based on their long-term goals and boss's expectations. IMPORTANT: You MUST reply in the exact same language the user has been using with you.]"
+        : "[System: User is ending their day (saying good night). Please summarize their wins, check for any overdue tasks, suggest a rough plan for tomorrow, AND MUST explicitly use the `pause_routines` tool to pause all background activity so they don't run overnight. IMPORTANT: You MUST reply in the exact same language the user has been using with you.]";
       
       const response = await this.brain.handleUserMessage(prompt);
       await this.safeReply(ctx, response);

@@ -16,6 +16,8 @@ version: 1
 
 - [x] Strategische Ausrichtung für das nächste Quartal <!-- id: 6df653df-b486-447b-87aa-52512ac9d9a2 -->
 
+- [ ] new task <!-- id: cbb55dc3-8800-4062-92d4-4d465dbbc90e -->
+
 - [x] Ressourcen und mögliche Engpässe besprechen <!-- id: fc478bd9-4a02-47e0-9ee2-677638acee4d -->
 
 - [x] Persönliche Weiterentwicklung und Ziele <!-- id: b710ffbc-08b8-406f-9bc1-35cf90cc2c57 -->

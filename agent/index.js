@@ -5,6 +5,7 @@ import { BotService } from './telegram.js';
 import { AgentBrain } from './agent.js';
 import { Watchdog } from './watchdog.js';
 import { logger } from './logger.js';
+import { DashboardService } from './dashboard.js';
 
 async function main() {
   logger.info('🚀 Starting Assisted Intelligence Agent...');
@@ -61,6 +62,10 @@ async function main() {
       }
     });
     watchdog.start();
+    
+    // 6. Start PR Dashboard Service
+    const dashboard = new DashboardService(8082);
+    await dashboard.start();
 
     logger.info('✨ Agent is now live and talking to your bot');
 
@@ -69,11 +74,13 @@ async function main() {
       logger.info('Shutting down...');
       watchdog.stop();
       bot.stop('SIGINT');
+      dashboard.stop();
     });
     process.once('SIGTERM', () => {
       logger.info('Shutting down...');
       watchdog.stop();
       bot.stop('SIGTERM');
+      dashboard.stop();
     });
 
   } catch (error) {

@@ -2,6 +2,8 @@
 
 id: 9dbd3a36-d46f-4018-b845-89f4fefc9bf3
 
+is_completed: true
+
 version: 1
 
 ---

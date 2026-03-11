@@ -14,16 +14,12 @@ version: 1
 
 - [x] Implement AI Tool for CI Test Log Analysis <!-- id: 12bf2282-ad6a-4d65-8035-1a1bf65d609b -->
   **Objective:** Provide the AI Agent with the ability to read GitHub Actions run logs, extract failing tests, and compare them against the latest `develop` run to determine if a PR introduced a bug or if the tests are already broken/flaky on `develop`.
-  
   **Required Capabilities (Tools/Endpoints):**
-  
   1. **`get_github_run_logs(run_id, repo)`**
-     - The AI currently only sees metadata. We need a tool that downloads and parses the actual logs (or test result artifacts like JUnit XML) for a specific `run_id`.
-     - *Alternative/Better:* A specific `get_github_failed_tests` endpoint that parses the logs/annotations server-side and just returns an array of failed test names/errors (saves context window).
-  
+  - The AI currently only sees metadata. We need a tool that downloads and parses the actual logs (or test result artifacts like JUnit XML) for a specific `run_id`.
+  - *Alternative/Better:* A specific `get_github_failed_tests` endpoint that parses the logs/annotations server-side and just returns an array of failed test names/errors (saves context window).
   2. **`get_latest_branch_run(branch_name, repo)`**
-     - We need an easy way to grab the *latest completed* run specifically for the `develop` branch to serve as our baseline for comparison.
-  
+  - We need an easy way to grab the *latest completed* run specifically for the `develop` branch to serve as our baseline for comparison.
   **How the AI will use this:**
   1. Call `get_github_runs` to find the failing PR run.
   2. Call `get_github_run_logs` (or `get_github_failed_tests`) using that run's ID to extract the exact list of failing tests.

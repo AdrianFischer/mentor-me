@@ -32,6 +32,7 @@ describe('4. Gemini AI Integration', () => {
 
   it('AC 24: Maintains sliding window of chat history starting with user', () => {
     const gemini = new GeminiService({ geminiApiKey: 'test_key' });
+    gemini.history = []; // Clear loaded history for test stability
     
     // Attempt to add model first (should be ignored if empty)
     gemini.addToHistory('model', [{ text: 'hi' }]);
