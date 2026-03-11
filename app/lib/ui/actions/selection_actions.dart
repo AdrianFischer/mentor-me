@@ -66,6 +66,11 @@ class ToggleCompletionAction extends Action<ToggleCompletionIntent> {
   ToggleCompletionAction(this.ref);
 
   @override
+  bool isEnabled(ToggleCompletionIntent intent) {
+    return ref.read(selectionProvider).editingItemId == null;
+  }
+
+  @override
   void invoke(ToggleCompletionIntent intent) {
     final selectionState = ref.read(selectionProvider);
     final dataService = ref.read(dataServiceProvider);
