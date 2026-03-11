@@ -10,7 +10,13 @@ import '../providers/ai_provider.dart';
 class AssistantScreen extends ConsumerStatefulWidget {
   final bool isMobile;
   final String conversationId;
-  const AssistantScreen({super.key, this.isMobile = false, required this.conversationId});
+  final VoidCallback? onKnowledgeClosed;
+  const AssistantScreen({
+    super.key,
+    this.isMobile = false,
+    required this.conversationId,
+    this.onKnowledgeClosed,
+  });
 
   @override
   ConsumerState<AssistantScreen> createState() => _AssistantScreenState();
@@ -24,11 +30,6 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
   void initState() {
     super.initState();
     _loadConversation();
-    
-    // Auto-focus the input field when Assistant Screen loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-    });
   }
 
   @override
@@ -45,10 +46,10 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
       if (!mounted) return;
       final assistant = ref.read(activeAgentProvider);
       assistant.loadConversation(widget.conversationId).then((_) {
-         // Restore draft if any
-         if (mounted) {
-           _textController.text = assistant.draftMessage;
-         }
+        // Restore draft if any
+        if (mounted) {
+          _textController.text = assistant.draftMessage;
+        }
       });
     });
   }
@@ -76,7 +77,8 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
     return ListenableBuilder(
       listenable: assistant,
       builder: (context, child) {
-        return Scaffold( // Use scaffold to ensure overlay context if needed, or Container
+        return Scaffold(
+          // Use scaffold to ensure overlay context if needed, or Container
           body: Stack(
             children: [
               // Main Chat Area
@@ -100,24 +102,32 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
               ),
 
               // Action Log Overlay (Top Right)
-              if (assistant.pendingActions.isNotEmpty || assistant.executedActions.isNotEmpty)
+              if (assistant.pendingActions.isNotEmpty ||
+                  assistant.executedActions.isNotEmpty)
                 Positioned(
                   top: 60, // Below header
                   right: 16,
                   width: 350,
                   bottom: 100, // Above input
-                  child: PointerInterceptor( // Only intercept clicks on cards, let clicks through gaps pass? 
+                  child: PointerInterceptor(
+                    // Only intercept clicks on cards, let clicks through gaps pass?
                     // Actually Flutter Stack passes clicks through transparent areas by default.
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         if (assistant.pendingActions.isNotEmpty)
-                          ...assistant.pendingActions.where((a) => !a.isExecuted).map((a) => _buildActionOverlayCard(assistant, a)),
-                        
+                          ...assistant.pendingActions
+                              .where((a) => !a.isExecuted)
+                              .map(
+                                (a) => _buildActionOverlayCard(assistant, a),
+                              ),
+
                         // Show recently executed actions (limit to last 3 for overlay cleanliness?)
                         if (assistant.executedActions.isNotEmpty)
-                           ...assistant.executedActions.reversed.take(3).map((a) => _buildLogOverlayCard(a)),
+                          ...assistant.executedActions.reversed
+                              .take(3)
+                              .map((a) => _buildLogOverlayCard(a)),
                       ],
                     ),
                   ),
@@ -125,7 +135,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
             ],
           ),
         );
-      }
+      },
     );
   }
 
@@ -141,88 +151,125 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
         children: [
           Row(
             children: [
-               Icon(
-                 assistant.isThinkingMode ? Icons.lightbulb : Icons.lightbulb_outline,
-                 color: assistant.isThinkingMode ? Colors.amber[700] : Colors.blueGrey,
-               ),
-               const SizedBox(width: 8),
-               if (!widget.isMobile)
-                 Text(
+              Icon(
+                assistant.isThinkingMode
+                    ? Icons.lightbulb
+                    : Icons.lightbulb_outline,
+                color: assistant.isThinkingMode
+                    ? Colors.amber[700]
+                    : Colors.blueGrey,
+              ),
+              const SizedBox(width: 8),
+              if (!widget.isMobile)
+                Text(
                   assistant.isThinkingMode ? "Thinking Mode" : "Standard Mode",
                   style: TextStyle(
-                      fontWeight: FontWeight.bold, 
-                      fontSize: 16,
-                      color: assistant.isThinkingMode ? Colors.amber[700] : Colors.blueGrey,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: assistant.isThinkingMode
+                        ? Colors.amber[700]
+                        : Colors.blueGrey,
                   ),
                 ),
             ],
           ),
           Row(
             children: [
-                if (!widget.isMobile) ...[
-                  const Text("Standard", style: TextStyle(fontSize: 12)),
-                  Switch(
-                    value: assistant.isThinkingMode,
-                    onChanged: (val) => assistant.toggleThinking(),
-                    activeColor: Colors.amber[700],
-                    activeTrackColor: Colors.amber[100],
-                    inactiveThumbColor: Colors.blueGrey,
-                    inactiveTrackColor: Colors.blueGrey.shade100,
+              if (!widget.isMobile) ...[
+                const Text("Standard", style: TextStyle(fontSize: 12)),
+                Switch(
+                  value: assistant.isThinkingMode,
+                  onChanged: (val) => assistant.toggleThinking(),
+                  activeColor: Colors.amber[700],
+                  activeTrackColor: Colors.amber[100],
+                  inactiveThumbColor: Colors.blueGrey,
+                  inactiveTrackColor: Colors.blueGrey.shade100,
+                ),
+                Text(
+                  "Thinking",
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.amber[700],
                   ),
-                  Text("Thinking", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.amber[700])),
-                ] else
-                  IconButton(
-                    icon: Icon(
-                      assistant.isThinkingMode ? Icons.lightbulb : Icons.lightbulb_outline,
-                      color: assistant.isThinkingMode ? Colors.amber[700] : Colors.blueGrey,
-                      size: 20,
-                    ),
-                    onPressed: () => assistant.toggleThinking(),
-                  ),
-                const SizedBox(width: 8),
+                ),
+              ] else
                 IconButton(
                   icon: Icon(
-                    assistant.isVoiceEnabled ? Icons.volume_up : Icons.volume_off, 
-                    size: 20, 
-                    color: assistant.isVoiceEnabled ? Colors.amber[700] : Colors.grey
+                    assistant.isThinkingMode
+                        ? Icons.lightbulb
+                        : Icons.lightbulb_outline,
+                    color: assistant.isThinkingMode
+                        ? Colors.amber[700]
+                        : Colors.blueGrey,
+                    size: 20,
                   ),
-                  tooltip: 'Toggle Voice Response',
-                  onPressed: () => assistant.toggleVoice(),
+                  onPressed: () => assistant.toggleThinking(),
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.psychology, size: 20, color: Colors.grey),
-                  tooltip: 'Manage Knowledge',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const KnowledgeScreen()),
-                    );
-                  },
+              const SizedBox(width: 8),
+              IconButton(
+                icon: Icon(
+                  assistant.isVoiceEnabled ? Icons.volume_up : Icons.volume_off,
+                  size: 20,
+                  color: assistant.isVoiceEnabled
+                      ? Colors.amber[700]
+                      : Colors.grey,
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20, color: Colors.grey),
-                  tooltip: 'Clear History',
-                  onPressed: () {
-                    showDialog(
-                      context: context, 
-                      builder: (ctx) => AlertDialog(
-                        title: const Text("Clear Conversation?"),
-                        content: const Text("This will delete all messages in this conversation."),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
-                          TextButton(
-                            onPressed: () {
-                              assistant.clearHistory();
-                              Navigator.pop(ctx);
-                            }, 
-                            child: const Text("Clear", style: TextStyle(color: Colors.red))
+                tooltip: 'Toggle Voice Response',
+                onPressed: () => assistant.toggleVoice(),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(
+                  Icons.psychology,
+                  size: 20,
+                  color: Colors.grey,
+                ),
+                tooltip: 'Manage Knowledge',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const KnowledgeScreen(),
+                    ),
+                  ).then((_) => widget.onKnowledgeClosed?.call());
+                },
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: Colors.grey,
+                ),
+                tooltip: 'Clear History',
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text("Clear Conversation?"),
+                      content: const Text(
+                        "This will delete all messages in this conversation.",
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text("Cancel"),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            assistant.clearHistory();
+                            Navigator.pop(ctx);
+                          },
+                          child: const Text(
+                            "Clear",
+                            style: TextStyle(color: Colors.red),
                           ),
-                        ],
-                      )
-                    );
-                  },
-                ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ],
@@ -236,7 +283,9 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        constraints: const BoxConstraints(maxWidth: 600), // Limit width for readability
+        constraints: const BoxConstraints(
+          maxWidth: 600,
+        ), // Limit width for readability
         decoration: BoxDecoration(
           color: msg.isUser ? Colors.blue.shade100 : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(12),
@@ -265,9 +314,9 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
           Expanded(
             child: assistant.isListening
                 ? Text(
-                    assistant.currentSpeech.isEmpty 
-                      ? "Listening..." 
-                      : assistant.currentSpeech,
+                    assistant.currentSpeech.isEmpty
+                        ? "Listening..."
+                        : assistant.currentSpeech,
                     style: const TextStyle(fontStyle: FontStyle.italic),
                   )
                 : TextField(
@@ -282,12 +331,12 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                   ),
           ),
           if (!assistant.isListening)
-             IconButton(
-               key: const ValueKey('assistant_send_btn'),
-               icon: const Icon(Icons.send),
-               color: Colors.blue,
-               onPressed: () => _handleSubmit(assistant),
-             ),
+            IconButton(
+              key: const ValueKey('assistant_send_btn'),
+              icon: const Icon(Icons.send),
+              color: Colors.blue,
+              onPressed: () => _handleSubmit(assistant),
+            ),
         ],
       ),
     );
@@ -315,9 +364,9 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                 Text(
                   "EXECUTED: ${action.toolName.replaceAll('_', ' ').toUpperCase()}",
                   style: const TextStyle(
-                    fontSize: 10, 
-                    fontWeight: FontWeight.bold, 
-                    color: Colors.green
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
                   ),
                 ),
               ],
@@ -353,14 +402,18 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.pending_actions, size: 16, color: Colors.orange),
+                const Icon(
+                  Icons.pending_actions,
+                  size: 16,
+                  color: Colors.orange,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   "REVIEW: ${action.toolName.replaceAll('_', ' ').toUpperCase()}",
                   style: const TextStyle(
-                    fontSize: 10, 
-                    fontWeight: FontWeight.bold, 
-                    color: Colors.orange
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
                   ),
                 ),
               ],
@@ -369,7 +422,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
             Text(
               action.description,
               style: const TextStyle(
-                fontSize: 14, 
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Colors.black,
               ),
@@ -386,7 +439,9 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: () {
-                    print("[VERIFY_FLOW] UI Interaction: User accepted action ${action.toolName}");
+                    print(
+                      "[VERIFY_FLOW] UI Interaction: User accepted action ${action.toolName}",
+                    );
                     assistant.acceptAction(action);
                   },
                   icon: const Icon(Icons.check, size: 16),

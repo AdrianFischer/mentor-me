@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 class DebugOverlay extends StatefulWidget {
   final Widget child;
-  
+
   const DebugOverlay({super.key, required this.child});
 
   @override
@@ -16,17 +16,22 @@ class _DebugOverlayState extends State<DebugOverlay> {
   String _lastKeyEvent = "None";
   String _currentFocus = "Unknown";
   Timer? _focusTimer; // Timer handle
+  final FocusNode _keyListenerFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     // Periodically poll focus
-    _focusTimer = Timer.periodic(const Duration(milliseconds: 500), (_) => _pollFocus());
+    _focusTimer = Timer.periodic(
+      const Duration(milliseconds: 500),
+      (_) => _pollFocus(),
+    );
   }
-  
+
   @override
   void dispose() {
     _focusTimer?.cancel();
+    _keyListenerFocusNode.dispose();
     super.dispose();
   }
 
@@ -51,17 +56,18 @@ class _DebugOverlayState extends State<DebugOverlay> {
       children: [
         // Main App Content
         KeyboardListener(
-          focusNode: FocusNode(), 
+          focusNode: _keyListenerFocusNode,
           onKeyEvent: (event) {
             if (event is KeyDownEvent) {
               setState(() {
-                _lastKeyEvent = "${event.logicalKey.keyLabel} (${event.logicalKey.keyId})";
+                _lastKeyEvent =
+                    "${event.logicalKey.keyLabel} (${event.logicalKey.keyId})";
               });
-              // Toggle on Ctrl+Backtick or similar if needed, 
+              // Toggle on Ctrl+Backtick or similar if needed,
               // but for agents, we might just want it always visible or toggled via button.
             }
           },
-          child: widget.child
+          child: widget.child,
         ),
 
         // Floating Action Button to Toggle
@@ -92,12 +98,19 @@ class _DebugOverlayState extends State<DebugOverlay> {
                   children: [
                     const Text(
                       "DEBUG OVERLAY",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                     const Divider(color: Colors.white24),
                     _buildInfoRow("Focus:", _currentFocus),
                     _buildInfoRow("Last Key:", _lastKeyEvent),
-                    _buildInfoRow("Seed:", Uri.base.queryParameters['seed'] ?? "None"),
+                    _buildInfoRow(
+                      "Seed:",
+                      Uri.base.queryParameters['seed'] ?? "None",
+                    ),
                   ],
                 ),
               ),
@@ -113,11 +126,18 @@ class _DebugOverlayState extends State<DebugOverlay> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text("$label ", style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          Text(
+            "$label ",
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
+          ),
           Flexible(
             child: Text(
-              value, 
-              style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontFamily: 'Courier'),
+              value,
+              style: const TextStyle(
+                color: Colors.greenAccent,
+                fontSize: 12,
+                fontFamily: 'Courier',
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -126,4 +146,3 @@ class _DebugOverlayState extends State<DebugOverlay> {
     );
   }
 }
-

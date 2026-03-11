@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../editable_column.dart';
 import '../editable_item_widget.dart';
@@ -15,11 +16,13 @@ class ConversationColumn extends ConsumerWidget {
     final dataService = ref.watch(dataServiceProvider);
     final selectionState = ref.watch(selectionProvider);
     final conversations = dataService.conversations;
-    
+
     // Resolve selection index
     int? selectedIndex;
     if (selectionState.selectedConversationId != null) {
-      selectedIndex = conversations.indexWhere((c) => c.id == selectionState.selectedConversationId);
+      selectedIndex = conversations.indexWhere(
+        (c) => c.id == selectionState.selectedConversationId,
+      );
       if (selectedIndex == -1) selectedIndex = null;
     }
 
@@ -29,10 +32,14 @@ class ConversationColumn extends ConsumerWidget {
       backgroundColor: Colors.white,
       selectedIndex: selectedIndex,
       isActiveColumn: selectionState.focusedColumnIndex == 1,
-      items: conversations.map((c) => EditableItem(id: c.id, text: c.title, notes: c.notes)).toList(),
+      items: conversations
+          .map((c) => EditableItem(id: c.id, text: c.title, notes: c.notes))
+          .toList(),
       editingItemId: selectionState.editingItemId,
       onItemSelected: (index) {
-        ref.read(selectionProvider.notifier).selectConversation(conversations[index].id);
+        ref
+            .read(selectionProvider.notifier)
+            .selectConversation(conversations[index].id);
       },
       onAdd: (val) {
         Actions.invoke(context, const AddNewItemIntent());
@@ -43,10 +50,14 @@ class ConversationColumn extends ConsumerWidget {
       onDelete: (index) {
         Actions.invoke(context, const DeleteItemIntent());
       },
-      onReorder: (old, newI) {}, 
-      onNavigateLeft: () => Actions.invoke(context, const ChangeColumnIntent(-1)),
-      onNavigateRight: () => Actions.invoke(context, const ChangeColumnIntent(1)),
-      onColumnTap: () => ref.read(selectionProvider.notifier).setFocusedColumn(1),
+      onReorder: (old, newI) {},
+      onNavigateLeft: () =>
+          Actions.invoke(context, const ChangeColumnIntent(-1)),
+      onNavigateRight: () =>
+          Actions.invoke(context, const ChangeColumnIntent(1)),
+      onExitEdit: () => Actions.invoke(context, const StopEditIntent()),
+      onColumnTap: () =>
+          ref.read(selectionProvider.notifier).setFocusedColumn(1),
     );
   }
 }

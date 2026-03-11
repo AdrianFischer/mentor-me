@@ -14,8 +14,8 @@ class EditableItem {
   final List<String> localImagePaths;
 
   EditableItem({
-    required this.id, 
-    required this.text, 
+    required this.id,
+    required this.text,
     this.notes,
     this.isCompleted = false,
     this.goal,
@@ -71,6 +71,7 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
   late TextEditingController _notesController;
   late FocusNode _focusNode;
   late FocusNode _notesFocusNode;
+  bool _focusPending = false;
 
   @override
   void initState() {
@@ -94,10 +95,10 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
     if (widget.item.text != _controller.text) {
       // Only update if we don't have focus to avoid overwriting user input
       if (!_focusNode.hasFocus) {
-         _controller.text = widget.item.text;
+        _controller.text = widget.item.text;
       }
     }
-    
+
     if (widget.item.notes != _notesController.text) {
       if (!_notesFocusNode.hasFocus) {
         _notesController.text = widget.item.notes ?? "";
@@ -105,10 +106,12 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
     }
 
     // If we just entered edit mode, focus the title
-    if (widget.isEditing && !oldWidget.isEditing) {
-       WidgetsBinding.instance.addPostFrameCallback((_) {
-         if (mounted) _focusNode.requestFocus();
-       });
+    if (widget.isEditing && !oldWidget.isEditing && !_focusPending) {
+      _focusPending = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _focusPending = false;
+        if (mounted) _focusNode.requestFocus();
+      });
     }
   }
 
@@ -134,20 +137,22 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
           widget.onTap();
           // If tapping and in edit mode, focus title. If not, just select (handled by parent).
           if (widget.isEditing) {
-             _focusNode.requestFocus();
+            _focusNode.requestFocus();
           }
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 100),
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           decoration: BoxDecoration(
-            color: widget.isSelected 
-                ? (widget.isActiveColumn 
-                    ? Colors.blue.withOpacity(0.08) 
-                    : Colors.black.withOpacity(0.06))
+            color: widget.isSelected
+                ? (widget.isActiveColumn
+                      ? Colors.blue.withOpacity(0.08)
+                      : Colors.black.withOpacity(0.06))
                 : Colors.black.withOpacity(0),
             borderRadius: BorderRadius.circular(8),
-            border: widget.isEditing ? Border.all(color: Colors.blue.withOpacity(0.3)) : null,
+            border: widget.isEditing
+                ? Border.all(color: Colors.blue.withOpacity(0.3))
+                : null,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -161,7 +166,11 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                     index: widget.index,
                     child: Padding(
                       padding: const EdgeInsets.only(right: 8, top: 4),
-                      child: Icon(Icons.drag_indicator, size: 16, color: Colors.grey[300]),
+                      child: Icon(
+                        Icons.drag_indicator,
+                        size: 16,
+                        color: Colors.grey[300],
+                      ),
                     ),
                   ),
 
@@ -181,12 +190,16 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                           width: 1.5,
                         ),
                       ),
-                      child: isChecked 
-                        ? const Icon(Icons.check, size: 12, color: Colors.white)
-                        : null,
+                      child: isChecked
+                          ? const Icon(
+                              Icons.check,
+                              size: 12,
+                              color: Colors.white,
+                            )
+                          : null,
                     ),
                   ),
-                  
+
                   // AI Status Button
                   if (widget.onToggleAiStatus != null)
                     GestureDetector(
@@ -199,60 +212,74 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                           shape: BoxShape.circle,
                           color: _getAiStatusColor(widget.item.aiStatus),
                           border: Border.all(
-                            color: _getAiStatusBorderColor(widget.item.aiStatus),
+                            color: _getAiStatusBorderColor(
+                              widget.item.aiStatus,
+                            ),
                             width: 1.5,
                           ),
                         ),
                         child: _getAiStatusIcon(widget.item.aiStatus),
                       ),
                     ),
-                  
+
                   // Title
                   Expanded(
-                    child: widget.isEditing 
-                      ? TextField(
-                          controller: _controller,
-                          focusNode: _focusNode,
-                          autofocus: true,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: isChecked ? Colors.grey : Colors.black87,
-                            decoration: isChecked ? TextDecoration.lineThrough : null,
-                            fontWeight: FontWeight.normal,
+                    child: widget.isEditing
+                        ? TextField(
+                            controller: _controller,
+                            focusNode: _focusNode,
+                            autofocus: true,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: isChecked ? Colors.grey : Colors.black87,
+                              decoration: isChecked
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                              fontWeight: FontWeight.normal,
+                            ),
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              hintText: 'New Item',
+                              hintStyle: TextStyle(color: Colors.black26),
+                            ),
+                            maxLines: null,
+                            minLines: 1,
+                            textInputAction: TextInputAction.next,
+                            onChanged: widget.onChanged,
+                          )
+                        : Text(
+                            widget.item.text.isEmpty
+                                ? "New Item"
+                                : widget.item.text,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: widget.item.text.isEmpty
+                                  ? Colors.grey
+                                  : (isChecked ? Colors.grey : Colors.black87),
+                              decoration: isChecked
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
                           ),
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                            hintText: 'New Item',
-                            hintStyle: TextStyle(color: Colors.black26),
-                          ),
-                          maxLines: null,
-                          minLines: 1,
-                          textInputAction: TextInputAction.next,
-                          onChanged: widget.onChanged,
-                        )
-                      : Text(
-                          widget.item.text.isEmpty ? "New Item" : widget.item.text,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: widget.item.text.isEmpty ? Colors.grey : (isChecked ? Colors.grey : Colors.black87),
-                            decoration: isChecked ? TextDecoration.lineThrough : null,
-                          ),
-                        ),
                   ),
-                  
+
                   if (widget.showDeleteButton)
-                     IconButton(
-                       icon: const Icon(Icons.delete_outline, size: 18, color: Colors.grey),
-                       onPressed: widget.onDelete,
-                       tooltip: 'Delete',
-                       padding: EdgeInsets.zero,
-                       constraints: const BoxConstraints(),
-                     ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                      onPressed: widget.onDelete,
+                      tooltip: 'Delete',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
                 ],
               ),
-              
+
               // Goals visualization
               if (widget.item.goal != null)
                 Padding(
@@ -295,13 +322,23 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("NOTES", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                      const Text(
+                        "NOTES",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       widget.isEditing
                           ? TextField(
                               controller: _notesController,
                               focusNode: _notesFocusNode,
-                              style: const TextStyle(fontSize: 13, color: Colors.black87),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black87,
+                              ),
                               decoration: const InputDecoration(
                                 border: InputBorder.none,
                                 isDense: true,
@@ -311,7 +348,8 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                               ),
                               maxLines: null,
                               minLines: 2,
-                              onChanged: (val) => widget.onNotesChanged?.call(val),
+                              onChanged: (val) =>
+                                  widget.onNotesChanged?.call(val),
                             )
                           : Container(
                               constraints: const BoxConstraints(maxHeight: 300),
@@ -319,19 +357,50 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                                 child: MarkdownBody(
                                   data: widget.item.notes!,
                                   styleSheet: MarkdownStyleSheet(
-                                    p: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
-                                    h1: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
-                                    h2: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                                    h3: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                                    code: const TextStyle(fontSize: 12, fontFamily: 'monospace', backgroundColor: Color(0xFFF5F5F5)),
+                                    p: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black87,
+                                      height: 1.4,
+                                    ),
+                                    h1: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                    h2: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                    h3: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                    code: const TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: 'monospace',
+                                      backgroundColor: Color(0xFFF5F5F5),
+                                    ),
                                     codeblockDecoration: BoxDecoration(
                                       color: const Color(0xFFF5F5F5),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    blockquote: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic, color: Colors.black54),
-                                    listBullet: const TextStyle(fontSize: 13, color: Colors.black87),
-                                    strong: const TextStyle(fontWeight: FontWeight.bold),
-                                    em: const TextStyle(fontStyle: FontStyle.italic),
+                                    blockquote: const TextStyle(
+                                      fontSize: 13,
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.black54,
+                                    ),
+                                    listBullet: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black87,
+                                    ),
+                                    strong: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    em: const TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -346,12 +415,22 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("NOTES", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                      const Text(
+                        "NOTES",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       TextField(
                         controller: _notesController,
                         focusNode: _notesFocusNode,
-                        style: const TextStyle(fontSize: 13, color: Colors.black87),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black87,
+                        ),
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           isDense: true,
@@ -380,19 +459,27 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
         children: [
           Row(
             mainAxisSize: MainAxisSize.min,
-            children: goal.recentHabitHistory!.map((success) => Container(
-              width: 8, height: 8,
-              margin: const EdgeInsets.only(right: 4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: success ? Colors.green[400] : Colors.grey[300],
-              ),
-            )).toList(),
+            children: goal.recentHabitHistory!
+                .map(
+                  (success) => Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.only(right: 4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: success ? Colors.green[400] : Colors.grey[300],
+                    ),
+                  ),
+                )
+                .toList(),
           ),
           if (goal.label != null)
             Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Text(goal.label!, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+              child: Text(
+                goal.label!,
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+              ),
             ),
         ],
       );
@@ -412,7 +499,10 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
           if (goal.label != null)
             Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Text(goal.label!, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+              child: Text(
+                goal.label!,
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+              ),
             ),
         ],
       );
@@ -422,41 +512,44 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyDownEvent) {
-       if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-          if (_controller.selection.isCollapsed && _controller.selection.baseOffset == 0) {
-             widget.onNavigateLeft?.call();
-             return KeyEventResult.handled;
-          }
-       }
-       
-       if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-          if (_controller.selection.isCollapsed && _controller.selection.baseOffset == _controller.text.length) {
-             widget.onNavigateRight?.call();
-             return KeyEventResult.handled;
-          }
-       }
-       
-       if (event.logicalKey == LogicalKeyboardKey.escape) {
-          widget.onExitEdit?.call();
+      if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        if (_controller.selection.isCollapsed &&
+            _controller.selection.baseOffset == 0) {
+          widget.onNavigateLeft?.call();
           return KeyEventResult.handled;
-       }
-       
-       if (event.logicalKey == LogicalKeyboardKey.enter || event.logicalKey == LogicalKeyboardKey.tab) {
-          if (!HardwareKeyboard.instance.isShiftPressed) {
-             // Enter or Tab in Title -> Focus Notes?
-             if (widget.isEditing) {
-               _notesFocusNode.requestFocus();
-               return KeyEventResult.handled;
-             }
+        }
+      }
+
+      if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+        if (_controller.selection.isCollapsed &&
+            _controller.selection.baseOffset == _controller.text.length) {
+          widget.onNavigateRight?.call();
+          return KeyEventResult.handled;
+        }
+      }
+
+      if (event.logicalKey == LogicalKeyboardKey.escape) {
+        widget.onExitEdit?.call();
+        return KeyEventResult.handled;
+      }
+
+      if (event.logicalKey == LogicalKeyboardKey.enter ||
+          event.logicalKey == LogicalKeyboardKey.tab) {
+        if (!HardwareKeyboard.instance.isShiftPressed) {
+          // Enter or Tab in Title -> Focus Notes?
+          if (widget.isEditing) {
+            _notesFocusNode.requestFocus();
+            return KeyEventResult.handled;
           }
-       }
-       
-       if (event.logicalKey == LogicalKeyboardKey.backspace) {
-          if (_controller.text.isEmpty) {
-             widget.onDelete();
-             return KeyEventResult.handled;
-          }
-       }
+        }
+      }
+
+      if (event.logicalKey == LogicalKeyboardKey.backspace) {
+        if (_controller.text.isEmpty) {
+          widget.onDelete();
+          return KeyEventResult.handled;
+        }
+      }
     }
     return KeyEventResult.ignored;
   }
@@ -464,8 +557,8 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
   KeyEventResult _handleNotesKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.escape) {
-          widget.onExitEdit?.call();
-          return KeyEventResult.handled;
+        widget.onExitEdit?.call();
+        return KeyEventResult.handled;
       }
     }
     return KeyEventResult.ignored;

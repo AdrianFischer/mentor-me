@@ -78,19 +78,21 @@ class _EditableColumnState extends State<EditableColumn> {
       focusNode: _focusNode,
       debugLabel: "EditableColumn_${widget.title}",
       onKeyEvent: (node, event) {
-        if (event is KeyDownEvent) {
-          debugPrint("Key Event (${widget.title}): ${event.logicalKey.debugName} | isActive: ${widget.isActiveColumn} | editing: ${widget.editingItemId}");
-        }
-        if (event is KeyDownEvent && widget.isActiveColumn && widget.editingItemId == null) {
-          if (event.logicalKey == LogicalKeyboardKey.arrowLeft && widget.onNavigateLeft != null) {
+        if (event is KeyDownEvent &&
+            widget.isActiveColumn &&
+            widget.editingItemId == null) {
+          if (event.logicalKey == LogicalKeyboardKey.arrowLeft &&
+              widget.onNavigateLeft != null) {
             widget.onNavigateLeft!();
             return KeyEventResult.handled;
           }
-          if (event.logicalKey == LogicalKeyboardKey.arrowRight && widget.onNavigateRight != null) {
+          if (event.logicalKey == LogicalKeyboardKey.arrowRight &&
+              widget.onNavigateRight != null) {
             widget.onNavigateRight!();
             return KeyEventResult.handled;
           }
-          if (event.logicalKey == LogicalKeyboardKey.space && widget.editingItemId == null) {
+          if (event.logicalKey == LogicalKeyboardKey.space &&
+              widget.editingItemId == null) {
             Actions.invoke(context, const AddNewItemIntent());
             return KeyEventResult.handled;
           }
@@ -99,115 +101,132 @@ class _EditableColumnState extends State<EditableColumn> {
       },
       child: GestureDetector(
         onTap: () {
-           _focusNode.requestFocus();
-           widget.onColumnTap?.call();
-           if (widget.onItemSelected != null && widget.selectedIndex != null) {
-              widget.onItemSelected!(widget.selectedIndex!);
-           }
+          _focusNode.requestFocus();
+          widget.onColumnTap?.call();
+          if (widget.onItemSelected != null && widget.selectedIndex != null) {
+            widget.onItemSelected!(widget.selectedIndex!);
+          }
         },
         child: Container(
           color: widget.backgroundColor,
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header (Title + Add)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 40, 20, 20),
-              child: Row(
-                children: [
-                  if (widget.onBack != null)
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-                      onPressed: widget.onBack,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  if (widget.onBack != null) const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      widget.title,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: widget.isActiveColumn ? Colors.black : Colors.grey[600],
-                        letterSpacing: -0.5,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header (Title + Add)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 40, 20, 20),
+                child: Row(
+                  children: [
+                    if (widget.onBack != null)
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                        onPressed: widget.onBack,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (widget.onToggleShowCompleted != null)
-                    IconButton(
-                      key: ValueKey('${widget.title.toLowerCase()}_archive_btn'),
-                      icon: Icon(
-                        widget.showCompleted ? Icons.visibility : Icons.visibility_off,
-                        color: widget.showCompleted ? Colors.grey[600] : Colors.blue[600],
+                    if (widget.onBack != null) const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        widget.title,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: widget.isActiveColumn
+                              ? Colors.black
+                              : Colors.grey[600],
+                          letterSpacing: -0.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      onPressed: widget.onToggleShowCompleted,
-                      tooltip: widget.showCompleted ? 'Hide Completed' : 'Show Completed',
                     ),
-                  IconButton(
-                    key: ValueKey('${widget.title.toLowerCase()}_add_btn'),
-                    icon: Icon(Icons.add_circle, color: Colors.blue[600]),
-                    onPressed: _addNewItem,
-                    tooltip: 'Add Item',
-                  ),
-                ],
+                    if (widget.onToggleShowCompleted != null)
+                      IconButton(
+                        key: ValueKey(
+                          '${widget.title.toLowerCase()}_archive_btn',
+                        ),
+                        icon: Icon(
+                          widget.showCompleted
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: widget.showCompleted
+                              ? Colors.grey[600]
+                              : Colors.blue[600],
+                        ),
+                        onPressed: widget.onToggleShowCompleted,
+                        tooltip: widget.showCompleted
+                            ? 'Hide Completed'
+                            : 'Show Completed',
+                      ),
+                    IconButton(
+                      key: ValueKey('${widget.title.toLowerCase()}_add_btn'),
+                      icon: Icon(Icons.add_circle, color: Colors.blue[600]),
+                      onPressed: _addNewItem,
+                      tooltip: 'Add Item',
+                    ),
+                  ],
+                ),
               ),
-            ),
-            
-            // Custom Header Widget
-            if (widget.header != null)
-               Padding(
-                 padding: const EdgeInsets.only(left: 12, right: 12, bottom: 4),
-                 child: widget.header!,
-               ),
-  
-    // List
-            Expanded(
-              child: ReorderableListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: widget.items.length,
-                onReorder: (oldIndex, newIndex) {
-                   widget.onReorder?.call(oldIndex, newIndex);
-                },
-                proxyDecorator: (child, index, animation) {
-                  return Material(
-                    elevation: 0,
-                    color: Colors.transparent,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+
+              // Custom Header Widget
+              if (widget.header != null)
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 12,
+                    right: 12,
+                    bottom: 4,
+                  ),
+                  child: widget.header!,
+                ),
+
+              // List
+              Expanded(
+                child: ReorderableListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: widget.items.length,
+                  onReorder: (oldIndex, newIndex) {
+                    widget.onReorder?.call(oldIndex, newIndex);
+                  },
+                  proxyDecorator: (child, index, animation) {
+                    return Material(
+                      elevation: 0,
+                      color: Colors.transparent,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: child,
                       ),
-                      child: child,
-                    ),
-                  );
-                },
-                buildDefaultDragHandles: false, // We use custom handles
-                itemBuilder: (context, index) {
-                                                  final item = widget.items[index];
-                                                  final isSelected = widget.selectedIndex == index;
-                                                  final isEditing = widget.editingItemId == item.id;
-                                  
-                                                  return EditableItemWidget(                      key: ValueKey(item.id),
+                    );
+                  },
+                  buildDefaultDragHandles: false, // We use custom handles
+                  itemBuilder: (context, index) {
+                    final item = widget.items[index];
+                    final isSelected = widget.selectedIndex == index;
+                    final isEditing = widget.editingItemId == item.id;
+
+                    return EditableItemWidget(
+                      key: ValueKey(item.id),
                       item: item,
                       index: index,
                       isSelected: isSelected,
                       isActiveColumn: widget.isActiveColumn,
                       isEditing: isEditing,
                       onChanged: (val) => widget.onUpdate(index, val),
-                      onNotesChanged: (val) => widget.onNotesUpdate?.call(index, val),
+                      onNotesChanged: (val) =>
+                          widget.onNotesUpdate?.call(index, val),
                       onTap: () => widget.onItemSelected?.call(index),
                       onSubmitted: _addNewItem,
-                      onToggleCheck: () => widget.onCheckChanged?.call(index, !item.isCompleted),
-                      onToggleAiStatus: widget.onAiStatusChanged != null 
+                      onToggleCheck: () =>
+                          widget.onCheckChanged?.call(index, !item.isCompleted),
+                      onToggleAiStatus: widget.onAiStatusChanged != null
                           ? () => widget.onAiStatusChanged?.call(index)
                           : null,
                       onDelete: () => widget.onDelete?.call(index),
@@ -215,13 +234,13 @@ class _EditableColumnState extends State<EditableColumn> {
                       showDeleteButton: widget.showDeleteButton,
                       onNavigateLeft: widget.onNavigateLeft,
                       onNavigateRight: widget.onNavigateRight,
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
