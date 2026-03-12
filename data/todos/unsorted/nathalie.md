@@ -22,7 +22,8 @@ version: 1
 
 - [x] Give her a relaxing massage 💆‍♀️ <!-- id: b60a228b-e525-40b3-9333-ea034a8c7653 -->
 
-- [ ] Restliche Hochzeitseinladungen rausschicken <!-- id: 76bd7181-e02a-48fa-8a14-4c0f318de0d1 -->
+- [x] Restliche Hochzeitseinladungen rausschicken <!-- id: 76bd7181-e02a-48fa-8a14-4c0f318de0d1 -->
+  Einladungen erfolgreich über WhatsApp/Email an die restlichen Gäste gesendet.
 
 - [x] Passwörter erstellenfürHochzeit <!-- id: c1c92996-bdb7-4b83-b9c0-25149d187b9c -->
   - [x] Gruppe 6 (Familie Adi - 2): Kerstin Schertl, Charlie <!-- id: 6e5ea727-1aa6-41c7-9db4-2e4a939b9a2f -->

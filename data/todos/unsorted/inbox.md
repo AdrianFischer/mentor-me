@@ -29,6 +29,6 @@ version: 1
   - [x] Create `get_github_run_logs` or `get_failed_tests` API tool for AI Agent <!-- id: 66b46636-43c8-4c26-8e58-670dea7d0020 -->
   - [x] Build capability to find and retrieve latest test runs specifically on the develop branch <!-- id: 681e63bf-33d9-4165-877a-881e960416e1 -->
 
-- [ ] Find small radio stations that could be interested in their own small radio app to stream the media to their listeners and to online <!-- id: e5915633-b4c6-40b8-83b4-25110cf5f377 -->
+- [x] Find small radio stations that could be interested in their own small radio app to stream the media to their listeners and to online <!-- id: e5915633-b4c6-40b8-83b4-25110cf5f377 -->
   Context: The user already has a small radio streaming app and wants to find potential customers to rent/license the project to.
 
