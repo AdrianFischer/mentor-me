@@ -1,5 +1,7 @@
 import { Telegraf, Markup } from 'telegraf';
 import { logger } from './logger.js';
+import { exec } from 'child_process';
+import path from 'path';
 
 export class BotService {
   constructor(config, brain) {
@@ -40,11 +42,12 @@ export class BotService {
     this.telegraf.command('model', (ctx) => this.handleModelCommand(ctx));
     
     // Workflow Commands
-    // Workflow Commands
     this.telegraf.command('start_day', (ctx) => this.handleWorkflow(ctx, 'start-day'));
     this.telegraf.command('end_day', (ctx) => this.handleWorkflow(ctx, 'end-day'));
     this.telegraf.command('pause', (ctx) => this.handlePauseResume(ctx, 'pause'));
     this.telegraf.command('resume', (ctx) => this.handlePauseResume(ctx, 'resume'));
+    this.telegraf.command('reflect', (ctx) => this.handleReflect(ctx));
+    this.telegraf.command('improve', (ctx) => this.handleImprove(ctx));
     
     // Clear History Command
     this.telegraf.command('clear', async (ctx) => {
@@ -89,7 +92,7 @@ export class BotService {
   }
 
   async handleHelp(ctx) {
-    await this.safeReply(ctx, '📖 *Assisted Intelligence Help*\n\nUsage examples:\n• "Show my tasks"\n• "Mark task 1 as completed"\n• "Remember that I like blue"\n• /model - Switch between Instant, Fast, and Smart models\n• /start_day - Analyze today\'s priorities\n• /end_day - Summarize wins and plan tomorrow\n• /pause & /resume - Control background routines');
+    await this.safeReply(ctx, '📖 *Assisted Intelligence Help*\n\nUsage examples:\n• "Show my tasks"\n• "Mark task 1 as completed"\n• "Remember that I like blue"\n• /model - Switch between Instant, Fast, and Smart models\n• /start_day - Analyze today\'s priorities\n• /end_day - Summarize wins and plan tomorrow\n• /pause & /resume - Control background routines\n• /reflect - Manually trigger context reflection and learning.\n• /improve - Run an autonomous improvement process to fix recent issues.');
   }
 
   async handleWorkflow(ctx, type) {
@@ -99,13 +102,58 @@ export class BotService {
       
       const prompt = type === 'start-day' 
         ? "[System: User is starting their day. Please analyze their current tasks and suggest the top 3 priorities for today based on their long-term goals and boss's expectations. IMPORTANT: You MUST reply in the exact same language the user has been using with you.]"
-        : "[System: User is ending their day (saying good night). Please summarize their wins, check for any overdue tasks, suggest a rough plan for tomorrow, AND MUST explicitly use the `pause_routines` tool to pause all background activity so they don't run overnight. IMPORTANT: You MUST reply in the exact same language the user has been using with you.]";
+        : "[System: User is ending their day. Please summarize their wins, check for any overdue tasks, suggest a rough plan for tomorrow, AND MUST explicitly use the pause_routines tool to pause all background activity so they don't run overnight. IMPORTANT: You MUST reply in the exact same language the user has been using with you.]";
+
+      const statusUpdater = this._createStatusUpdater(ctx);
+      const response = await this.withTyping(ctx, () => 
+        this.brain.process(prompt, async (status) => {
+          await statusUpdater.update(status);
+        })
+      );
       
-      const response = await this.brain.handleUserMessage(prompt);
+      await statusUpdater.clear();
       await this.safeReply(ctx, response);
     } catch (error) {
       logger.error('Workflow Error', error);
       await ctx.reply(`❌ Sorry, I encountered an error during your ${type} workflow.`);
+    }
+  }
+
+  async handleReflect(ctx) {
+    try {
+      await ctx.sendChatAction('typing');
+      await ctx.reply('🧠 <b>Context Reflection:</b> Reviewing recent interactions and updating global knowledge base...', { parse_mode: 'HTML' });
+      const summary = await this.brain.reflect();
+      await this.safeReply(ctx, summary);
+    } catch (error) {
+      logger.error('Reflection command error', error);
+      await ctx.reply('❌ Failed to run self-reflection.');
+    }
+  }
+
+  async handleImprove(ctx) {
+    try {
+      logger.info('Dispatching Conductor Workflow: improve');
+      await ctx.reply('🛠️ <b>Continuous Improvement:</b> Dispatching background agent to analyze recent issues and propose architectural or codebase fixes...', { parse_mode: 'HTML' });
+      
+      const chatHistoryPath = path.resolve(__dirname, 'data', 'chat_history.json');
+      const prompt = `Please review recent system logs in logs/routines/, test failures, and our recent chat history located at ${chatHistoryPath}. Identify one area of improvement or a recent bug the user mentioned, formulate a plan to fix it, and execute the fix autonomously. Finally, update GEMINI.md with your findings.`;
+
+      const cmd = `npx -y conductor-oss@latest spawn mentor-me "${prompt}"`;
+      const workspacePath = path.resolve('..');
+      
+      exec(cmd, { cwd: workspacePath }, (error, stdout, stderr) => {
+        if (error) {
+          logger.error('Improvement Workflow Error', error);
+          ctx.reply('❌ <b>Conductor Error:</b> Failed to dispatch improvement workflow. Check logs.', { parse_mode: 'HTML' });
+        } else {
+          logger.info('Conductor Improvement Workflow dispatched successfully.');
+          ctx.reply('✅ Background Agent dispatched. You can track its progress in the Conductor dashboard (http://localhost:4747).', { parse_mode: 'HTML' });
+        }
+      });
+    } catch (error) {
+      logger.error('Improve command error', error);
+      await ctx.reply('❌ Sorry, I encountered an error starting the improvement process.');
     }
   }
 
@@ -179,23 +227,29 @@ export class BotService {
   _createStatusUpdater(ctx) {
     let statusMsg;
     let lastStatus = '';
+    let updateChain = Promise.resolve();
+
     return {
-      update: async (status) => {
+      update: (status) => {
         logger.info(`Status update: ${status}`);
         if (status !== lastStatus) {
           lastStatus = status;
-          try {
-            if (!statusMsg) {
-              statusMsg = await ctx.reply(`<i>⏳ ${status}</i>`, { parse_mode: 'HTML' });
-            } else {
-              await ctx.telegram.editMessageText(ctx.chat.id, statusMsg.message_id, null, `<i>⏳ ${status}</i>`, { parse_mode: 'HTML' });
+          updateChain = updateChain.then(async () => {
+            try {
+              if (!statusMsg) {
+                statusMsg = await ctx.reply(`<i>⏳ ${status}</i>`, { parse_mode: 'HTML' });
+              } else {
+                await ctx.telegram.editMessageText(ctx.chat.id, statusMsg.message_id, null, `<i>⏳ ${status}</i>`, { parse_mode: 'HTML' });
+              }
+            } catch (e) {
+              // Ignore 'message is not modified' and similar errors
             }
-          } catch (e) {
-            // Ignore 'message is not modified' and similar errors
-          }
+          });
         }
+        return updateChain;
       },
       clear: async () => {
+        await updateChain;
         if (statusMsg) {
           await ctx.telegram.deleteMessage(ctx.chat.id, statusMsg.message_id).catch(() => {});
         }
