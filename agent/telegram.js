@@ -239,7 +239,7 @@ export class BotService {
               if (!statusMsg) {
                 statusMsg = await ctx.reply(`<i>⏳ ${status}</i>`, { parse_mode: 'HTML' });
               } else {
-                await ctx.telegram.editMessageText(ctx.chat.id, statusMsg.message_id, null, `<i>⏳ ${status}</i>`, { parse_mode: 'HTML' });
+                await ctx.telegram.editMessageText(ctx.chat.id, statusMsg.message_id, undefined, `<i>⏳ ${status}</i>`, { parse_mode: 'HTML' });
               }
             } catch (e) {
               // Ignore 'message is not modified' and similar errors
@@ -311,9 +311,9 @@ export class BotService {
       try {
         if (i === 0 && statusMsgId) {
           if (useHtml) {
-            await ctx.telegram.editMessageText(ctx.chat.id, statusMsgId, null, chunk, { parse_mode: 'HTML' });
+            await ctx.telegram.editMessageText(ctx.chat.id, statusMsgId, undefined, chunk, { parse_mode: 'HTML' });
           } else {
-            await ctx.telegram.editMessageText(ctx.chat.id, statusMsgId, null, chunk);
+            await ctx.telegram.editMessageText(ctx.chat.id, statusMsgId, undefined, chunk);
           }
         } else {
           if (useHtml) {
