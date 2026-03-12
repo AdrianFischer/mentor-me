@@ -35,3 +35,6 @@ version: 1
 - [x] Allow to use websearch in the background agents that operate on the routines <!-- id: 26cf2f38-0a3a-4741-a419-c11c597ad24d -->
   I would like to give them access to a single file / folder ONLY AND to give them websearch capabilities through the gemini cli
 
+- [x] Add feedback loop for AI agent to verify created tasks and check routines <!-- id: 7fb4688f-1764-43b4-a5ef-79bfc7d979e2 -->
+  The AI agent needs a reliable way to query the database and background routine manager to quickly verify if tasks/subtasks have been successfully committed and if routines are active. Currently, checking the routines or pulling task IDs sometimes times out or lacks definitive confirmation. This needs to be improved so the AI doesn't have to guess or assume the state of backend systems for the user.
+

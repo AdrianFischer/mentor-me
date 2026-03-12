@@ -15,15 +15,25 @@ async function main() {
 
   try {
     // 1. Load Configuration
-    // We wait 5s earlier, now we load config AFTER the wait so we get the fresh mcp_port file
     const config = loadConfig();
     logger.info(`Loaded ${config.authorizedUserIds.length} authorized Telegram users.`);
 
-    // 2. Initialize Services
+    // 2. Initialize Core Services
     const mcp = new McpService(config);
     const gemini = new GeminiService(config);
     
-    // Connect to MCP (Flutter App) with retries
+    // 3. Initialize Brain
+    const brain = new AgentBrain({ mcp, gemini });
+
+    // 4. Start Telegram Bot
+    const bot = new BotService(config, brain);
+    await bot.start();
+
+    // 5. Start System Dashboard Service (Available even if MCP is down)
+    const dashboard = new DashboardService(8082, gemini);
+    await dashboard.start();
+
+    // 6. Connect to MCP (Flutter App) with retries
     let connected = false;
     let retries = 10;
     while (!connected && retries > 0) {
@@ -37,20 +47,16 @@ async function main() {
         logger.info('✅ MCP Connected');
       } catch (e) {
         retries--;
-        if (retries === 0) throw e;
-        logger.warn(`Waiting for MCP server (Retries left: ${retries})...`);
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3s
+        if (retries === 0) {
+          logger.error('❌ Failed to connect to MCP after 10 retries. Continuing without UI task integration.');
+        } else {
+          logger.warn(`Waiting for MCP server (Retries left: ${retries})...`);
+          await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3s
+        }
       }
     }
 
-    // 3. Initialize Brain
-    const brain = new AgentBrain({ mcp, gemini });
-
-    // 4. Start Telegram Bot
-    const bot = new BotService(config, brain);
-    await bot.start();
-
-    // 5. Start Autonomous Watchdog
+    // 7. Start Autonomous Watchdog
     const primaryUserId = config.authorizedUserIds?.[0];
     const watchdog = new Watchdog({
       onWorkAccomplished: (message) => {
@@ -63,10 +69,6 @@ async function main() {
     });
     watchdog.start();
     
-    // 6. Start PR Dashboard Service
-    const dashboard = new DashboardService(8082);
-    await dashboard.start();
-
     logger.info('✨ Agent is now live and talking to your bot');
 
     // Handle Shutdown

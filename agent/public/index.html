@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System & PR Dashboard</title>
+  <style>
+    :root {
+      --bg-color: #0d1117;
+      --surface-color: #161b22;
+      --border-color: #30363d;
+      --text-main: #c9d1d9;
+      --text-muted: #8b949e;
+      --color-green: #2ea043;
+      --color-red: #da3633;
+      --color-orange: #d29922;
+      --color-blue: #58a6ff;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0;
+    }
+    .refresh-btn {
+      background-color: var(--surface-color);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .refresh-btn:hover {
+      background-color: #1f242c;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      border: 1px solid transparent;
+    }
+    .tab.active {
+      background-color: var(--surface-color);
+      border-color: var(--border-color);
+      color: var(--color-blue);
+    }
+    .tab:hover:not(.active) {
+      background-color: #1f242c;
+    }
+    
+    .view-section {
+      display: none;
+    }
+    .view-section.active {
+      display: block;
+    }
+
+    .card {
+      background-color: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      margin-bottom: 16px;
+      padding: 16px;
+    }
+    .interactive-card {
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .interactive-card:hover {
+      background-color: #1f242c;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+      color: var(--color-blue);
+    }
+    .card-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .badge {
+      padding: 2px 8px;
+      border-radius: 2em;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid transparent;
+    }
+    .badge.passing {
+      color: var(--color-green);
+      border-color: rgba(46, 160, 67, 0.4);
+      background-color: rgba(46, 160, 67, 0.1);
+    }
+    .badge.failing_new {
+      color: var(--color-red);
+      border-color: rgba(218, 54, 51, 0.4);
+      background-color: rgba(218, 54, 51, 0.1);
+    }
+    .badge.failing_known {
+      color: var(--color-orange);
+      border-color: rgba(210, 153, 34, 0.4);
+      background-color: rgba(210, 153, 34, 0.1);
+    }
+    .badge.build_error {
+      color: var(--text-muted);
+      border-color: var(--border-color);
+    }
+    .badge.running {
+      color: var(--color-blue);
+      border-color: rgba(88, 166, 255, 0.4);
+      background-color: rgba(88, 166, 255, 0.1);
+    }
+    
+    .test-list {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border-color);
+    }
+    .test-item {
+      margin-bottom: 8px;
+      font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+      font-size: 12px;
+    }
+    .test-item .indicator {
+      display: inline-block;
+      width: 12px;
+    }
+    .test-item.new .indicator { color: var(--color-red); }
+    .test-item.known .indicator { color: var(--color-orange); }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    .section-title {
+      font-size: 18px;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 5px;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 100;
+    }
+    .modal-content {
+      position: absolute;
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: var(--bg-color);
+      width: 90%; max-width: 800px; max-height: 90vh;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      display: flex; flex-direction: column;
+    }
+    .modal-header {
+      padding: 16px; border-bottom: 1px solid var(--border-color);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-title { font-size: 18px; font-weight: 600; color: var(--color-blue); margin: 0; }
+    .close-btn { cursor: pointer; color: var(--text-muted); font-size: 24px; line-height: 1; }
+    .close-btn:hover { color: var(--color-red); }
+    .modal-body {
+      padding: 16px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px;
+    }
+    .log-viewer {
+      background: var(--surface-color); padding: 12px; border-radius: 6px;
+      font-family: monospace; font-size: 12px; white-space: pre-wrap;
+      height: 200px; overflow-y: auto; border: 1px solid var(--border-color);
+    }
+    .chat-container {
+      flex: 1; display: flex; flex-direction: column; border: 1px solid var(--border-color);
+      border-radius: 6px; overflow: hidden;
+    }
+    .chat-messages {
+      flex: 1; padding: 12px; background: var(--surface-color);
+      min-height: 200px; max-height: 300px; overflow-y: auto;
+    }
+    .chat-message { margin-bottom: 8px; font-size: 13px; line-height: 1.4; }
+    .chat-message.user { color: var(--color-blue); font-weight: bold; }
+    .chat-message.agent { color: var(--text-main); }
+    .chat-message.system { color: var(--text-muted); font-style: italic; }
+    .chat-input-area {
+      display: flex; padding: 8px; background: var(--bg-color);
+      border-top: 1px solid var(--border-color);
+    }
+    .chat-input {
+      flex: 1; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);
+      background: var(--surface-color); color: var(--text-main); outline: none;
+    }
+    .chat-send-btn {
+      margin-left: 8px; padding: 8px 16px; background: var(--color-blue);
+      color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;
+    }
+    .chat-send-btn:hover { background: #408bf9; }
+    .chat-send-btn:disabled { background: var(--border-color); cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🚀 System & PR Dashboard</h1>
+    <button class="refresh-btn" onclick="refreshCurrentView()">Refresh Data</button>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('system')">Active Agents</div>
+    <div class="tab" onclick="switchTab('prs')">PR Tests</div>
+  </div>
+
+  <div id="view-system" class="view-section active">
+    <div id="system-content">
+      <div class="loading">Loading system status...</div>
+    </div>
+  </div>
+
+  <div id="view-prs" class="view-section">
+    <div id="prs-content">
+      <div class="loading">Loading your Pull Requests...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="session-modal" onclick="closeModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Session Details</h2>
+      <div class="close-btn" onclick="closeModal(null, true)">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div style="font-weight: 600; font-size: 14px;">Session Log:</div>
+      <div class="log-viewer" id="modal-log-viewer">Loading logs...</div>
+      
+      <div style="font-weight: 600; font-size: 14px; margin-top: 8px;">Ask Agent about this session:</div>
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-message system">Agent is ready. What would you like to know about this session?</div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" id="chat-input" placeholder="e.g. What errors occurred?" onkeypress="handleChatKeyPress(event)" disabled>
+          <button class="chat-send-btn" id="chat-send-btn" onclick="sendChat()" disabled>Ask</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentTab = 'system';
+  let systemPollInterval = null;
+  let currentSessionLog = '';
+
+  function switchTab(tabId) {
+    currentTab = tabId;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    
+    document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+    document.getElementById(`view-${tabId}`).classList.add('active');
+
+    refreshCurrentView();
+  }
+
+  function refreshCurrentView() {
+    if (currentTab === 'prs') {
+      stopSystemPolling();
+      fetchPRs();
+    } else {
+      fetchSystemStatus();
+      startSystemPolling();
+    }
+  }
+
+  function startSystemPolling() {
+    if (!systemPollInterval) {
+      systemPollInterval = setInterval(fetchSystemStatus, 5000);
+    }
+  }
+
+  function stopSystemPolling() {
+    if (systemPollInterval) {
+      clearInterval(systemPollInterval);
+      systemPollInterval = null;
+    }
+  }
+
+  function formatTimeAgo(dateString) {
+    const now = new Date();
+    const date = new Date(dateString);
+    const seconds = Math.floor((now - date) / 1000);
+    
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    return `${hours}h ago`;
+  }
+
+  async function fetchSystemStatus() {
+    const contentDiv = document.getElementById('system-content');
+    
+    try {
+      const response = await fetch('/api/system-status');
+      const data = await response.json();
+      
+      if (data.error) {
+        contentDiv.innerHTML = `<div style="color: var(--color-red)">Error: ${data.error}</div>`;
+        return;
+      }
+
+      let html = '';
+
+      // Active Routines
+      html += `<h2 class="section-title">Background Routines (Watchdog)</h2>`;
+      if (data.routines.length === 0) {
+        html += `<div class="card"><div class="card-meta">No background routines are currently running.</div></div>`;
+      } else {
+        data.routines.forEach(r => {
+          html += `
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">${r.name}</h3>
+                  <div class="card-meta">PID: ${r.pid} • Started: ${formatTimeAgo(r.startTime)}</div>
+                </div>
+                <div class="badge running">Running</div>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      // Active Subagents
+      html += `<h2 class="section-title">Task Subagents (UI/MCP)</h2>`;
+      if (data.subagents.length === 0) {
+        html += `<div class="card"><div class="card-meta">No task subagents are currently active.</div></div>`;
+      } else {
+        data.subagents.forEach(s => {
+          const typeLabel = s.type === 'task' ? 'Task' : 'Subtask';
+          html += `
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">${s.title}</h3>
+                  <div class="card-meta">${typeLabel} • Project: ${s.project} ${s.parent ? '• Parent: ' + s.parent : ''}</div>
+                </div>
+                <div class="badge running">In Progress</div>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      // Telemetry / History
+      html += `<h2 class="section-title">Recent Activity History (Click to Inspect)</h2>`;
+      if (data.telemetry.length === 0) {
+        html += `<div class="card"><div class="card-meta">No recent activity.</div></div>`;
+      } else {
+        data.telemetry.forEach(t => {
+          const logPathSafe = t.log_file ? \`'\${t.log_file.replace(/\\\\/g, '\\\\\\\\')}'\` : 'null';
+          html += \`
+            <div class="card interactive-card" style="padding: 12px;" onclick="openModal(\${logPathSafe}, '\${t.routine}')">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <span style="font-weight: 600; font-size: 14px; color: var(--text-main);">${t.routine}</span>
+                  <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">${new Date(t.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); font-family: monospace;">
+                  ${t.total_tokens} tokens
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      contentDiv.innerHTML = html;
+
+    } catch (error) {
+      if (contentDiv.innerHTML.includes('Loading')) {
+        contentDiv.innerHTML = `<div style="color: var(--color-red)">Failed to fetch system status. Is the backend running?</div>`;
+      }
+    }
+  }
+
+  async function fetchPRs() {
+    const contentDiv = document.getElementById('prs-content');
+    contentDiv.innerHTML = '<div class="loading">Loading your Pull Requests... This might take a moment.</div>';
+    
+    try {
+      const response = await fetch('/api/prs');
+      const data = await response.json();
+      
+      if (data.error) {
+        contentDiv.innerHTML = `<div style="color: var(--color-red)">Error: ${data.error}</div>`;
+        return;
+      }
+
+      if (data.prs.length === 0) {
+        contentDiv.innerHTML = '<div class="loading">You have no open pull requests.</div>';
+        return;
+      }
+
+      contentDiv.innerHTML = '';
+      
+      data.prs.forEach(pr => {
+        let badgeClass = pr.overallStatus;
+        let badgeText = 'Passing';
+        if (badgeClass === 'failing_new') badgeText = 'Failing (New Regressions)';
+        if (badgeClass === 'failing_known') badgeText = 'Failing (Known on Develop)';
+        if (badgeClass === 'build_error') badgeText = 'Build/Lint Error';
+
+        let testsHtml = '';
+        if (pr.failedTests && pr.failedTests.length > 0) {
+          testsHtml = '<div class="test-list">';
+          pr.failedTests.forEach(test => {
+            const isNew = test.status === 'new_failure';
+            testsHtml += `
+              <div class="test-item ${isNew ? 'new' : 'known'}">
+                <span class="indicator">${isNew ? '🔴' : '⚠️'}</span>
+                ${test.name}
+              </div>
+            `;
+          });
+          testsHtml += '</div>';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'pr-card';
+        card.innerHTML = `
+          <div class="pr-header">
+            <div>
+              <h3 class="pr-title">#${pr.number} ${pr.title}</h3>
+              <div class="pr-meta">Branch: ${pr.headRefName} • Updated: ${new Date(pr.updatedAt).toLocaleDateString()}</div>
+            </div>
+            <div class="badge ${badgeClass}">${badgeText}</div>
+          </div>
+          ${testsHtml}
+        `;
+        contentDiv.appendChild(card);
+      });
+
+    } catch (error) {
+      contentDiv.innerHTML = `<div style="color: var(--color-red)">Failed to fetch data. Check console.</div>`;
+    }
+  }
+
+  // Modal & Chat Logic
+  async function openModal(logFile, routineName) {
+    stopSystemPolling();
+    const modal = document.getElementById('session-modal');
+    document.getElementById('modal-title').innerText = `Session: ${routineName}`;
+    document.getElementById('modal-log-viewer').innerText = 'Loading logs...';
+    document.getElementById('chat-messages').innerHTML = '<div class="chat-message system">Agent is ready. What would you like to know about this session?</div>';
+    
+    const input = document.getElementById('chat-input');
+    const btn = document.getElementById('chat-send-btn');
+    input.value = '';
+    input.disabled = true;
+    btn.disabled = true;
+
+    modal.style.display = 'block';
+
+    if (!logFile) {
+      document.getElementById('modal-log-viewer').innerText = 'Log file path not found for this older session.';
+      currentSessionLog = '';
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/logs?file=${encodeURIComponent(logFile)}`);
+      const data = await response.json();
+      if (data.error) {
+        document.getElementById('modal-log-viewer').innerText = 'Error loading log: ' + data.error;
+        currentSessionLog = '';
+      } else {
+        document.getElementById('modal-log-viewer').innerText = data.content;
+        // Limit context size to avoid massive payloads, taking the tail end which usually has the summary/results
+        currentSessionLog = data.content.length > 10000 ? '...[truncated]...' + data.content.slice(-10000) : data.content;
+        
+        input.disabled = false;
+        btn.disabled = false;
+        input.focus();
+      }
+    } catch (err) {
+      document.getElementById('modal-log-viewer').innerText = 'Failed to fetch logs.';
+      currentSessionLog = '';
+    }
+  }
+
+  function closeModal(event, force = false) {
+    if (force || event.target.id === 'session-modal') {
+      document.getElementById('session-modal').style.display = 'none';
+      if (currentTab === 'system') {
+        startSystemPolling();
+      }
+    }
+  }
+
+  function handleChatKeyPress(event) {
+    if (event.key === 'Enter') {
+      sendChat();
+    }
+  }
+
+  async function sendChat() {
+    const input = document.getElementById('chat-input');
+    const btn = document.getElementById('chat-send-btn');
+    const messagesDiv = document.getElementById('chat-messages');
+    
+    const question = input.value.trim();
+    if (!question) return;
+
+    // Add user message
+    messagesDiv.innerHTML += `<div class="chat-message user">You: ${question.replace(/</g, '&lt;')}</div>`;
+    input.value = '';
+    input.disabled = true;
+    btn.disabled = true;
+
+    // Add loading message
+    const loadingId = 'loading-' + Date.now();
+    messagesDiv.innerHTML += `<div class="chat-message system" id="${loadingId}">Agent is thinking...</div>`;
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, context: currentSessionLog })
+      });
+      const data = await response.json();
+      
+      document.getElementById(loadingId).remove();
+      
+      if (data.error) {
+        messagesDiv.innerHTML += `<div class="chat-message agent" style="color:var(--color-red);">Error: ${data.error}</div>`;
+      } else {
+        messagesDiv.innerHTML += `<div class="chat-message agent">Agent: ${data.text.replace(/\n/g, '<br>')}</div>`;
+      }
+    } catch (err) {
+      document.getElementById(loadingId).remove();
+      messagesDiv.innerHTML += `<div class="chat-message agent" style="color:var(--color-red);">Failed to reach agent.</div>`;
+    }
+
+    input.disabled = false;
+    btn.disabled = false;
+    input.focus();
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  // Start initialization
+  refreshCurrentView();
+
+</script>
+
+</body>
+</html>

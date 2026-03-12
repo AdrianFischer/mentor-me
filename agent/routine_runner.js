@@ -86,6 +86,26 @@ priority = 200
         if (routine.context) args.push(routine.context);
       }
 
+      try {
+        const homeDir = process.env.HOME || process.env.USERPROFILE;
+        const portStr = fs.readFileSync(path.join(homeDir, '.assisted_intelligence', 'mcp_port'), 'utf-8').trim();
+        const localSettingsDir = path.resolve('..', '.gemini');
+        if (!fs.existsSync(localSettingsDir)) {
+          fs.mkdirSync(localSettingsDir, { recursive: true });
+        }
+        const localSettingsPath = path.join(localSettingsDir, 'settings.json');
+        let settings = {};
+        if (fs.existsSync(localSettingsPath)) {
+          try {
+            settings = JSON.parse(fs.readFileSync(localSettingsPath, 'utf-8'));
+          } catch(e) {}
+        }
+        settings.mcpServers = settings.mcpServers || {};
+        settings.mcpServers.flutterApp = { url: `http://127.0.0.1:${portStr}/mcp` };
+        fs.writeFileSync(localSettingsPath, JSON.stringify(settings, null, 2));
+      } catch (err) {
+        logger.warn(`Failed to update local MCP config for routine: ${err.message}`);
+      }
       
       const taskId = timestamp + '_' + Math.random().toString(36).substr(2, 5);
       
@@ -172,7 +192,7 @@ priority = 200
           }
         }
 
-        this._logTelemetry(routine.name, usage);
+        this._logTelemetry(routine.name, usage, logFile);
         
         resolve({
           success: code === 0,
@@ -250,7 +270,7 @@ priority = 200
     }
   }
 
-  _logTelemetry(routineName, usage) {
+  _logTelemetry(routineName, usage, logFile) {
     const telemetryFile = path.join(this.logsDir, 'telemetry.json');
     let data = [];
     try {
@@ -258,7 +278,7 @@ priority = 200
       if (fs.existsSync(telemetryFile)) {
         data = JSON.parse(fs.readFileSync(telemetryFile, 'utf-8') || '[]');
       }
-      data.push({ routine: routineName, timestamp: new Date().toISOString(), total_tokens: usage.total_tokens });
+      data.push({ routine: routineName, timestamp: new Date().toISOString(), total_tokens: usage.total_tokens, log_file: logFile });
       if (data.length > 100) data.shift();
       fs.writeFileSync(telemetryFile, JSON.stringify(data, null, 2));
     } catch (e) {

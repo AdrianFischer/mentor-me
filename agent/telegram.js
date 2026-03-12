@@ -161,17 +161,46 @@ export class BotService {
     try {
       logger.info(`Incoming from Telegram: "${text}"`);
       
+      const statusUpdater = this._createStatusUpdater(ctx);
       const response = await this.withTyping(ctx, () => 
-        this.brain.process(text, (status) => {
-          logger.info(`Status update: ${status}`);
+        this.brain.process(text, async (status) => {
+          await statusUpdater.update(status);
         })
       );
       
+      await statusUpdater.clear();
       await this.safeReply(ctx, response);
     } catch (error) {
       logger.error('Telegram Error', error);
       await ctx.reply('❌ Sorry, something went wrong while thinking.');
     }
+  }
+
+  _createStatusUpdater(ctx) {
+    let statusMsg;
+    let lastStatus = '';
+    return {
+      update: async (status) => {
+        logger.info(`Status update: ${status}`);
+        if (status !== lastStatus) {
+          lastStatus = status;
+          try {
+            if (!statusMsg) {
+              statusMsg = await ctx.reply(`<i>⏳ ${status}</i>`, { parse_mode: 'HTML' });
+            } else {
+              await ctx.telegram.editMessageText(ctx.chat.id, statusMsg.message_id, null, `<i>⏳ ${status}</i>`, { parse_mode: 'HTML' });
+            }
+          } catch (e) {
+            // Ignore 'message is not modified' and similar errors
+          }
+        }
+      },
+      clear: async () => {
+        if (statusMsg) {
+          await ctx.telegram.deleteMessage(ctx.chat.id, statusMsg.message_id).catch(() => {});
+        }
+      }
+    };
   }
 
   /**
@@ -205,16 +234,35 @@ export class BotService {
       if (imageBase64) {
         const buffer = Buffer.from(imageBase64, 'base64');
         await ctx.replyWithPhoto({ source: buffer }, { 
-          caption: text,
+          caption: text.substring(0, 1024),
           parse_mode: 'HTML' 
         });
+        if (text.length > 1024) {
+          await this._sendChunkedText(ctx, text.substring(1024));
+        }
       } else {
-        // Try with HTML (most reliable for bots)
-        await ctx.reply(text, { parse_mode: 'HTML' });
+        await this._sendChunkedText(ctx, text);
       }
     } catch (error) {
       logger.warn('Rich reply failed, sending as plain text.', error.message);
-      await ctx.reply(text); // Final fallback to plain text
+      await this._sendChunkedText(ctx, text, false); // Final fallback to plain text
+    }
+  }
+
+  async _sendChunkedText(ctx, text, useHtml = true) {
+    const maxLength = 4000;
+    for (let i = 0; i < text.length; i += maxLength) {
+      const chunk = text.substring(i, i + maxLength);
+      try {
+        if (useHtml) {
+          await ctx.reply(chunk, { parse_mode: 'HTML' });
+        } else {
+          await ctx.reply(chunk);
+        }
+      } catch (e) {
+        logger.warn('Chunk reply failed, falling back to plain text', e.message);
+        await ctx.reply(chunk);
+      }
     }
   }
 
@@ -239,6 +287,7 @@ export class BotService {
     try {
       logger.info(`Processing media: ${fileId} (${mimeType})`);
       
+      const statusUpdater = this._createStatusUpdater(ctx);
       const response = await this.withTyping(ctx, async () => {
         // 1. Get file link from Telegram
         const link = await ctx.telegram.getFileLink(fileId);
@@ -255,11 +304,12 @@ export class BotService {
           ? { imageBase64: base64, mimeType, text }
           : { audioBase64: base64, mimeType };
           
-        return this.brain.process(input, (status) => {
-          logger.info(`Status update: ${status}`);
+        return this.brain.process(input, async (status) => {
+          await statusUpdater.update(status);
         });
       });
       
+      await statusUpdater.clear();
       await this.safeReply(ctx, response);
     } catch (error) {
       logger.error('Media Processing Error', error);
@@ -287,7 +337,14 @@ export class BotService {
     }
 
     try {
-      await this.telegraf.telegram.sendMessage(userId, text, { parse_mode: 'HTML' });
+      const maxLength = 4000;
+      for (let i = 0; i < text.length; i += maxLength) {
+        const chunk = text.substring(i, i + maxLength);
+        await this.telegraf.telegram.sendMessage(userId, chunk, { parse_mode: 'HTML' }).catch(async (e) => {
+          logger.warn(`HTML proactive send failed, falling back to plain text`, e.message);
+          await this.telegraf.telegram.sendMessage(userId, chunk);
+        });
+      }
     } catch (error) {
       logger.error(`Failed to send proactive message to ${userId}`, error);
     }
