@@ -13,6 +13,7 @@ export class Watchdog {
     this.logsDir = config.logsDir || path.resolve('../logs/routines');
     this.intervalMs = config.intervalMs || 1000;
     this.routinesState = new Map(); // Store last_execution_time for each routine
+    this.activeRoutines = new Set(); // Track currently running routines
     this.timer = null;
     this.onWorkAccomplished = config.onWorkAccomplished || (() => {});
     
@@ -114,10 +115,16 @@ export class Watchdog {
       const intervalMs = (routine.execute_every_seconds || 60) * 1000;
 
       if (force || now >= lastExecution + intervalMs) {
+        if (this.activeRoutines.has(routine.name)) {
+          logger.info(`Routine ${routine.name} is already running. Skipping this trigger interval.`);
+          return;
+        }
+
         logger.info(`Triggering routine: ${routine.name} (${file})`);
         
         // Update state BEFORE calling to avoid double triggers if logic is slow
         this.routinesState.set(file, now);
+        this.activeRoutines.add(routine.name);
         
         // Persist last execution time in the file
         routine.last_executed_at = now;
@@ -125,8 +132,10 @@ export class Watchdog {
         
         // Execute the routine independently
         this.runner.run(routine).then(result => {
+          this.activeRoutines.delete(routine.name);
           this._handleResult(routine, result);
         }).catch(err => {
+          this.activeRoutines.delete(routine.name);
           logger.error(`Routine execution failed for ${routine.name}`, err);
         });
       }
