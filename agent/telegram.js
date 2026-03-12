@@ -311,19 +311,29 @@ export class BotService {
       try {
         if (i === 0 && statusMsgId) {
           if (useHtml) {
-            await ctx.telegram.editMessageText(ctx.chat.id, statusMsgId, undefined, chunk, { parse_mode: 'HTML' });
+            try {
+              await ctx.telegram.editMessageText(ctx.chat.id, statusMsgId, undefined, chunk, { parse_mode: 'HTML' });
+            } catch (htmlError) {
+              logger.warn('HTML edit failed, retrying as plain text', htmlError.message);
+              await ctx.telegram.editMessageText(ctx.chat.id, statusMsgId, undefined, chunk);
+            }
           } else {
             await ctx.telegram.editMessageText(ctx.chat.id, statusMsgId, undefined, chunk);
           }
         } else {
           if (useHtml) {
-            await ctx.reply(chunk, { parse_mode: 'HTML' });
+            try {
+              await ctx.reply(chunk, { parse_mode: 'HTML' });
+            } catch (htmlError) {
+              logger.warn('HTML reply failed, retrying as plain text', htmlError.message);
+              await ctx.reply(chunk);
+            }
           } else {
             await ctx.reply(chunk);
           }
         }
       } catch (e) {
-        logger.warn('Chunk reply failed, falling back to plain text/new message', e.message);
+        logger.warn('Chunk text operation failed completely', e.message);
         if (i === 0 && statusMsgId) {
            await ctx.telegram.deleteMessage(ctx.chat.id, statusMsgId).catch(() => {});
         }
