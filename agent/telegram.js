@@ -111,8 +111,8 @@ export class BotService {
         })
       );
       
-      await statusUpdater.clear();
-      await this.safeReply(ctx, response);
+      const messageId = await statusUpdater.clear();
+      await this.safeReply(ctx, response, messageId);
     } catch (error) {
       logger.error('Workflow Error', error);
       await ctx.reply(`❌ Sorry, I encountered an error during your ${type} workflow.`);
@@ -216,8 +216,8 @@ export class BotService {
         })
       );
       
-      await statusUpdater.clear();
-      await this.safeReply(ctx, response);
+      const messageId = await statusUpdater.clear();
+      await this.safeReply(ctx, response, messageId);
     } catch (error) {
       logger.error('Telegram Error', error);
       await ctx.reply('❌ Sorry, something went wrong while thinking.');
@@ -250,9 +250,7 @@ export class BotService {
       },
       clear: async () => {
         await updateChain;
-        if (statusMsg) {
-          await ctx.telegram.deleteMessage(ctx.chat.id, statusMsg.message_id).catch(() => {});
-        }
+        return statusMsg ? statusMsg.message_id : null;
       }
     };
   }
@@ -279,13 +277,16 @@ export class BotService {
   /**
    * Safely replies with HTML or Photo, falling back to plain text if parsing fails.
    */
-  async safeReply(ctx, response) {
+  async safeReply(ctx, response, statusMsgId = null) {
     const text = typeof response === 'string' ? response : response.text;
     const imageBase64 = response.imageBase64;
 
     try {
       logger.info(`Outgoing to Telegram: "${text.substring(0, 100)}${text.length > 100 ? '...' : ''}" ${imageBase64 ? '[+Image]' : ''}`);
       if (imageBase64) {
+        if (statusMsgId) {
+          await ctx.telegram.deleteMessage(ctx.chat.id, statusMsgId).catch(() => {});
+        }
         const buffer = Buffer.from(imageBase64, 'base64');
         await ctx.replyWithPhoto({ source: buffer }, { 
           caption: text.substring(0, 1024),
@@ -295,26 +296,37 @@ export class BotService {
           await this._sendChunkedText(ctx, text.substring(1024));
         }
       } else {
-        await this._sendChunkedText(ctx, text);
+        await this._sendChunkedText(ctx, text, true, statusMsgId);
       }
     } catch (error) {
       logger.warn('Rich reply failed, sending as plain text.', error.message);
-      await this._sendChunkedText(ctx, text, false); // Final fallback to plain text
+      await this._sendChunkedText(ctx, text, false, statusMsgId); // Final fallback to plain text
     }
   }
 
-  async _sendChunkedText(ctx, text, useHtml = true) {
+  async _sendChunkedText(ctx, text, useHtml = true, statusMsgId = null) {
     const maxLength = 4000;
     for (let i = 0; i < text.length; i += maxLength) {
       const chunk = text.substring(i, i + maxLength);
       try {
-        if (useHtml) {
-          await ctx.reply(chunk, { parse_mode: 'HTML' });
+        if (i === 0 && statusMsgId) {
+          if (useHtml) {
+            await ctx.telegram.editMessageText(ctx.chat.id, statusMsgId, null, chunk, { parse_mode: 'HTML' });
+          } else {
+            await ctx.telegram.editMessageText(ctx.chat.id, statusMsgId, null, chunk);
+          }
         } else {
-          await ctx.reply(chunk);
+          if (useHtml) {
+            await ctx.reply(chunk, { parse_mode: 'HTML' });
+          } else {
+            await ctx.reply(chunk);
+          }
         }
       } catch (e) {
-        logger.warn('Chunk reply failed, falling back to plain text', e.message);
+        logger.warn('Chunk reply failed, falling back to plain text/new message', e.message);
+        if (i === 0 && statusMsgId) {
+           await ctx.telegram.deleteMessage(ctx.chat.id, statusMsgId).catch(() => {});
+        }
         await ctx.reply(chunk);
       }
     }
@@ -363,8 +375,8 @@ export class BotService {
         });
       });
       
-      await statusUpdater.clear();
-      await this.safeReply(ctx, response);
+      const messageId = await statusUpdater.clear();
+      await this.safeReply(ctx, response, messageId);
     } catch (error) {
       logger.error('Media Processing Error', error);
       const type = mimeType.startsWith('image') ? 'photo' : 'voice memo';
