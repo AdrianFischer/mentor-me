@@ -132,13 +132,25 @@ priority = 200
       });
 
       const timer = setTimeout(() => {
-        logger.warn(`Routine ${routine.name} timed out after ${timeoutSeconds}s. Killing process group...`);
+        logger.warn(`Routine ${routine.name} timed out after ${timeoutSeconds}s. Sending SIGTERM for graceful exit...`);
         try {
-          process.kill(-child.pid, 'SIGKILL');
+          process.kill(-child.pid, 'SIGTERM');
         } catch (e) {
-          child.kill('SIGKILL');
+          child.kill('SIGTERM');
         }
-        logStream.write('\n[TIMEOUT_ERROR] Process killed by Watchdog due to timeout.');
+        logStream.write('\\n[TIMEOUT_ERROR] Process signaled by Watchdog (SIGTERM) due to timeout.');
+        
+        // Force kill if it doesn't terminate gracefully within 15 seconds
+        const forceKillTimer = setTimeout(() => {
+          try {
+            process.kill(-child.pid, 'SIGKILL');
+            logger.warn(`Routine ${routine.name} forcefully killed (SIGKILL) after ignoring SIGTERM.`);
+            logStream.write('\\n[TIMEOUT_ERROR] Process forcefully killed (SIGKILL) after ignoring SIGTERM.');
+          } catch (e) {
+            // It already exited
+          }
+        }, 15000);
+        forceKillTimer.unref(); // Don't block event loop
       }, timeoutMs);
 
       
