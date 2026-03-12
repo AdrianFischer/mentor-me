@@ -41,6 +41,6 @@ version: 1
 - [x] Improve chat UI: Edit 'Discovering tools...' message instead of sending a new one <!-- id: 28d6306b-956e-45b0-bde2-4c273c74f547 -->
   Currently, when the AI agent triggers tools, the chat UI creates a 'Discovering tools...' message, and then appends a second message for the actual progress updates. Refactor the backend/frontend message handling so that the initial 'Discovering tools...' message is updated directly rather than creating a second message.
 
-- [ ] Implement on-demand triggering for background routines <!-- id: b6302f41-9e4c-420c-9215-594904adff5b -->
+- [x] Implement on-demand triggering for background routines <!-- id: b6302f41-9e4c-420c-9215-594904adff5b -->
   Currently, forcing a routine to run requires temporarily changing its execution frequency (e.g., to 15 seconds) and then changing it back. This feels hacky. We need an API endpoint or a mechanism to directly trigger a specific routine's execution immediately, bypassing its scheduled interval, without modifying the underlying configuration file.
 

@@ -76,6 +76,7 @@ const watchdog = new Watchdog({
 watchdog.start();
 brain.routinesManager.setWatchdog(watchdog);
 dashboard.setWatchdog(watchdog);
+dashboard.setWatchdog(watchdog);
 
 logger.info('✨ Agent is now live and talking to your bot');
 

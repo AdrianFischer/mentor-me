@@ -24,9 +24,60 @@ export class DashboardService {
     this._setupRoutes();
   }
 
+  setWatchdog(watchdog) {
+    this.watchdog = watchdog;
+  }
+
   _setupRoutes() {
     // Serve static files from the 'public' directory
     this.app.use(express.static(path.join(__dirname, 'public')));
+
+    // API Endpoint to trigger a routine on-demand
+    this.app.post('/api/routines/:routineName/trigger', async (req, res) => {
+      try {
+        const routineName = req.params.routineName;
+        if (!this.watchdog) {
+          return res.status(503).json({ error: 'Watchdog service is not available.' });
+        }
+        
+        const files = fs.readdirSync(this.watchdog.routinesDir).filter(f => f.endsWith('.yaml') || f.endsWith('.json'));
+        let foundFile = null;
+        let foundRoutine = null;
+
+        for (const file of files) {
+          try {
+            const routinePath = path.join(this.watchdog.routinesDir, file);
+            const content = fs.readFileSync(routinePath, 'utf-8');
+            const routine = JSON.parse(content);
+            if (routine.name === routineName || file === routineName) {
+              foundFile = file;
+              foundRoutine = routine;
+              break;
+            }
+          } catch (e) {
+            // ignore parse errors for individual files
+          }
+        }
+
+        if (!foundFile) {
+          return res.status(404).json({ error: `Routine '${routineName}' not found.` });
+        }
+
+        logger.info(`Dashboard: On-demand trigger for routine: ${foundRoutine.name} (${foundFile})`);
+        
+        // Execute the routine asynchronously
+        this.watchdog.runner.run(foundRoutine).then(result => {
+          this.watchdog._handleResult(foundRoutine, result);
+        }).catch(err => {
+          logger.error(`On-demand routine execution failed for ${foundRoutine.name}`, err);
+        });
+
+        res.json({ success: true, message: `Routine '${foundRoutine.name}' triggered.` });
+      } catch (error) {
+        logger.error('Trigger Routine API Error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
     // API Endpoint for System Status
     this.app.get('/api/system-status', async (req, res) => {
