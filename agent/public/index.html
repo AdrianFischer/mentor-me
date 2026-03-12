@@ -337,6 +337,36 @@
     return `${hours}h ago`;
   }
 
+  async function triggerRoutine(e, routineName) {
+    try {
+      const btn = e.target;
+      const originalText = btn.innerText;
+      btn.innerText = 'Triggering...';
+      btn.disabled = true;
+
+      const response = await fetch(`/api/routines/${encodeURIComponent(routineName)}/trigger`, {
+        method: 'POST'
+      });
+      const data = await response.json();
+      
+      if (data.error) {
+        alert('Error: ' + data.error);
+        btn.innerText = originalText;
+        btn.disabled = false;
+      } else {
+        btn.innerText = 'Triggered!';
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.disabled = false;
+        }, 2000);
+      }
+    } catch (error) {
+      alert('Failed to trigger routine.');
+      e.target.innerText = 'Trigger Now';
+      e.target.disabled = false;
+    }
+  }
+
   async function fetchSystemStatus() {
     const contentDiv = document.getElementById('system-content');
     
@@ -365,6 +395,26 @@
                   <div class="card-meta">PID: ${r.pid} • Started: ${formatTimeAgo(r.startTime)}</div>
                 </div>
                 <div class="badge running">Running</div>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      // Configured Routines
+      html += `<h2 class="section-title">Configured Routines (Manual Trigger)</h2>`;
+      if (!data.configured_routines || data.configured_routines.length === 0) {
+        html += `<div class="card"><div class="card-meta">No configured routines found.</div></div>`;
+      } else {
+        data.configured_routines.forEach(r => {
+          html += `
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">${r.name}</h3>
+                  <div class="card-meta">Runs every ${r.execute_every_seconds}s • File: ${r.filename}</div>
+                </div>
+                <button class="refresh-btn" style="border-color: var(--color-blue); color: var(--color-blue);" onclick="triggerRoutine(event, '${r.filename}')">Trigger Now</button>
               </div>
             </div>
           `;
