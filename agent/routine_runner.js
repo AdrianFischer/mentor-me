@@ -158,8 +158,6 @@ priority = 200
         this._removeActiveTask(taskId);
         clearTimeout(timer);
 
-        logStream.end();
-        
         logger.info(`Routine ${routine.name} finished with code ${code}`);
 
         let usage = { total_tokens: 0 };
@@ -191,13 +189,11 @@ priority = 200
               }
             } catch (e) {
               logger.warn('Failed to parse Gemini JSON output for telemetry', e.message);
-              // Fallback to last 1500 chars to avoid massive log dumps on error
               if (finalResponse.length > 1500) {
                 finalResponse = '... ' + finalResponse.substring(finalResponse.length - 1500);
               }
             }
           } else {
-             // Fallback for non-JSON output
              if (finalResponse.length > 1500) {
                 finalResponse = '... ' + finalResponse.substring(finalResponse.length - 1500);
              }
@@ -205,14 +201,16 @@ priority = 200
         }
 
         this._logTelemetry(routine.name, usage, logFile);
-        
-        resolve({
-          success: code === 0,
-          code,
-          output: finalResponse,
-          usage,
-          logFile,
-          timedOut: code === null
+
+        logStream.end(() => {
+          resolve({
+            success: code === 0,
+            code,
+            output: finalResponse,
+            usage,
+            logFile,
+            timedOut: code === null
+          });
         });
       });
 

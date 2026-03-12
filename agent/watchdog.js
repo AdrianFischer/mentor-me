@@ -120,6 +120,43 @@ export class Watchdog {
           return;
         }
 
+        const activeTasksFile = path.join(this.logsDir, 'active_tasks.json');
+        if (fs.existsSync(activeTasksFile)) {
+          try {
+            const activeTasks = JSON.parse(fs.readFileSync(activeTasksFile, 'utf-8'));
+            let isRunning = false;
+            let fileUpdated = false;
+            for (const [taskId, taskData] of Object.entries(activeTasks)) {
+              if (taskData.routine === routine.name) {
+                try {
+                  process.kill(taskData.pid, 0); // Check if alive
+                  isRunning = true;
+                } catch (e) {
+                  delete activeTasks[taskId]; // Process dead, clean up stale entry
+                  fileUpdated = true;
+                }
+              } else {
+                 try {
+                   process.kill(taskData.pid, 0);
+                 } catch(e) {
+                   delete activeTasks[taskId];
+                   fileUpdated = true;
+                 }
+              }
+            }
+            if (fileUpdated) {
+               fs.writeFileSync(activeTasksFile, JSON.stringify(activeTasks, null, 2));
+            }
+            if (isRunning) {
+               logger.info(`Routine ${routine.name} is still running in background (PID check). Skipping.`);
+               this.activeRoutines.add(routine.name); // Track in-memory so we don't check disk next tick
+               return;
+            }
+          } catch (e) {
+            logger.error('Failed to read active_tasks.json', e);
+          }
+        }
+
         logger.info(`Triggering routine: ${routine.name} (${file})`);
         
         // Update state BEFORE calling to avoid double triggers if logic is slow
