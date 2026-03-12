@@ -53,7 +53,10 @@ export class RoutinesManager {
             execute_every_seconds: { type: 'number', description: 'Interval in seconds.' },
             task: { type: 'string', description: 'The task description for Gemini CLI.' },
             context: { type: 'string', description: 'Context and learned strategies for the routine.' },
-            timeout: { type: 'number', description: 'Max runtime in seconds.' }
+            timeout: { type: 'number', description: 'Max runtime in seconds.' },
+            target_folder: { type: 'string', description: 'Optional. Restricts the agent to this specific directory.' },
+            target_file: { type: 'string', description: 'Optional. Restricts the agent to a single file.' },
+            enable_websearch: { type: 'boolean', description: 'If true, gives the agent google_web_search capabilities.' }
           },
           required: ['filename', 'name', 'task', 'execute_every_seconds']
         }

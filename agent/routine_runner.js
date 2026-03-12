@@ -40,13 +40,46 @@ export class RoutineRunner {
       // Construct command arguments
       let args = [];
       if (this.geminiPath.includes('gemini')) {
-        const fullPrompt = `Context: ${routine.context || ''}${dynamicContext}\n\nTask: ${routine.task}`;
+        let fullPrompt = `Context: ${routine.context || ''}${dynamicContext}\n\nTask: ${routine.task}`;
+
+        let restrictionText = '';
+        if (routine.target_file) {
+          restrictionText = `\n\nCRITICAL RESTRICTION: You may ONLY read and modify the specific file: ${routine.target_file}. Do NOT touch any other files.`;
+        } else if (routine.target_folder) {
+          restrictionText = `\n\nCRITICAL RESTRICTION: You may ONLY operate within the specific folder: ${routine.target_folder}. Do NOT touch any files outside this folder.`;
+        }
+        fullPrompt += restrictionText;
 
         args = [
           '-p', fullPrompt,
           '-o', 'json', 
           '-y' 
         ];
+
+        if (routine.target_folder || routine.target_file || routine.enable_websearch) {
+          const policyFile = path.join(this.logsDir, `policy_${timestamp}.toml`);
+          let policyContent = `# Automatically generated policy for routine: ${routine.name}
+[[rule]]
+toolName = "run_shell_command"
+decision = "deny"
+priority = 100
+
+[[rule]]
+toolName = "ask_user"
+decision = "deny"
+priority = 100
+`;
+          if (routine.enable_websearch) {
+            policyContent += `
+[[rule]]
+toolName = "google_web_search"
+decision = "allow"
+priority = 200
+`;
+          }
+          fs.writeFileSync(policyFile, policyContent);
+          args.push('--policy', policyFile);
+        }
       } else {
         // Fallback for test mocks or generic commands
         args = [routine.task];
@@ -57,6 +90,7 @@ export class RoutineRunner {
       const taskId = timestamp + '_' + Math.random().toString(36).substr(2, 5);
       
       const child = spawn(this.geminiPath, args, {
+        cwd: path.resolve('..'),
         detached: true,
         stdio: ['ignore', 'pipe', 'pipe']
       });
@@ -102,9 +136,10 @@ export class RoutineRunner {
         if (this.geminiPath.includes('gemini') && output.trim()) {
           const lastSessionIdMatch = output.lastIndexOf('{\n  "session_id"');
           const startIndex = lastSessionIdMatch !== -1 ? lastSessionIdMatch : output.lastIndexOf('{');
+          const endIndex = output.lastIndexOf('}');
           
-          if (startIndex !== -1) {
-            const cleanJsonStr = output.substring(startIndex);
+          if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+            const cleanJsonStr = output.substring(startIndex, endIndex + 1);
             try {
               const parsed = JSON.parse(cleanJsonStr);
               
@@ -168,7 +203,7 @@ export class RoutineRunner {
       const cmd = isPython ? 'python3' : 'bash';
       const args = isPython ? [script] : ['-c', script];
       
-      const child = spawn(cmd, args);
+      const child = spawn(cmd, args, { cwd: path.resolve('..') });
       let output = '';
       let error = '';
 
