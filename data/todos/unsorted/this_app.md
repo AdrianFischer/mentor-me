@@ -38,7 +38,7 @@ version: 1
 - [x] Add feedback loop for AI agent to verify created tasks and check routines <!-- id: 7fb4688f-1764-43b4-a5ef-79bfc7d979e2 -->
   The AI agent needs a reliable way to query the database and background routine manager to quickly verify if tasks/subtasks have been successfully committed and if routines are active. Currently, checking the routines or pulling task IDs sometimes times out or lacks definitive confirmation. This needs to be improved so the AI doesn't have to guess or assume the state of backend systems for the user.
 
-- [ ] Improve chat UI: Edit 'Discovering tools...' message instead of sending a new one <!-- id: 28d6306b-956e-45b0-bde2-4c273c74f547 -->
+- [x] Improve chat UI: Edit 'Discovering tools...' message instead of sending a new one <!-- id: 28d6306b-956e-45b0-bde2-4c273c74f547 -->
   Currently, when the AI agent triggers tools, the chat UI creates a 'Discovering tools...' message, and then appends a second message for the actual progress updates. Refactor the backend/frontend message handling so that the initial 'Discovering tools...' message is updated directly rather than creating a second message. \n\n**BUG REPORT:** The previous fix didn't work. The UI still shows two messages! Please investigate why the previous fix failed and correct the state management/message merging logic in Flutter/backend.
 
 - [x] Implement on-demand triggering for background routines <!-- id: b6302f41-9e4c-420c-9215-594904adff5b -->
