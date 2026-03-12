@@ -62,6 +62,12 @@ export class AgentBrain {
 
       responseText = await this._ensureTextResponse(responseText, executedTools, onStatus);
 
+      // Automatic Learning: Trigger reflection if the input implies ending a context or task
+      if (typeof input === 'string' && this._isClosingInteraction(input)) {
+        onStatus('Learning from session...');
+        await this.reflect();
+      }
+
       if (mediaOutput) {
         return { text: responseText, ...mediaOutput };
       }
@@ -71,6 +77,31 @@ export class AgentBrain {
       logger.error('Brain Error', error);
       return `❌ Sorry, I had trouble processing that: ${error.message}`;
     }
+  }
+
+  /**
+   * Triggers a self-reflection turn to extract learnings and update GEMINI.md.
+   */
+  async reflect() {
+    try {
+      logger.info('🧠 Triggering Self-Reflection Turn...');
+      const prompt = `[System: Context Reflection Mode. Please review our recent interactions. Identify any new user preferences, project-specific technical learnings, or architectural decisions. 
+IMPORTANT:
+1. Update the global GEMINI.md file in the root directory (if it exists) with these insights in the "Learnings & Future Context" section. 
+2. Ensure you do not duplicate existing information. 
+3. Summarize what you've learned for the user in a professional, senior assistant tone.]`;
+      
+      const { text: reflectionText } = await this.gemini.process(prompt, await this._gatherTools());
+      logger.info(`Self-Reflection complete: ${reflectionText.substring(0, 100)}...`);
+      return reflectionText;
+    } catch (error) {
+      logger.error('Reflection Error', error);
+    }
+  }
+
+  _isClosingInteraction(text) {
+    const closingWords = ['bye', 'good night', 'finish', 'complete', 'goodnight', 'done for today', 'schluss für heute', 'gute nacht'];
+    return closingWords.some(word => text.toLowerCase().includes(word));
   }
 
   _buildPrompt(input) {

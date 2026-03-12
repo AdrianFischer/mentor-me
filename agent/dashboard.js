@@ -84,6 +84,7 @@ export class DashboardService {
       try {
         const responseData = {
           routines: [],
+          configured_routines: [],
           telemetry: [],
           subagents: []
         };
@@ -91,6 +92,30 @@ export class DashboardService {
         // 1. Read routines
         const logsDir = path.resolve(__dirname, '../logs/routines');
         const activeTasksFile = path.join(logsDir, 'active_tasks.json');
+        
+        // Read configured routines
+        if (this.watchdog) {
+          try {
+            const files = fs.readdirSync(this.watchdog.routinesDir).filter(f => f.endsWith('.yaml') || f.endsWith('.json'));
+            for (const file of files) {
+              try {
+                const routinePath = path.join(this.watchdog.routinesDir, file);
+                const content = fs.readFileSync(routinePath, 'utf-8');
+                const routine = JSON.parse(content);
+                responseData.configured_routines.push({
+                  filename: file,
+                  name: routine.name,
+                  execute_every_seconds: routine.execute_every_seconds
+                });
+              } catch (e) {
+                // ignore invalid files
+              }
+            }
+          } catch (e) {
+             logger.error('Failed to read configured routines for dashboard', e);
+          }
+        }
+
         
         let activeRoutines = {};
         if (fs.existsSync(activeTasksFile)) {
