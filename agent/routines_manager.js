@@ -6,6 +6,7 @@ export class RoutinesManager {
   constructor(routinesDir = path.resolve('../data/routines'), logsDir = path.resolve('../logs/routines')) {
     this.routinesDir = routinesDir;
     this.logsDir = logsDir;
+    this.watchdog = null;
     if (!fs.existsSync(this.routinesDir)) {
       fs.mkdirSync(this.routinesDir, { recursive: true });
     }
@@ -14,8 +15,23 @@ export class RoutinesManager {
     }
   }
 
+  setWatchdog(watchdog) {
+    this.watchdog = watchdog;
+  }
+
   getTools() {
     return [
+      {
+        name: 'trigger_routine',
+        description: 'Instantly triggers a specific background routine to run right now, bypassing its scheduled interval.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            routine_name: { type: 'string', description: 'The exact name or filename of the routine to trigger (e.g. daily_cleanup.json or Human Readable Name).' }
+          },
+          required: ['routine_name']
+        }
+      },
 
       {
         name: 'pause_routines',
@@ -122,10 +138,24 @@ export class RoutinesManager {
       return this._resumeRoutines(call.args);
     } else if (call.name === 'get_routines_status') {
       return this._getRoutinesStatus(call.args);
-} else if (call.name === 'get_recent_routine_logs') {
+    } else if (call.name === 'trigger_routine') {
+      return this._triggerRoutine(call.args);
+    } else if (call.name === 'get_recent_routine_logs') {
       return this._getRecentRoutineLogs(call.args);
     }
     throw new Error(`Unknown tool: ${call.name}`);
+  }
+
+  async _triggerRoutine(args) {
+    try {
+      if (!this.watchdog) {
+        return { result: 'error', message: 'Watchdog service is not attached. Cannot trigger routine.' };
+      }
+      await this.watchdog.forceTrigger(args.routine_name);
+      return { result: 'success', message: `Successfully triggered routine '${args.routine_name}' to run immediately.` };
+    } catch (e) {
+      return { result: 'error', message: e.message };
+    }
   }
 
   _listRoutines() {

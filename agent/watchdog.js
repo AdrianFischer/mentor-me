@@ -78,7 +78,32 @@ export class Watchdog {
     }
   }
 
-  async _checkRoutine(file, now) {
+  async forceTrigger(routineNameOrFile) {
+    const files = fs.readdirSync(this.routinesDir).filter(f => f.endsWith('.yaml') || f.endsWith('.json'));
+    let targetFile = files.find(f => f === routineNameOrFile);
+    
+    if (!targetFile) {
+      // Try finding by name in content
+      for (const file of files) {
+        try {
+          const content = JSON.parse(fs.readFileSync(path.join(this.routinesDir, file), 'utf-8'));
+          if (content.name === routineNameOrFile) {
+            targetFile = file;
+            break;
+          }
+        } catch (e) {}
+      }
+    }
+
+    if (!targetFile) {
+      throw new Error(`Routine '${routineNameOrFile}' not found.`);
+    }
+
+    logger.info(`Force triggering routine: ${targetFile}`);
+    await this._checkRoutine(targetFile, Date.now(), true);
+  }
+
+  async _checkRoutine(file, now, force = false) {
     const routinePath = path.join(this.routinesDir, file);
     
     try {
@@ -88,7 +113,7 @@ export class Watchdog {
       const lastExecution = this.routinesState.get(file) || routine.last_executed_at || 0;
       const intervalMs = (routine.execute_every_seconds || 60) * 1000;
 
-      if (now >= lastExecution + intervalMs) {
+      if (force || now >= lastExecution + intervalMs) {
         logger.info(`Triggering routine: ${routine.name} (${file})`);
         
         // Update state BEFORE calling to avoid double triggers if logic is slow

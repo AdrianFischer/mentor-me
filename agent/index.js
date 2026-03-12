@@ -6,6 +6,8 @@ import { AgentBrain } from './agent.js';
 import { Watchdog } from './watchdog.js';
 import { logger } from './logger.js';
 import { DashboardService } from './dashboard.js';
+import { ConductorManager } from './conductor_client.js';
+import { createBrainWorker } from './workers/brain_worker.js';
 
 async function main() {
   logger.info('🚀 Starting Assisted Intelligence Agent...');
@@ -25,15 +27,20 @@ async function main() {
     // 3. Initialize Brain
     const brain = new AgentBrain({ mcp, gemini });
 
-    // 4. Start Telegram Bot
+    // 4. Initialize Conductor
+    const conductor = new ConductorManager();
+    const brainWorker = createBrainWorker(brain);
+    conductor.startWorkers([brainWorker]);
+
+    // 5. Start Telegram Bot
     const bot = new BotService(config, brain);
     await bot.start();
 
-    // 5. Start System Dashboard Service (Available even if MCP is down)
+    // 6. Start System Dashboard Service (Available even if MCP is down)
     const dashboard = new DashboardService(8082, gemini);
     await dashboard.start();
 
-    // 6. Connect to MCP (Flutter App) with retries
+    // 7. Connect to MCP (Flutter App) with retries
     let connected = false;
     let retries = 10;
     while (!connected && retries > 0) {
@@ -55,21 +62,22 @@ async function main() {
         }
       }
     }
+// 8. Start Autonomous Watchdog
+const primaryUserId = config.authorizedUserIds?.[0];
+const watchdog = new Watchdog({
+  onWorkAccomplished: (message) => {
+    if (primaryUserId) {
+      bot.sendMessage(primaryUserId, message);
+    } else {
+      logger.warn('No authorized user found to send routine report.');
+    }
+  }
+});
+watchdog.start();
+brain.routinesManager.setWatchdog(watchdog);
+dashboard.setWatchdog(watchdog);
 
-    // 7. Start Autonomous Watchdog
-    const primaryUserId = config.authorizedUserIds?.[0];
-    const watchdog = new Watchdog({
-      onWorkAccomplished: (message) => {
-        if (primaryUserId) {
-          bot.sendMessage(primaryUserId, message);
-        } else {
-          logger.warn('No authorized user found to send routine report.');
-        }
-      }
-    });
-    watchdog.start();
-    
-    logger.info('✨ Agent is now live and talking to your bot');
+logger.info('✨ Agent is now live and talking to your bot');
 
     // Handle Shutdown
     process.once('SIGINT', () => {
@@ -77,12 +85,14 @@ async function main() {
       watchdog.stop();
       bot.stop('SIGINT');
       dashboard.stop();
+      conductor.stopWorkers();
     });
     process.once('SIGTERM', () => {
       logger.info('Shutting down...');
       watchdog.stop();
       bot.stop('SIGTERM');
       dashboard.stop();
+      conductor.stopWorkers();
     });
 
   } catch (error) {
