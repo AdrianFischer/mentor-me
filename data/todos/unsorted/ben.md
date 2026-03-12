@@ -14,5 +14,5 @@ version: 1
 
 - [x] Brainstorm with Ben <!-- id: bffdec7f-6d07-4554-b21c-bc308ddfac9e -->
 
-- [ ] new task <!-- id: 8ea172a7-891a-4d8e-a69b-dbe50e2071a1 -->
+- [x] new task <!-- id: 8ea172a7-891a-4d8e-a69b-dbe50e2071a1 -->
 
