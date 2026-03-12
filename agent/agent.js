@@ -97,10 +97,27 @@ export class AgentBrain {
     const ghTools = this.githubTools.getTools();
     const sharedTools = this.sharedFolderManager.getTools();
 
-    return [...mcpTools, ...localTools, ...ghTools, ...sharedTools];
+    const verifyTaskTool = {
+      name: 'verify_task_exists',
+      description: 'Verifies if a specific task or subtask exists in the project. Use this to quickly confirm a task was created without pulling the entire list of tasks, which can time out.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'The exact title or a unique substring of the task title.' },
+          project: { type: 'string', description: 'Optional project name to narrow down the search.' }
+        },
+        required: ['title']
+      }
+    };
+
+    return [...mcpTools, ...localTools, ...ghTools, ...sharedTools, verifyTaskTool];
   }
 
   async _executeTool(call) {
+    if (call.name === 'verify_task_exists') {
+      return await this._verifyTaskExists(call.args);
+    }
+
     const localToolNames = this.routinesManager.getTools().map(t => t.name);
     const ghToolNames = this.githubTools.getTools().map(t => t.name);
     const sharedToolNames = this.sharedFolderManager.getTools().map(t => t.name);
@@ -113,6 +130,43 @@ export class AgentBrain {
       return this.sharedFolderManager.executeTool(call);
     } else {
       return await this.mcp.callTool(call.name, call.args);
+    }
+  }
+
+  async _verifyTaskExists(args) {
+    try {
+      const response = await this.mcp.callTool('mcp_flutterApp_list_todos_by_status', { status: 'active' });
+      
+      let items = [];
+      if (response && response.items) {
+        items = response.items;
+      } else if (response && response.output) {
+        const parsed = typeof response.output === 'string' ? JSON.parse(response.output) : response.output;
+        items = parsed.items || [];
+      } else if (response && response.content) {
+        const textContent = response.content.find(c => c.type === 'text');
+        if (textContent) {
+          const parsed = JSON.parse(textContent.text);
+          items = parsed.items || [];
+        }
+      }
+
+      const { title, project } = args;
+      
+      const found = items.filter(item => {
+         const matchTitle = item.title && item.title.toLowerCase().includes(title.toLowerCase());
+         const matchProject = project && item.project ? item.project.toLowerCase() === project.toLowerCase() : true;
+         return matchTitle && matchProject;
+      });
+
+      if (found.length > 0) {
+        return { result: 'success', found: true, matches: found.slice(0, 5) };
+      } else {
+        return { result: 'success', found: false, message: `No active task found matching title '${title}'.` };
+      }
+    } catch (error) {
+       logger.error('Error verifying task', error);
+       return { result: 'error', message: error.message };
     }
   }
 

@@ -73,6 +73,17 @@ export class RoutinesManager {
         }
       },
       {
+        name: 'verify_routine_active',
+        description: 'Verifies if a specific background routine is configured and if it is currently executing. Returns definitive confirmation to avoid guessing.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            routine_name: { type: 'string', description: 'The exact name of the routine to verify (e.g. daily_cleanup.json or Human Readable Name).' }
+          },
+          required: ['routine_name']
+        }
+      },
+      {
         name: 'get_active_tasks_and_logs',
         description: 'Checks which background routines are currently running and returns their latest log output so you can report progress to the user.',
         inputSchema: {
@@ -103,7 +114,8 @@ export class RoutinesManager {
       return this._deleteRoutine(call.args);
     } else if (call.name === 'get_active_tasks_and_logs') {
       return this._getActiveTasksAndLogs(call.args);
-    
+    } else if (call.name === 'verify_routine_active') {
+      return this._verifyRoutineActive(call.args);
     } else if (call.name === 'pause_routines') {
       return this._pauseRoutines(call.args);
     } else if (call.name === 'resume_routines') {
@@ -248,6 +260,45 @@ export class RoutinesManager {
       return { result: 'success', active_tasks: taskDetails };
     } catch (e) {
       logger.error('Error reading active tasks', e);
+      return { result: 'error', message: e.message };
+    }
+  }
+
+  _verifyRoutineActive(args) {
+    try {
+      const { routine_name } = args;
+      const activeTasksFile = path.join(this.logsDir, 'active_tasks.json');
+      let isExecuting = false;
+      let isConfigured = false;
+      let routineDetails = null;
+
+      if (fs.existsSync(this.routinesDir)) {
+        const files = fs.readdirSync(this.routinesDir).filter(f => f.endsWith('.json'));
+        for (const f of files) {
+          const content = JSON.parse(fs.readFileSync(path.join(this.routinesDir, f), 'utf-8'));
+          if (f === routine_name || content.name === routine_name || f.replace('.json', '') === routine_name) {
+             isConfigured = true;
+             routineDetails = content;
+          }
+        }
+      }
+
+      if (fs.existsSync(activeTasksFile)) {
+        const activeTasks = JSON.parse(fs.readFileSync(activeTasksFile, 'utf-8') || '{}');
+        for (const taskInfo of Object.values(activeTasks)) {
+          if (taskInfo.routine === routine_name || taskInfo.routine === routine_name.replace('.json', '') || (routineDetails && taskInfo.routine === routineDetails.name)) {
+            isExecuting = true;
+          }
+        }
+      }
+
+      return { 
+        result: 'success', 
+        is_configured: isConfigured, 
+        is_executing: isExecuting, 
+        message: `Routine '${routine_name}' configured: ${isConfigured}, executing: ${isExecuting}` 
+      };
+    } catch (e) {
       return { result: 'error', message: e.message };
     }
   }
