@@ -8,12 +8,17 @@ import '../services/agent_session_tracker.dart';
 import '../services/file_system_service.dart';
 import '../data/repository/storage_repository.dart';
 import '../data/repository/in_memory_repository.dart';
+import '../data/repository/rest_storage_repository.dart';
+import '../app_config.dart';
 
 final fileSystemServiceProvider = Provider<FileSystemService>((ref) {
   return FileSystemService();
 });
 
 final storageRepositoryProvider = Provider<StorageRepository>((ref) {
+  if (AppConfig.useRemoteBackend) {
+    return RestStorageRepository(baseUrl: AppConfig.backendUrl);
+  }
   final fileService = ref.watch(fileSystemServiceProvider);
   return InMemoryRepository(fileService);
 });
