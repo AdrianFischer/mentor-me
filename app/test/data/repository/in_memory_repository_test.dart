@@ -1,12 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/data/repository/in_memory_repository.dart';
-import 'package:flutter_app/models/models.dart';
+import 'package:flutter_app/models/node.dart';
 import 'package:flutter_app/services/file_persistence_service.dart';
 import 'package:mocktail/mocktail.dart';
-import 'dart:io';
 
 class MockFilePersistence extends Mock implements FilePersistenceService {}
-class FakeProject extends Fake implements Project {}
+class FakeNode extends Fake implements Node {}
 
 void main() {
   group('InMemoryRepository Bootstrap', () {
@@ -14,34 +13,34 @@ void main() {
     late MockFilePersistence mockFileService;
 
     setUpAll(() {
-      registerFallbackValue(FakeProject());
+      registerFallbackValue(FakeNode());
     });
 
     setUp(() async {
       mockFileService = MockFilePersistence();
-      when(() => mockFileService.watchProjects()).thenAnswer((_) => Stream.empty());
-      when(() => mockFileService.loadAllProjects()).thenAnswer((_) async => []);
-      when(() => mockFileService.saveProject(any())).thenAnswer((_) async {});
-      
+      when(() => mockFileService.watchNodes()).thenAnswer((_) => Stream.empty());
+      when(() => mockFileService.loadAllNodes()).thenAnswer((_) async => []);
+      when(() => mockFileService.saveNode(any())).thenAnswer((_) async {});
+
       repository = InMemoryRepository(mockFileService);
     });
 
-    test('init() should load projects from FilePersistenceService', () async {
-      final project = Project(id: '1', title: 'Test', tasks: []);
-      when(() => mockFileService.loadAllProjects()).thenAnswer((_) async => [project]);
-      
+    test('init() should load nodes from FilePersistenceService', () async {
+      final node = Node(id: '1', title: 'Test');
+      when(() => mockFileService.loadAllNodes()).thenAnswer((_) async => [node]);
+
       await repository.init();
-      
-      final projects = await repository.getAllProjects();
-      expect(projects.length, 1);
-      expect(projects.first.id, '1');
+
+      final nodes = await repository.getAllNodes();
+      expect(nodes.length, 1);
+      expect(nodes.first.id, '1');
     });
-    
-    test('saveProject should delegate to FilePersistenceService', () async {
-      final project = Project(id: '1', title: 'Test', tasks: []);
-      await repository.saveProject(project);
-      
-      verify(() => mockFileService.saveProject(project)).called(1);
+
+    test('saveNode should delegate to FilePersistenceService', () async {
+      final node = Node(id: '1', title: 'Test');
+      await repository.saveNode(node);
+
+      verify(() => mockFileService.saveNode(node)).called(1);
     });
   });
 }

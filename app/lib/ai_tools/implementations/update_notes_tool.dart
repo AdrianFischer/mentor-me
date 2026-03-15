@@ -1,5 +1,4 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
 
 class UpdateNotesTool extends AiTool {
   @override
@@ -30,7 +29,7 @@ class UpdateNotesTool extends AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     final itemId = args['item_id'] as String?;
     final notes = args['notes'] as String?;
 
@@ -38,7 +37,7 @@ class UpdateNotesTool extends AiTool {
       return {'error': 'Missing item_id or notes'};
     }
 
-    dataService.updateNotes(itemId, notes);
+    context.nodeService.updateNotes(itemId, notes);
     return {'result': 'success', 'item_id': itemId};
   }
 }

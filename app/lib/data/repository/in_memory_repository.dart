@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../../models/models.dart';
+import '../../models/node.dart';
 import '../../models/ai_models.dart';
 import '../../services/file_persistence_service.dart';
 import 'storage_repository.dart';
@@ -8,12 +8,12 @@ import 'storage_repository.dart';
 /// Acts as a cache that delegates persistence to FilePersistenceService.
 class InMemoryRepository implements StorageRepository {
   final FilePersistenceService _fileService;
-  final List<Project> _projects = [];
+  final List<Node> _nodes = [];
   final List<Conversation> _conversations = [];
   final List<ChatMessage> _chatHistory = [];
   final List<Knowledge> _knowledgeBase = [];
   final List<Memory> _memories = [];
-  
+
   final _dataChangeController = StreamController<void>.broadcast();
   StreamSubscription? _watcherSubscription;
 
@@ -26,106 +26,56 @@ class InMemoryRepository implements StorageRepository {
   Future<void> init() async {
     // 1. Initial Load
     try {
-      final loadedProjects = await _fileService.loadAllProjects();
-      _projects.clear();
-      _projects.addAll(loadedProjects);
-      print('InMemoryRepository loaded ${_projects.length} projects.');
+      final loadedNodes = await _fileService.loadAllNodes();
+      _nodes.clear();
+      _nodes.addAll(loadedNodes);
+      print('InMemoryRepository loaded ${_nodes.length} nodes.');
     } catch (e) {
       print('InMemoryRepository init error: $e');
     }
 
     // 2. Start Watcher
-    _watcherSubscription = _fileService.watchProjects().listen((updatedProjects) {
-       // Simple Strategy: Replace all?
-       // Ideally we merge, but "File First" means File is Truth.
-       // If we replace all, we might lose in-memory cursor/state if not careful.
-       // But Project objects are immutable (Freezed).
-       
-       // Optimization: Only update if changed?
-       _projects.clear();
-       _projects.addAll(updatedProjects);
-       
+    _watcherSubscription = _fileService.watchNodes().listen((updatedNodes) {
+       _nodes.clear();
+       _nodes.addAll(updatedNodes);
+
        // Notify app to redraw
-       _dataChangeController.add(null); 
+       _dataChangeController.add(null);
     });
   }
-  
+
   void dispose() {
     _watcherSubscription?.cancel();
     _dataChangeController.close();
   }
 
-  // --- Projects ---
+  // --- Nodes ---
 
   @override
-  Future<List<Project>> getAllProjects() async {
-    return List.unmodifiable(_projects);
+  Future<List<Node>> getAllNodes() async {
+    return List.unmodifiable(_nodes);
   }
 
   @override
-  Future<void> saveProject(Project project) async {
-    final index = _projects.indexWhere((p) => p.id == project.id);
+  Future<void> saveNode(Node node) async {
+    final index = _nodes.indexWhere((n) => n.id == node.id);
     if (index != -1) {
-      _projects[index] = project;
+      _nodes[index] = node;
     } else {
-      _projects.add(project);
+      _nodes.add(node);
     }
-    
+
     // Write-Through
-    await _fileService.saveProject(project);
+    await _fileService.saveNode(node);
   }
 
   @override
-  Future<void> deleteProject(String projectId) async {
-    _projects.removeWhere((p) => p.id == projectId);
-    await _fileService.deleteProject(projectId);
+  Future<void> deleteNode(String nodeId) async {
+    _nodes.removeWhere((n) => n.id == nodeId);
+    await _fileService.deleteNode(nodeId);
   }
 
-  // --- Tasks ---
-
-  @override
-  Future<void> saveTask(Task task) async {
-    if (task.projectId == null) return;
-
-    final pIndex = _projects.indexWhere((p) => p.id == task.projectId);
-    if (pIndex == -1) return;
-
-    final project = _projects[pIndex];
-    final tIndex = project.tasks.indexWhere((t) => t.id == task.id);
-
-    List<Task> newTasks = List.from(project.tasks);
-    if (tIndex != -1) {
-      newTasks[tIndex] = task;
-    } else {
-      newTasks.add(task);
-    }
-
-    final newProject = project.copyWith(tasks: newTasks);
-    _projects[pIndex] = newProject;
-    
-    // Write-Through
-    await _fileService.saveProject(newProject);
-  }
-
-  @override
-  Future<void> deleteTask(String taskId) async {
-    for (var i = 0; i < _projects.length; i++) {
-      final project = _projects[i];
-      final tIndex = project.tasks.indexWhere((t) => t.id == taskId);
-      if (tIndex != -1) {
-        final newTasks = List<Task>.from(project.tasks)..removeAt(tIndex);
-        final newProject = project.copyWith(tasks: newTasks);
-        _projects[i] = newProject;
-        
-        // Write-Through
-        await _fileService.saveProject(newProject);
-        return;
-      }
-    }
-  }
-  
-  // ... Rest of the methods (Conversations, Chat, Knowledge) remain in-memory for now ...
-  // (Assuming file persistence is only for Projects currently)
+  // --- Conversations ---
 
   @override
   Future<List<Conversation>> getAllConversations() async {
@@ -158,7 +108,7 @@ class InMemoryRepository implements StorageRepository {
     if (conversationId != null) {
       return _chatHistory.where((m) => m.conversationId == conversationId).toList();
     }
-    return _chatHistory.toList(); 
+    return _chatHistory.toList();
   }
 
   @override

@@ -1,10 +1,9 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/app.dart';
 import 'helpers/fake_storage_repository.dart';
-import 'package:flutter_app/models/models.dart';
+import 'package:flutter_app/models/node.dart';
 import 'package:flutter_app/providers/data_provider.dart';
 import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_app/providers/mcp_provider.dart';
@@ -25,8 +24,8 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final fakeRepository = FakeStorageRepository(initialProjects: [
-        Project(id: 'p1', title: 'Inbox'),
+    final fakeRepository = FakeStorageRepository(initialNodes: [
+        Node(id: 'p1', title: 'Inbox'),
     ]);
     
     await tester.pumpWidget(ProviderScope(
@@ -43,14 +42,14 @@ void main() {
     expect(find.text("Inbox"), findsOneWidget);
     
     // Tap Inbox
-    await tester.tap(find.text("Inbox"));
+    await tester.tap(find.text("Inbox").first);
     await tester.pumpAndSettle();
     
-    // Verify Tasks column appears
-    expect(find.text('Tasks'), findsOneWidget);
+    // Verify Inbox column header appears (now we have 2 "Inbox" widgets)
+    expect(find.text('Inbox'), findsAtLeastNWidgets(2));
     
-    // Tap the Add button for Tasks column
-    await tester.tap(find.byKey(const ValueKey('tasks_add_btn')));
+    // Tap the Add button for the second column (Inbox)
+    await tester.tap(find.byKey(const ValueKey('inbox_add_btn')));
     await tester.pumpAndSettle();
 
     // Add a task to verify interaction
@@ -58,6 +57,6 @@ void main() {
     expect(textFieldFinder, findsOneWidget);
     await tester.enterText(textFieldFinder, "New Smoke Task");
     await tester.pumpAndSettle();
-    expect(find.text("New Smoke Task"), findsOneWidget);
+    expect(find.text("New Smoke Task"), findsAtLeastNWidgets(1));
   });
 }

@@ -4,20 +4,21 @@ import 'package:flutter_app/services/ai_agent.dart';
 import 'package:flutter_app/services/assistant_service.dart';
 import 'package:flutter_app/services/mcp_agent_service.dart';
 import 'package:flutter_app/services/data_service.dart';
+import 'package:flutter_app/services/node_service.dart';
 import 'package:flutter_app/services/mcp_client_service.dart';
 import 'package:flutter_app/ai_tools/tool_registry.dart';
 import 'package:flutter_app/services/ai_wrapper.dart';
 import 'package:flutter_app/models/ai_models.dart';
-import 'package:flutter_app/models/models.dart';
 import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter_app/services/tts_service.dart';
 
 // Mocks
 class MockDataService extends Mock implements DataService {
   @override
-  Future<List<Knowledge>> getAllKnowledge() async => [];
+  final NodeService nodeService = MockNodeService();
+
   @override
-  List<Project> get projects => [];
+  Future<List<Knowledge>> getAllKnowledge() async => [];
   @override
   Future<List<ChatMessage>> getChatHistory(String mode, {String? conversationId}) async => [];
   @override
@@ -25,6 +26,7 @@ class MockDataService extends Mock implements DataService {
   @override
   String createConversation(String title) => 'test_conv_id';
 }
+class MockNodeService extends Mock implements NodeService {}
 class MockToolRegistry extends Mock implements ToolRegistry {}
 class MockAIModelWrapper extends Mock implements AIModelWrapper {}
 class MockMcpClientService extends Mock implements McpClientService {}
@@ -38,6 +40,7 @@ void main() {
 
   group('AiAgent Interface Tests', () {
     late MockDataService mockDataService;
+    late MockNodeService mockNodeService;
     late MockToolRegistry mockToolRegistry;
     late MockAIModelWrapper mockModelWrapper;
     late MockMcpClientService mockMcpClient;
@@ -45,11 +48,16 @@ void main() {
 
     setUp(() {
       mockDataService = MockDataService();
+      mockNodeService = mockDataService.nodeService as MockNodeService;
+      
+      when(() => mockNodeService.rootNodes).thenReturn([]);
+
       mockToolRegistry = MockToolRegistry();
       mockModelWrapper = MockAIModelWrapper();
       mockMcpClient = MockMcpClientService();
       mockTtsService = MockTtsService();
-      
+
+      when(() => mockNodeService.rootNodes).thenReturn([]);
       when(() => mockModelWrapper.startChat(history: any(named: 'history')))
           .thenReturn(MockChatSessionWrapper());
     });
@@ -57,13 +65,13 @@ void main() {
     test('AssistantService implements AiAgent', () {
       final agent = AssistantService(mockDataService, mockToolRegistry, mockModelWrapper, ttsService: mockTtsService);
       expect(agent, isA<AiAgent>());
-      
+
       expect(agent.messages, isEmpty);
       expect(agent.isLoading, isFalse);
-      
+
       agent.setDraftMessage("Test");
       expect(agent.draftMessage, "Test");
-      
+
       agent.toggleThinking();
       expect(agent.isThinkingMode, isTrue);
     });
@@ -71,20 +79,20 @@ void main() {
     test('McpAgentService implements AiAgent', () {
       final agent = McpAgentService(mockMcpClient);
       expect(agent, isA<AiAgent>());
-      
+
       expect(agent.messages, isEmpty);
       expect(agent.isLoading, isFalse);
-      
+
       agent.setDraftMessage("Test");
       expect(agent.draftMessage, "Test");
-      
+
       agent.toggleThinking();
       expect(agent.isThinkingMode, isTrue);
     });
-    
+
     test('AssistantService sendMessage adds message', () async {
       final agent = AssistantService(mockDataService, mockToolRegistry, mockModelWrapper, ttsService: mockTtsService);
-      
+
       // Mock chat session response
       final mockChat = MockChatSessionWrapper();
       when(() => mockModelWrapper.startChat(history: any(named: 'history'))).thenReturn(mockChat);
@@ -92,18 +100,18 @@ void main() {
         text: "Response",
         functionCalls: [],
       ));
-      
+
       await agent.sendMessage("Hello");
-      
+
       expect(agent.messages.length, greaterThanOrEqualTo(1));
       expect(agent.messages.any((m) => m.text == "Hello" && m.isUser), isTrue);
     });
 
     test('McpAgentService sendMessage adds message (simulated)', () async {
       final agent = McpAgentService(mockMcpClient);
-      
+
       await agent.sendMessage("Hello");
-      
+
       expect(agent.messages.length, 2); // User message + Response
       expect(agent.messages[0].text, "Hello");
       expect(agent.messages[1].text, contains("MCP Agent"));

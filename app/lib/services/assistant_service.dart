@@ -20,7 +20,6 @@ class AssistantService extends AiAgent {
   bool _isListening = false;
   bool _isVoiceEnabled = true; 
   String _lastWords = '';
-  String _lastError = '';
 
   final List<ChatMessage> _messages = [];
   final List<ProposedAction> _pendingActions = []; 
@@ -39,6 +38,7 @@ class AssistantService extends AiAgent {
 
   String? get currentConversationId => _currentConversationId;
 
+  @override
   Future<void> loadConversation(String conversationId) async {
     if (_currentConversationId == conversationId) return;
 
@@ -58,12 +58,14 @@ class AssistantService extends AiAgent {
     notifyListeners();
   }
 
+  @override
   Future<String> createNewConversation(String title) async {
     final id = _dataService.createConversation(title);
     await loadConversation(id);
     return id;
   }
 
+  @override
   Future<void> clearHistory() async {
     if (_currentConversationId == null) return;
     _messages.clear();
@@ -81,16 +83,26 @@ class AssistantService extends AiAgent {
 
   // --- Properties ---
 
+  @override
   List<ChatMessage> get messages => _messages;
+  @override
   List<ProposedAction> get pendingActions => _pendingActions;
+  @override
   List<ProposedAction> get executedActions => _executedActions;
+  @override
   bool get isListening => _isListening;
+  @override
   bool get isLoading => _isLoading;
+  @override
   bool get isThinkingMode => _isThinkingMode;
+  @override
   String get currentSpeech => _lastWords;
+  @override
   bool get isVoiceEnabled => _isVoiceEnabled;
+  @override
   String get draftMessage => _draftMessage;
 
+  @override
   void setDraftMessage(String text) {
     _draftMessage = text;
   }
@@ -101,13 +113,17 @@ class AssistantService extends AiAgent {
     final knowledgeList = await _dataService.getAllKnowledge();
     final knowledgeContext = knowledgeList.map((k) => "- ${k.content}").join("\n");
 
-    final projectContext = _dataService.projects.map((p) {
-      final tasks = p.tasks.map((t) {
-        final subtasks = t.subtasks.map((s) => "    - [${s.isCompleted ? 'X' : ' '}] ${s.title} (ID: ${s.id})").join("\n");
-        return "  - [${t.isCompleted ? 'X' : ' '}] ${t.title} (ID: ${t.id})\n$subtasks";
+    String nodeTreeString(List<dynamic> nodes, int depth) {
+      return nodes.map((n) {
+        final indent = '  ' * depth;
+        final check = n.isCompleted ? 'X' : ' ';
+        final line = "$indent- [$check] ${n.title} (ID: ${n.id})";
+        if (n.children.isEmpty) return line;
+        return "$line\n${nodeTreeString(n.children, depth + 1)}";
       }).join("\n");
-      return "Project: ${p.title} (ID: ${p.id})\n$tasks";
-    }).join("\n\n");
+    }
+
+    final projectContext = nodeTreeString(_dataService.nodeService.rootNodes, 0);
     
     final systemInstruction = Content.text(
         "You are an intelligent assistant integrated into a task management app. "
@@ -131,11 +147,13 @@ class AssistantService extends AiAgent {
     );
   }
 
+  @override
   void toggleThinking() {
     _isThinkingMode = !_isThinkingMode;
     notifyListeners();
   }
 
+  @override
   Future<void> toggleRecording() async {
     if (_isListening) {
       await _speech.stop();
@@ -149,7 +167,6 @@ class AssistantService extends AiAgent {
       try {
         available = await _speech.initialize(
           onError: (error) {
-            _lastError = error.errorMsg;
             notifyListeners();
           },
         );
@@ -172,6 +189,7 @@ class AssistantService extends AiAgent {
     }
   }
 
+  @override
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
     if (_currentConversationId == null) {
@@ -304,6 +322,7 @@ class AssistantService extends AiAgent {
     }
   }
 
+  @override
   Future<void> acceptAction(ProposedAction action) async {
     try {
       await _toolRegistry.executeTool(action.toolName, action.toolArgs);
@@ -317,11 +336,13 @@ class AssistantService extends AiAgent {
     }
   }
 
+  @override
   void declineAction(ProposedAction action) {
     _pendingActions.remove(action);
     notifyListeners();
   }
 
+  @override
   void toggleVoice() {
     _isVoiceEnabled = !_isVoiceEnabled;
     if (!_isVoiceEnabled) _ttsService.stop();

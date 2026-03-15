@@ -1,3 +1,4 @@
+import '../services/node_service.dart';
 import '../services/data_service.dart';
 import 'ai_tool.dart';
 import 'implementations/add_project_tool.dart';
@@ -20,10 +21,11 @@ import 'implementations/upload_image_tool.dart';
 import 'implementations/get_image_tool.dart';
 
 class ToolRegistry {
-  final DataService _dataService;
+  final ToolContext _context;
   final Map<String, AiTool> _tools = {};
 
-  ToolRegistry(this._dataService) {
+  ToolRegistry(NodeService nodeService, DataService dataService)
+      : _context = ToolContext(nodeService, dataService) {
     _register(AddProjectTool());
     _register(AddTaskTool());
     _register(AddSubtaskTool());
@@ -54,7 +56,6 @@ class ToolRegistry {
     _tools[tool.name] = tool;
   }
 
-  /// Generates a human-readable description of what the tool will do.
   String describeAction(String name, Map<String, dynamic> args) {
     final tool = _tools[name];
     if (tool != null) {
@@ -67,7 +68,7 @@ class ToolRegistry {
     print("[VERIFY_FLOW] Tool Execution Start: $name with args $args");
     final tool = _tools[name];
     if (tool != null) {
-      return await tool.execute(args, _dataService);
+      return await tool.execute(args, _context);
     }
     return {'result': 'error', 'message': 'Tool not found'};
   }

@@ -1,11 +1,7 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/selection_provider.dart';
 import '../../providers/data_provider.dart';
-import '../../services/data_service.dart';
-import '../../models/models.dart';
 
 // --- Intents ---
 
@@ -72,53 +68,25 @@ class ToggleCompletionAction extends Action<ToggleCompletionIntent> {
 
   @override
   void invoke(ToggleCompletionIntent intent) {
-    final selectionState = ref.read(selectionProvider);
-    final dataService = ref.read(dataServiceProvider);
-    
-    if (selectionState.isAssistantActive) return;
+    final state = ref.read(selectionProvider);
+    if (state.isAssistantActive) return;
+    if (state.editingItemId != null) return;
 
-    String? idToToggle;
-    if (selectionState.focusedColumnIndex == 1) {
-       idToToggle = selectionState.selectedTaskId;
-    } else if (selectionState.focusedColumnIndex == 2) {
-       idToToggle = selectionState.selectedSubtaskId;
-    }
-
-    if (idToToggle != null) {
-       // Only toggle if NOT currently editing (consistent with shortcut logic)
-       if (selectionState.editingItemId == null) {
-          _toggleById(dataService, idToToggle);
-          return;
-       }
+    final nodeId = state.selectedNodeIdAtColumn(state.focusedColumnIndex);
+    if (nodeId != null) {
+      final nodeService = ref.read(nodeServiceProvider);
+      final node = nodeService.findNode(nodeId);
+      if (node != null) {
+        nodeService.setNodeStatus(nodeId, !node.isCompleted);
+        return;
+      }
     }
 
     // Fallback to Add
     final addAction = AddNewItemAction(ref);
     if (addAction.isEnabled(const AddNewItemIntent())) {
-       addAction.invoke(const AddNewItemIntent());
+      addAction.invoke(const AddNewItemIntent());
     }
-  }
-
-  void _toggleById(DataService dataService, String id) {
-     for(final p in dataService.projects) {
-       if (p.id == id) {
-          // Projects usually don't toggle, but if we wanted to:
-          // dataService.setItemStatus(id, !p.isCompleted);
-          return;
-       }
-       for(final t in p.tasks) {
-         if (t.id == id) {
-           dataService.setItemStatus(id, !t.isCompleted);
-           return;
-         }
-         for(final s in t.subtasks) {
-           if (s.id == id) {
-             dataService.setItemStatus(id, !s.isCompleted);
-             return;
-           }
-         }
-       }
-     }
   }
 }
 
@@ -129,14 +97,12 @@ class StartEditAction extends Action<StartEditIntent> {
   @override
   void invoke(StartEditIntent intent) {
     final state = ref.read(selectionProvider);
+
     String? idToEdit;
-    
     if (state.isAssistantActive) {
-       if (state.focusedColumnIndex == 1) idToEdit = state.selectedConversationId;
+      if (state.focusedColumnIndex == 1) idToEdit = state.selectedConversationId;
     } else {
-      if (state.focusedColumnIndex == 0) idToEdit = state.selectedProjectId;
-      else if (state.focusedColumnIndex == 1) idToEdit = state.selectedTaskId;
-      else if (state.focusedColumnIndex == 2) idToEdit = state.selectedSubtaskId;
+      idToEdit = state.selectedNodeIdAtColumn(state.focusedColumnIndex);
     }
 
     if (idToEdit != null) {
@@ -163,86 +129,44 @@ class AddNewItemAction extends Action<AddNewItemIntent> {
 
   @override
   bool isEnabled(AddNewItemIntent intent) {
-    final selectionState = ref.read(selectionProvider);
-    return selectionState.editingItemId == null;
+    return ref.read(selectionProvider).editingItemId == null;
   }
 
   @override
   Future<void> invoke(AddNewItemIntent intent) async {
     final selectionState = ref.read(selectionProvider);
-    
-    // Abort if currently editing an item (prevents Space key from creating new items while typing)
     if (selectionState.editingItemId != null) return;
 
-    final dataService = ref.read(dataServiceProvider);
-    
     // AI Mode: Add Conversation
-    if (selectionState.isAssistantActive && selectionState.focusedColumnIndex == 1) {
-       final newId = dataService.createConversation("New Chat");
-       ref.read(selectionProvider.notifier).selectConversation(newId);
-       return;
+    if (selectionState.isAssistantActive &&
+        selectionState.focusedColumnIndex == 1) {
+      final dataService = ref.read(dataServiceProvider);
+      final newId = dataService.createConversation("New Chat");
+      ref.read(selectionProvider.notifier).selectConversation(newId);
+      return;
     }
 
-    // Task Mode
-    final projects = dataService.projects;
+    // Node Mode: add child to the parent of the current column
+    final nodeService = ref.read(nodeServiceProvider);
+    final parentId =
+        selectionState.parentIdForColumn(selectionState.focusedColumnIndex);
+    final children = nodeService.getChildren(parentId);
 
-    if (selectionState.focusedColumnIndex == 0 || projects.isEmpty) {
-      // Insertion logic for projects
-      int targetIndex = projects.length;
-      if (selectionState.selectedProjectId != null) {
-        final currentIdx = projects.indexWhere((p) => p.id == selectionState.selectedProjectId);
-        if (currentIdx != -1) targetIndex = currentIdx + 1;
-      }
-      
-      String newId = await dataService.insertProject("", targetIndex);
-      ref.read(selectionProvider.notifier).selectProject(newId);
+    // Insert after current selection
+    int targetIndex = children.length;
+    final currentId =
+        selectionState.selectedNodeIdAtColumn(selectionState.focusedColumnIndex);
+    if (currentId != null) {
+      final idx = children.indexWhere((n) => n.id == currentId);
+      if (idx != -1) targetIndex = idx + 1;
+    }
+
+    final newId = await nodeService.insertChild(parentId, "", targetIndex);
+    if (newId != null) {
+      ref
+          .read(selectionProvider.notifier)
+          .selectNodeInColumn(selectionState.focusedColumnIndex, newId);
       ref.read(selectionProvider.notifier).setEditingItem(newId);
-    } else if (selectionState.focusedColumnIndex == 1) {
-      if (selectionState.selectedProjectId != null) {
-         final p = projects.firstWhereOrNull((p) => p.id == selectionState.selectedProjectId);
-         if (p == null) {
-            // Fallback: create project if selection invalid
-            String newId = await dataService.insertProject("", projects.length);
-            ref.read(selectionProvider.notifier).selectProject(newId);
-            ref.read(selectionProvider.notifier).setEditingItem(newId);
-            return;
-         }
-         int targetIndex = p.tasks.length;
-         if (selectionState.selectedTaskId != null) {
-            final currentIdx = p.tasks.indexWhere((t) => t.id == selectionState.selectedTaskId);
-            if (currentIdx != -1) targetIndex = currentIdx + 1;
-         }
-
-         String? newId = await dataService.insertTask(selectionState.selectedProjectId!, "", targetIndex);
-         if (newId != null) {
-           ref.read(selectionProvider.notifier).selectTask(newId);
-           ref.read(selectionProvider.notifier).setEditingItem(newId);
-         }
-      } else {
-         // No project selected, create one
-         String newId = await dataService.insertProject("", projects.length);
-         ref.read(selectionProvider.notifier).selectProject(newId);
-         ref.read(selectionProvider.notifier).setEditingItem(newId);
-      }
-    } else if (selectionState.focusedColumnIndex == 2) {
-      if (selectionState.selectedTaskId != null) {
-         final p = projects.firstWhereOrNull((p) => p.id == selectionState.selectedProjectId);
-         final t = p?.tasks.firstWhereOrNull((t) => t.id == selectionState.selectedTaskId);
-         
-         if (t == null) return;
-
-         int targetIndex = t.subtasks.length;
-         if (selectionState.selectedSubtaskId != null) {
-            final currentIdx = t.subtasks.indexWhere((s) => s.id == selectionState.selectedSubtaskId);
-            if (currentIdx != -1) targetIndex = currentIdx + 1;
-         }
-
-         String? newId = await dataService.insertSubtask(selectionState.selectedTaskId!, "", targetIndex);
-         if (newId != null) {
-           ref.read(selectionProvider.notifier).selectSubtask(newId);
-           ref.read(selectionProvider.notifier).setEditingItem(newId);
-         }
-      }
     }
   }
 }
@@ -252,63 +176,49 @@ class DeleteItemAction extends Action<DeleteItemIntent> {
   DeleteItemAction(this.ref);
 
   @override
-  bool isEnabled(DeleteItemIntent intent) {
-    return true; // Enable during editing for Backspace support
-  }
+  bool isEnabled(DeleteItemIntent intent) => true;
 
   @override
   void invoke(DeleteItemIntent intent) {
-     final state = ref.read(selectionProvider);
-     final dataService = ref.read(dataServiceProvider);
-     
-     // Stop editing if active
-     if (state.editingItemId != null) {
-        ref.read(selectionProvider.notifier).setEditingItem(null);
-     }
+    final state = ref.read(selectionProvider);
 
-     // Conversation
-     if (state.isAssistantActive && state.focusedColumnIndex == 1 && state.selectedConversationId != null) {
-        final id = state.selectedConversationId!;
-        dataService.deleteConversation(id);
-        ref.read(selectionProvider.notifier).selectConversation(null); 
-        return;
-     }
+    if (state.editingItemId != null) {
+      ref.read(selectionProvider.notifier).setEditingItem(null);
+    }
 
-     if (state.isAssistantActive) return;
+    // Conversation
+    if (state.isAssistantActive &&
+        state.focusedColumnIndex == 1 &&
+        state.selectedConversationId != null) {
+      final dataService = ref.read(dataServiceProvider);
+      dataService.deleteConversation(state.selectedConversationId!);
+      ref.read(selectionProvider.notifier).selectConversation(null);
+      return;
+    }
 
-     if (state.focusedColumnIndex == 0 && state.selectedProjectId != null) {
-       _deleteAndSelectNext(ref, dataService, dataService.projects, state.selectedProjectId!, (id) => ref.read(selectionProvider.notifier).selectProject(id));
-     } else if (state.focusedColumnIndex == 1 && state.selectedTaskId != null) {
-       final p = dataService.projects.firstWhereOrNull((p) => p.id == state.selectedProjectId);
-       if (p != null) {
-         _deleteAndSelectNext(ref, dataService, p.tasks, state.selectedTaskId!, (id) => ref.read(selectionProvider.notifier).selectTask(id));
-       }
-     } else if (state.focusedColumnIndex == 2 && state.selectedSubtaskId != null) {
-        final p = dataService.projects.firstWhereOrNull((p) => p.id == state.selectedProjectId);
-        final t = p?.tasks.firstWhereOrNull((t) => t.id == state.selectedTaskId);
-        if (t != null) {
-          _deleteAndSelectNext(ref, dataService, t.subtasks, state.selectedSubtaskId!, (id) => ref.read(selectionProvider.notifier).selectSubtask(id));
-        }
-     }
-  }
+    if (state.isAssistantActive) return;
 
-  void _deleteAndSelectNext(WidgetRef ref, dynamic dataService, List<dynamic> items, String currentId, Function(String?) onSelect) {
-     final index = items.indexWhere((i) => i.id == currentId);
-     if (index == -1) return;
+    // Node deletion
+    final currentId =
+        state.selectedNodeIdAtColumn(state.focusedColumnIndex);
+    if (currentId == null) return;
 
-     String? nextId;
-     // The Spec says: "If the deleted entry was the first in the list, no item should be selected"
-     // If index > 0, we move selection up. If index == 0, we clear it.
-     if (index > 0) {
-        nextId = items[index - 1].id;
-     } else {
-        nextId = null;
-     }
+    final nodeService = ref.read(nodeServiceProvider);
+    final parentId = state.parentIdForColumn(state.focusedColumnIndex);
+    final children = nodeService.getChildren(parentId);
+    final currentIndex = children.indexWhere((n) => n.id == currentId);
 
-     final currentFocus = ref.read(selectionProvider).focusedColumnIndex;
+    // Select previous item (or null if first)
+    String? nextId;
+    if (currentIndex > 0) {
+      nextId = children[currentIndex - 1].id;
+    }
 
-     dataService.deleteItem(currentId);
-     onSelect(nextId);
-     ref.read(selectionProvider.notifier).setFocusedColumn(currentFocus);
+    final currentFocus = state.focusedColumnIndex;
+    nodeService.deleteNode(currentId);
+    ref
+        .read(selectionProvider.notifier)
+        .selectNodeInColumn(currentFocus, nextId);
+    ref.read(selectionProvider.notifier).setFocusedColumn(currentFocus);
   }
 }

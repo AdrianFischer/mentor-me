@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../models/models.dart';
+import '../../models/node.dart';
 import '../../models/ai_models.dart';
 import 'storage_repository.dart';
 
@@ -67,47 +67,23 @@ class RestStorageRepository implements StorageRepository {
     _sseReconnectTimer = Timer(const Duration(seconds: 3), _connectSSE);
   }
 
-  // ─── Projects ───
+  // ─── Nodes ───
 
   @override
-  Future<List<Project>> getAllProjects() async {
+  Future<List<Node>> getAllNodes() async {
     final response = await _get('/projects');
     final list = jsonDecode(response.body) as List;
-    return list.map((j) => Project.fromJson(j as Map<String, dynamic>)).toList();
+    return list.map((j) => Node.fromJson(j as Map<String, dynamic>)).toList();
   }
 
   @override
-  Future<void> saveProject(Project project) async {
-    await _put('/projects/${project.id}', project.toJson());
+  Future<void> saveNode(Node node) async {
+    await _put('/projects/${node.id}', node.toJson());
   }
 
   @override
-  Future<void> deleteProject(String projectId) async {
-    await _delete('/projects/$projectId');
-  }
-
-  // ─── Tasks ───
-
-  @override
-  Future<void> saveTask(Task task) async {
-    if (task.projectId == null) return;
-    // Find the project, update the task within it, save the whole project
-    final projResponse = await _get('/projects/${task.projectId}');
-    final project = Project.fromJson(jsonDecode(projResponse.body));
-    final tasks = List<Task>.from(project.tasks);
-    final idx = tasks.indexWhere((t) => t.id == task.id);
-    if (idx != -1) {
-      tasks[idx] = task;
-    } else {
-      tasks.add(task);
-    }
-    final updated = project.copyWith(tasks: tasks);
-    await _put('/projects/${updated.id}', updated.toJson());
-  }
-
-  @override
-  Future<void> deleteTask(String taskId) async {
-    await _delete('/tasks/$taskId');
+  Future<void> deleteNode(String nodeId) async {
+    await _delete('/projects/$nodeId');
   }
 
   // ─── Conversations ───
@@ -126,7 +102,6 @@ class RestStorageRepository implements StorageRepository {
 
   @override
   Future<void> saveConversation(Conversation conversation) async {
-    // Try update first, create if not found
     final response = await _client.patch(
       Uri.parse('$baseUrl/conversations/${conversation.id}'),
       headers: {'Content-Type': 'application/json'},
@@ -169,7 +144,6 @@ class RestStorageRepository implements StorageRepository {
 
   @override
   Future<void> clearChatHistory(String mode, {String? conversationId}) async {
-    // Not directly supported via REST yet; delete and recreate conversation
     if (conversationId != null) {
       await _delete('/conversations/$conversationId');
     }

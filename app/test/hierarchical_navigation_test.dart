@@ -5,10 +5,7 @@ import 'package:flutter_app/ui/widgets/editable_item_widget.dart';
 
 void main() {
   group('Hierarchical Navigation Tests', () {
-    late TextEditingController controller;
-
     setUp(() {
-      controller = TextEditingController();
     });
 
     testWidgets('Left Arrow at start of text triggers onNavigateLeft', (WidgetTester tester) async {

@@ -1,4 +1,3 @@
-import '../../services/data_service.dart';
 import '../ai_tool.dart';
 
 class RecordGoalProgressTool extends AiTool {
@@ -38,27 +37,27 @@ class RecordGoalProgressTool extends AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     final taskId = args['task_id'] as String;
-    
+
     final amountVal = args['numeric_amount'];
     double? numericAmount;
     if (amountVal != null) {
-      numericAmount = (amountVal is num) 
-          ? amountVal.toDouble() 
+      numericAmount = (amountVal is num)
+          ? amountVal.toDouble()
           : double.tryParse(amountVal.toString());
     }
 
     final habitSuccess = args['habit_success'] as bool?;
     final note = args['note'] as String?;
 
-    dataService.recordGoalProgress(
+    context.nodeService.recordGoalProgress(
       taskId,
       amount: numericAmount,
       isSuccess: habitSuccess,
       note: note,
     );
-    
+
     return {'result': 'success', 'message': "Progress recorded for task $taskId"};
   }
 }

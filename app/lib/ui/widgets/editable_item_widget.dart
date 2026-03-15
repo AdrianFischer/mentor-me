@@ -41,9 +41,10 @@ class EditableItemWidget extends StatefulWidget {
   final bool showDeleteButton;
   final VoidCallback? onNavigateLeft;
   final VoidCallback? onNavigateRight;
+  final bool showNotesInline;
 
   const EditableItemWidget({
-    Key? key,
+    super.key,
     required this.item,
     required this.isSelected,
     required this.isActiveColumn,
@@ -60,7 +61,8 @@ class EditableItemWidget extends StatefulWidget {
     this.showDeleteButton = false,
     this.onNavigateLeft,
     this.onNavigateRight,
-  }) : super(key: key);
+    this.showNotesInline = true,
+  });
 
   @override
   State<EditableItemWidget> createState() => _EditableItemWidgetState();
@@ -315,8 +317,9 @@ class _EditableItemWidgetState extends State<EditableItemWidget> {
                   ),
                 ),
 
-              // Notes Section
-              if (widget.item.notes != null && widget.item.notes!.isNotEmpty)
+              // Notes Section - shown inline only if showNotesInline is true, or always when editing
+              if ((widget.showNotesInline || widget.isEditing) &&
+                  widget.item.notes != null && widget.item.notes!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(left: 44, top: 8),
                   child: Column(

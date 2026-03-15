@@ -1,5 +1,4 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
 import '../../models/models.dart';
 
 class SetAiStatusTool extends AiTool {
@@ -32,7 +31,7 @@ class SetAiStatusTool extends AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     final itemId = args['item_id'] as String?;
     final statusStr = args['status'] as String?;
 
@@ -40,7 +39,6 @@ class SetAiStatusTool extends AiTool {
       return {'error': 'Missing item_id or status'};
     }
 
-    // Convert string to enum
     AiStatus status;
     switch (statusStr) {
       case 'notReady':
@@ -59,9 +57,7 @@ class SetAiStatusTool extends AiTool {
         return {'error': 'Invalid status. Must be one of: notReady, ready, inProgress, done'};
     }
 
-    await dataService.setAiStatus(itemId, status);
+    await context.nodeService.setAiStatus(itemId, status);
     return {'result': 'success', 'item_id': itemId, 'status': statusStr};
   }
 }
-
-

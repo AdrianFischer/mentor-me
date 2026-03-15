@@ -5,15 +5,16 @@ import 'package:flutter_app/services/tts_service.dart';
 import 'package:flutter_app/services/data_service.dart';
 import 'package:flutter_app/services/ai_wrapper.dart';
 import 'package:flutter_app/ai_tools/tool_registry.dart';
-import 'package:flutter_app/models/models.dart';
+import 'package:flutter_app/services/node_service.dart';
 import 'package:flutter_app/models/ai_models.dart';
 import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter/services.dart';
 
 class MockDataService extends Mock implements DataService {
   @override
-  List<Project> get projects => [];
+  final NodeService nodeService = MockNodeService();
 }
+class MockNodeService extends Mock implements NodeService {}
 
 // Mock the Wrappers, NOT the final Firebase classes
 class MockAIModelWrapper extends Mock implements AIModelWrapper {}
@@ -89,7 +90,9 @@ void main() {
       // Stub history getter
       when(() => mockChatSession.history).thenReturn([]);
 
-      registry = ToolRegistry(mockDataService);
+      final mockNodeService = mockDataService.nodeService as MockNodeService;
+      when(() => mockNodeService.rootNodes).thenReturn([]);
+      registry = ToolRegistry(mockNodeService, mockDataService);
       
       // Inject Mock Wrapper and Mock TtsService
       service = AssistantService(mockDataService, registry, mockModelWrapper, ttsService: mockTtsService);

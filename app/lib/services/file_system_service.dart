@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 import '../config.dart';
-import '../models/models.dart';
+import '../models/node.dart';
 import '../utils/markdown_parser.dart';
 import 'file_persistence_service.dart';
 
 class FileSystemService implements FilePersistenceService {
   final String? _baseDir;
-  final _projectController = StreamController<List<Project>>.broadcast();
-  
+
   // Track internal writes to prevent loops
   final Map<String, DateTime> _recentInternalWrites = {};
 
@@ -17,12 +16,12 @@ class FileSystemService implements FilePersistenceService {
   bool get isEnabled => _baseDir != null;
 
   @override
-  Future<List<Project>> loadAllProjects() async {
-    final projects = <Project>[];
-    if (!isEnabled) return projects;
+  Future<List<Node>> loadAllNodes() async {
+    final nodes = <Node>[];
+    if (!isEnabled) return nodes;
 
     final dir = Directory('$_baseDir/todos');
-    if (!await dir.exists()) return projects;
+    if (!await dir.exists()) return nodes;
 
     final seenIds = <String>{};
 
@@ -30,35 +29,35 @@ class FileSystemService implements FilePersistenceService {
       if (entity is File && entity.path.endsWith('.md') && !entity.path.endsWith('README.md')) {
         try {
           final content = await entity.readAsString();
-          final project = MarkdownParser.parseProject(content);
-          
-          if (!seenIds.contains(project.id)) {
-            projects.add(project);
-            seenIds.add(project.id);
+          final node = MarkdownParser.parseNode(content);
+
+          if (!seenIds.contains(node.id)) {
+            nodes.add(node);
+            seenIds.add(node.id);
           } else {
-             print('Duplicate project ID found: ${project.id} in ${entity.path}. Skipping.');
+             print('Duplicate node ID found: ${node.id} in ${entity.path}. Skipping.');
           }
         } catch (e) {
           print('Error loading file ${entity.path}: $e');
         }
       }
     }
-    return projects;
+    return nodes;
   }
 
   @override
-  Future<void> saveProject(Project project) async {
+  Future<void> saveNode(Node node) async {
     if (!isEnabled) return;
-    
-    final category = _getCategory(project);
-    final fileName = _generateFileName(project.title);
+
+    final category = _getCategory(node);
+    final fileName = _generateFileName(node.title);
     final filePath = '$_baseDir/todos/$category/$fileName.md';
-    
+
     final file = File(filePath);
     final normalizedPath = file.absolute.path;
 
     // Handle renaming (if title changed, old file needs deletion)
-    final oldFile = await _findFileByProjectId(project.id);
+    final oldFile = await _findFileByNodeId(node.id);
     if (oldFile != null && oldFile.absolute.path != normalizedPath) {
       _recentInternalWrites[oldFile.absolute.path] = DateTime.now();
       if (await oldFile.exists()) {
@@ -67,19 +66,19 @@ class FileSystemService implements FilePersistenceService {
     }
 
     _recentInternalWrites[normalizedPath] = DateTime.now();
-    
+
     await _ensureDirectory(file.parent);
-    
-    final markdown = MarkdownParser.toMarkdown(project);
+
+    final markdown = MarkdownParser.nodeToMarkdown(node);
     await file.writeAsString(markdown);
   }
 
   @override
-  Future<void> deleteProject(String projectId) async {
+  Future<void> deleteNode(String nodeId) async {
     if (!isEnabled) return;
-    
+
     // Find file by ID
-    final file = await _findFileByProjectId(projectId);
+    final file = await _findFileByNodeId(nodeId);
     if (file != null && await file.exists()) {
       _recentInternalWrites[file.absolute.path] = DateTime.now();
       await file.delete();
@@ -87,9 +86,9 @@ class FileSystemService implements FilePersistenceService {
   }
 
   @override
-  Stream<List<Project>> watchProjects() {
+  Stream<List<Node>> watchNodes() {
     if (!isEnabled) return Stream.value([]);
-    
+
     final dir = Directory('$_baseDir/todos');
     if (!dir.existsSync()) dir.createSync(recursive: true);
 
@@ -98,7 +97,7 @@ class FileSystemService implements FilePersistenceService {
          if (!event.path.endsWith('.md')) return false;
          final absolutePath = File(event.path).absolute.path;
          final lastWrite = _recentInternalWrites[absolutePath];
-         
+
          if (lastWrite != null) {
             final difference = DateTime.now().difference(lastWrite);
             if (difference.inSeconds < 2) {
@@ -110,7 +109,7 @@ class FileSystemService implements FilePersistenceService {
       .transform(_debounce(const Duration(milliseconds: 500)))
       .asyncMap((_) async {
          print("[DEBUG] FileSystemService: External change detected. Reloading...");
-         return await loadAllProjects();
+         return await loadAllNodes();
       });
   }
 
@@ -154,9 +153,9 @@ class FileSystemService implements FilePersistenceService {
 
   // --- Helpers ---
 
-  String _getCategory(Project project) {
-    if (project.tags.isNotEmpty) {
-      return project.tags.first.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+  String _getCategory(Node node) {
+    if (node.tags.isNotEmpty) {
+      return node.tags.first.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     }
     return 'unsorted';
   }
@@ -174,16 +173,16 @@ class FileSystemService implements FilePersistenceService {
     }
   }
 
-  Future<File?> _findFileByProjectId(String projectId) async {
+  Future<File?> _findFileByNodeId(String nodeId) async {
     final dir = Directory('$_baseDir/todos');
     if (!await dir.exists()) return null;
-    
+
     await for (final entity in dir.list(recursive: true)) {
       if (entity is File && entity.path.endsWith('.md')) {
         try {
           final content = await entity.readAsString();
           // Quick parse or regex
-          if (content.contains('id: $projectId')) {
+          if (content.contains('id: $nodeId')) {
              return entity;
           }
         } catch (_) {}

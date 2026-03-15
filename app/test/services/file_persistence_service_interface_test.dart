@@ -1,16 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:flutter_app/models/models.dart';
+import 'package:flutter_app/models/node.dart';
 import 'package:flutter_app/services/file_persistence_service.dart';
 
-// Create a Mock class to verify the interface can be implemented
 class MockFilePersistenceService extends Mock implements FilePersistenceService {}
 
-class FakeProject extends Fake implements Project {}
+class FakeNode extends Fake implements Node {}
 
 void main() {
   setUpAll(() {
-    registerFallbackValue(FakeProject());
+    registerFallbackValue(FakeNode());
   });
 
   test('FilePersistenceService interface should be implementable', () {
@@ -20,19 +19,18 @@ void main() {
 
   test('FilePersistenceService should have required methods', () async {
     final service = MockFilePersistenceService();
-    final project = FakeProject();
+    final node = FakeNode();
 
-    // Verify method signatures exist by mocking them
-    when(() => service.loadAllProjects()).thenAnswer((_) async => []);
-    when(() => service.saveProject(any())).thenAnswer((_) async {});
-    when(() => service.deleteProject(any())).thenAnswer((_) async {});
+    when(() => service.loadAllNodes()).thenAnswer((_) async => []);
+    when(() => service.saveNode(any())).thenAnswer((_) async {});
+    when(() => service.deleteNode(any())).thenAnswer((_) async {});
 
-    await service.loadAllProjects();
-    await service.saveProject(project);
-    await service.deleteProject('some-id');
-    
-    verify(() => service.loadAllProjects()).called(1);
-    verify(() => service.saveProject(project)).called(1);
-    verify(() => service.deleteProject('some-id')).called(1);
+    await service.loadAllNodes();
+    await service.saveNode(node);
+    await service.deleteNode('some-id');
+
+    verify(() => service.loadAllNodes()).called(1);
+    verify(() => service.saveNode(node)).called(1);
+    verify(() => service.deleteNode('some-id')).called(1);
   });
 }

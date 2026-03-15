@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import '../../services/data_service.dart';
 import '../ai_tool.dart';
 
 class UploadImageTool implements AiTool {
@@ -26,14 +25,14 @@ class UploadImageTool implements AiTool {
   };
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     try {
       final String base64Data = args['base64'];
       final String filename = args['filename'];
-      
+
       final bytes = base64Decode(base64Data);
-      final path = await dataService.saveImageArtifact(Uint8List.fromList(bytes), filename);
-      
+      final path = await context.dataService.saveImageArtifact(Uint8List.fromList(bytes), filename);
+
       return {
         'result': 'success',
         'path': path,

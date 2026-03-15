@@ -1,5 +1,4 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
 
 class AddProjectTool implements AiTool {
   @override
@@ -26,9 +25,9 @@ class AddProjectTool implements AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     final title = args['title'] as String;
-    final id = await dataService.addProject(title);
+    final id = await context.nodeService.addChild(null, title);
     return {'result': 'success', 'project_id': id};
   }
 }

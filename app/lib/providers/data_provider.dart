@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/data_service.dart';
-import '../services/project_service.dart';
+import '../services/node_service.dart';
 import '../services/conversation_service.dart';
 import '../services/memory_service.dart';
 import '../services/knowledge_service.dart';
@@ -23,9 +23,9 @@ final storageRepositoryProvider = Provider<StorageRepository>((ref) {
   return InMemoryRepository(fileService);
 });
 
-final projectServiceProvider = ChangeNotifierProvider<ProjectService>((ref) {
+final nodeServiceProvider = ChangeNotifierProvider<NodeService>((ref) {
   final storage = ref.watch(storageRepositoryProvider);
-  final service = ProjectService(storage);
+  final service = NodeService(storage);
   service.initData();
   return service;
 });
@@ -54,14 +54,14 @@ final agentSessionTrackerProvider = ChangeNotifierProvider<AgentSessionTracker>(
 });
 
 final dataServiceProvider = ChangeNotifierProvider<DataService>((ref) {
-  final projectService = ref.watch(projectServiceProvider);
+  final nodeService = ref.watch(nodeServiceProvider);
   final conversationService = ref.watch(conversationServiceProvider);
   final memoryService = ref.watch(memoryServiceProvider);
   final knowledgeService = ref.watch(knowledgeServiceProvider);
   final sessionTracker = ref.watch(agentSessionTrackerProvider);
-  
+
   final service = DataService(
-    projectService,
+    nodeService,
     conversationService,
     memoryService,
     knowledgeService,

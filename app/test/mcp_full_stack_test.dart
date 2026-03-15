@@ -4,14 +4,18 @@ import 'dart:io';
 
 import 'package:flutter_app/ai_tools/tool_registry.dart';
 import 'package:flutter_app/data/repository/memory_storage_repository.dart';
+import 'package:flutter_app/services/node_service.dart';
+import 'package:flutter_app/services/conversation_service.dart';
+import 'package:flutter_app/services/memory_service.dart';
+import 'package:flutter_app/services/knowledge_service.dart';
+import 'package:flutter_app/services/agent_session_tracker.dart';
 import 'package:flutter_app/services/data_service.dart';
 import 'package:flutter_app/services/mcp_server.dart';
-import 'package:flutter_app/models/models.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 
 void main() {
   group('MCP Full Stack Test', () {
+    late NodeService nodeService;
     late DataService dataService;
     late ToolRegistry toolRegistry;
     late McpServerService serverService;
@@ -21,13 +25,26 @@ void main() {
     setUp(() async {
       // 1. Setup Server & Data
       final repository = MemoryStorageRepository();
-      
-      dataService = DataService.withRepository(repository);
-      await dataService.initData();
-      
-      toolRegistry = ToolRegistry(dataService);
-      serverService = McpServerService(dataService, toolRegistry);
-      
+
+      nodeService = NodeService(repository);
+      await nodeService.initData();
+
+      final conversationService = ConversationService(repository);
+      final memoryService = MemoryService(repository);
+      final knowledgeService = KnowledgeService(repository);
+      final sessionTracker = AgentSessionTracker();
+
+      dataService = DataService(
+        nodeService,
+        conversationService,
+        memoryService,
+        knowledgeService,
+        sessionTracker,
+      );
+
+      toolRegistry = ToolRegistry(nodeService, dataService);
+      serverService = McpServerService(nodeService, toolRegistry);
+
       await serverService.start(port: port, savePortToConfig: false);
     });
 
@@ -36,11 +53,8 @@ void main() {
       await serverService.stop();
     });
 
-    test('Full Flow: Bridge -> Server -> DataService', () async {
+    test('Full Flow: Bridge -> Server -> NodeService', () async {
       // 2. Spawn Bridge
-      // We assume we are running from project root or app depending on context.
-      // Since `flutter test` runs from `app`, the bin path is `bin/mcp_bridge.dart`.
-      
       final bridgeScript = 'bin/mcp_bridge.dart';
       if (!File(bridgeScript).existsSync()) {
         fail('Bridge script not found at $bridgeScript. Run from app.');
@@ -77,7 +91,6 @@ void main() {
             if (json is Map<String, dynamic> && json['id'] == id) {
               return json;
             }
-            // Ignore other messages (like logs if any leak to stdout, though bridge logs to stderr)
           } catch (e) {
             // Not JSON
           }
@@ -92,10 +105,7 @@ void main() {
 
       // 3. Protocol Traffic
 
-      // A. Initialize (Optional for simple bridge, but good practice)
-      // The bridge doesn't intercept initialize, it forwards it.
-      // The Server handles it.
-      // mcp_dart server might expect 'initialize'.
+      // A. Initialize
       send('initialize', {
         "protocolVersion": "2024-11-05",
         "capabilities": {},
@@ -119,9 +129,7 @@ void main() {
       });
       final callRes = await readResponse(3);
       expect(callRes['error'], isNull);
-      
-      // Parse content to get ID?
-      // Result content: [{"type":"text", "text":"{\"result\":\"success\",\"project_id\":\"...\"}"}]
+
       final contentList = callRes['result']['content'] as List;
       final textContent = contentList.first['text'] as String;
       final resultJson = jsonDecode(textContent);
@@ -129,9 +137,9 @@ void main() {
       final projectId = resultJson['project_id'];
 
       // 4. Verification
-      expect(dataService.projects.length, 1);
-      expect(dataService.projects.first.title, 'Full Stack Project');
-      expect(dataService.projects.first.id, projectId);
+      expect(nodeService.rootNodes.length, 1);
+      expect(nodeService.rootNodes.first.title, 'Full Stack Project');
+      expect(nodeService.rootNodes.first.id, projectId);
 
       // D. Call Tool: delete_item
       send('tools/call', {
@@ -142,7 +150,7 @@ void main() {
       expect(deleteRes['error'], isNull);
 
       // Verification
-      expect(dataService.projects.isEmpty, isTrue);
+      expect(nodeService.rootNodes.isEmpty, isTrue);
     });
   });
 }

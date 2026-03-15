@@ -1,5 +1,4 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
 
 class SetItemStatusTool implements AiTool {
   @override
@@ -32,7 +31,7 @@ class SetItemStatusTool implements AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     print("[Tool] Executing set_item_status with args: $args");
     final itemId = args['item_id'] ?? args['itemId'];
     final isCompleted = args['is_completed'] ?? args['isCompleted'];
@@ -41,7 +40,7 @@ class SetItemStatusTool implements AiTool {
       return {'result': 'error', 'message': 'Missing item_id or is_completed'};
     }
 
-    await dataService.setItemStatus(itemId as String, isCompleted as bool);
+    await context.nodeService.setNodeStatus(itemId as String, isCompleted as bool);
     return {'result': 'success'};
   }
 }

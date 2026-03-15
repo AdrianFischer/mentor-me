@@ -1,11 +1,8 @@
-import 'package:flutter/foundation.dart';
 import '../models/ai_models.dart';
 import 'ai_agent.dart';
 import 'mcp_client_service.dart';
 
 class McpAgentService extends AiAgent {
-  final McpClientService _mcpClient;
-  
   final List<ChatMessage> _messages = [];
   final List<ProposedAction> _pendingActions = [];
   final List<ProposedAction> _executedActions = [];
@@ -17,7 +14,7 @@ class McpAgentService extends AiAgent {
   String _currentSpeech = '';
   String _draftMessage = '';
 
-  McpAgentService(this._mcpClient);
+  McpAgentService(McpClientService mcpClient);
 
   @override
   List<ChatMessage> get messages => _messages;

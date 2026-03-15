@@ -6,15 +6,16 @@ import 'package:flutter_app/services/data_service.dart';
 import 'package:flutter_app/services/ai_wrapper.dart';
 import 'package:flutter_app/ai_tools/tool_registry.dart';
 import 'package:flutter_app/models/ai_models.dart';
-import 'package:flutter_app/models/models.dart';
+import 'package:flutter_app/services/node_service.dart';
 import 'package:firebase_ai/firebase_ai.dart';
 
 import 'package:flutter_app/services/tts_service.dart';
 
 class MockDataService extends Mock implements DataService {
   @override
-  List<Project> get projects => [];
+  final NodeService nodeService = MockNodeService();
 }
+class MockNodeService extends Mock implements NodeService {}
 
 class MockAIModelWrapper extends Mock implements AIModelWrapper {}
 class MockChatSessionWrapper extends Mock implements ChatSessionWrapper {}
@@ -55,11 +56,18 @@ void main() {
     late MockChatSessionWrapper mockChatSession;
     late MockTtsService mockTtsService;
 
+    late MockNodeService mockNodeService;
+
     setUp(() {
       mockDataService = MockDataService();
+      mockNodeService = mockDataService.nodeService as MockNodeService;
       mockModelWrapper = MockAIModelWrapper();
       mockChatSession = MockChatSessionWrapper();
       mockTtsService = MockTtsService();
+
+      when(() => mockNodeService.rootNodes).thenReturn([]);
+      when(() => mockNodeService.addChild(any(), any())).thenAnswer((_) async => 'new_id');
+
 
       // Stub TtsService
       when(() => mockTtsService.generateAndGetUrl(
@@ -75,16 +83,19 @@ void main() {
       when(() => mockDataService.clearChatHistory(any(), conversationId: any(named: 'conversationId')))
           .thenAnswer((_) async {});
       when(() => mockDataService.getAllKnowledge()).thenAnswer((_) async => []);
-      
-      // Stub tool execution (add_project)
-      when(() => mockDataService.addProject(any())).thenAnswer((_) async => 'proj_id');
+
+      // Stub tool execution (add_project via NodeService)
+      when(() => mockNodeService.addChild(null, any())).thenAnswer((_) async => 'proj_id');
+      when(() => mockNodeService.rootNodes).thenReturn([]);
+      when(() => mockNodeService.addChild(any(), any())).thenAnswer((_) async => 'new_id');
+
       when(() => mockDataService.createConversation(any())).thenReturn('conv_id');
 
       // Stub Wrapper
       when(() => mockModelWrapper.startChat(history: any(named: 'history'))).thenReturn(mockChatSession);
       when(() => mockChatSession.history).thenReturn([]);
 
-      registry = ToolRegistry(mockDataService);
+      registry = ToolRegistry(mockNodeService, mockDataService);
       service = AssistantService(mockDataService, registry, mockModelWrapper, ttsService: mockTtsService);
     });
 
@@ -115,7 +126,7 @@ void main() {
       
       // Verify NOT executed
       expect(service.executedActions, isEmpty);
-      verifyNever(() => mockDataService.addProject(any()));
+      verifyNever(() => mockNodeService.addChild(null, any()));
     });
 
     test('Accepting action executes and keeps in pendingActions', () async {
@@ -145,7 +156,7 @@ void main() {
       expect(service.executedActions.first, action);
       
       // Verify DataService called
-      verify(() => mockDataService.addProject('Review Me')).called(1);
+      verify(() => mockNodeService.addChild(null, 'Review Me')).called(1);
     });
 
     test('Declining action removes it without executing', () async {
@@ -171,7 +182,7 @@ void main() {
       // 3. Verify removed and NOT executed
       expect(service.pendingActions, isEmpty);
       expect(service.executedActions, isEmpty);
-      verifyNever(() => mockDataService.addProject(any()));
+      verifyNever(() => mockNodeService.addChild(null, any()));
     });
   });
 }

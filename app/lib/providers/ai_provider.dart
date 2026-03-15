@@ -10,8 +10,9 @@ import 'data_provider.dart';
 import 'mcp_provider.dart';
 
 final toolRegistryProvider = Provider<ToolRegistry>((ref) {
+  final nodeService = ref.read(nodeServiceProvider);
   final dataService = ref.read(dataServiceProvider);
-  return ToolRegistry(dataService);
+  return ToolRegistry(nodeService, dataService);
 });
 
 // Helper to create model with tools

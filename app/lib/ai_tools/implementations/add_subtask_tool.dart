@@ -1,5 +1,4 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
 
 class AddSubtaskTool implements AiTool {
   @override
@@ -30,7 +29,7 @@ class AddSubtaskTool implements AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     print("[Tool] Executing add_subtask with args: $args");
     final taskId = args['task_id'] ?? args['taskId'];
     final title = args['title'];
@@ -39,7 +38,7 @@ class AddSubtaskTool implements AiTool {
       return {'result': 'error', 'message': 'Missing task_id or title'};
     }
 
-    final id = await dataService.addSubtask(taskId as String, title as String);
+    final id = await context.nodeService.addChild(taskId as String, title as String);
     if (id != null) {
       return {'result': 'success', 'subtask_id': id};
     } else {

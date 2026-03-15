@@ -33,22 +33,6 @@ extension TagExtractionExtension on String {
 }
 
 @freezed
-class Subtask with _$Subtask {
-  const factory Subtask({
-    required String id,
-    required String title,
-    @Default(false) bool isCompleted,
-    @Default(0.0) double order,
-    @Default([]) List<String> tags,
-    String? notes,
-    @Default(AiStatus.notReady) AiStatus aiStatus,
-    @Default([]) List<String> localImagePaths,
-  }) = _Subtask;
-
-  factory Subtask.fromJson(Map<String, dynamic> json) => _$SubtaskFromJson(json);
-}
-
-@freezed
 class GoalTransaction with _$GoalTransaction {
   const factory GoalTransaction({
     required String id,
@@ -81,30 +65,11 @@ sealed class TaskGoal with _$TaskGoal {
   }) = NumericGoal;
 
   const factory TaskGoal.habit({
-    required double targetFrequency, // e.g. 0.9 for 90%
-    @Default([]) List<HabitRecord> history, 
+    required double targetFrequency,
+    @Default([]) List<HabitRecord> history,
   }) = HabitGoal;
 
   factory TaskGoal.fromJson(Map<String, dynamic> json) => _$TaskGoalFromJson(json);
-}
-
-@freezed
-class Task with _$Task {
-  const factory Task({
-    required String id,
-    required String title,
-    @Default(false) bool isCompleted,
-    String? projectId,
-    @Default([]) List<Subtask> subtasks,
-    @Default(0.0) double order,
-    @Default([]) List<String> tags,
-    TaskGoal? goal,
-    String? notes,
-    @Default(AiStatus.notReady) AiStatus aiStatus,
-    @Default([]) List<String> localImagePaths,
-  }) = _Task;
-
-  factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
 }
 
 class GoalMetadata {
@@ -113,63 +78,4 @@ class GoalMetadata {
   final List<bool>? recentHabitHistory;
 
   GoalMetadata({this.progress, this.label, this.recentHabitHistory});
-}
-
-extension TaskGoalMetadataExtension on Task {
-  GoalMetadata? get goalMetadata {
-    if (goal != null) {
-      return goal!.map(
-        numeric: (n) {
-          final pct = n.target == 0 ? 0.0 : (n.current / n.target).clamp(0.0, 1.0);
-          return GoalMetadata(
-            progress: pct,
-            label: "${n.current}${n.unit ?? ''} / ${n.target}${n.unit ?? ''}",
-          );
-        },
-        habit: (h) {
-          final today = DateTime.now();
-          final recent = <bool>[];
-          for (int i = 4; i >= 0; i--) {
-            final d = today.subtract(Duration(days: i));
-            final entry = h.history
-                .where((r) => r.date.year == d.year && r.date.month == d.month && r.date.day == d.day)
-                .firstOrNull;
-            recent.add(entry?.isSuccess ?? false);
-          }
-          final successCount = h.history.where((r) => r.isSuccess).length;
-          final totalCount = h.history.length;
-          final pct = totalCount > 0 ? (successCount / totalCount * 100).toInt() : 0;
-          return GoalMetadata(
-            recentHabitHistory: recent,
-            label: "${(h.targetFrequency * 100).toInt()}% Target | $pct% Actual",
-          );
-        },
-      );
-    } else if (subtasks.isNotEmpty) {
-      final total = subtasks.length;
-      final completed = subtasks.where((s) => s.isCompleted).length;
-      if (total > 0) {
-        return GoalMetadata(
-          progress: completed / total,
-          label: "$completed/$total",
-        );
-      }
-    }
-    return null;
-  }
-}
-
-@freezed
-class Project with _$Project {
-  const factory Project({
-    required String id,
-    required String title,
-    @Default(false) bool isCompleted,
-    @Default([]) List<Task> tasks,
-    @Default(0.0) double order,
-    @Default([]) List<String> tags,
-    String? notes,
-  }) = _Project;
-
-  factory Project.fromJson(Map<String, dynamic> json) => _$ProjectFromJson(json);
 }

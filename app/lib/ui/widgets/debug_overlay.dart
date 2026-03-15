@@ -76,8 +76,8 @@ class _DebugOverlayState extends State<DebugOverlay> {
           right: 16,
           child: FloatingActionButton.small(
             backgroundColor: Colors.redAccent,
-            child: const Icon(Icons.bug_report),
             onPressed: _toggleOverlay,
+            child: const Icon(Icons.bug_report),
           ),
         ),
 

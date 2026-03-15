@@ -4,17 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'ui/widgets/debug_overlay.dart';
 import 'ui/assistant_screen.dart';
 import 'ui/actions/selection_actions.dart';
-import 'ui/widgets/columns/project_column.dart';
-import 'ui/widgets/columns/task_column.dart';
-import 'ui/widgets/columns/subtask_column.dart';
+import 'ui/widgets/columns/node_column.dart';
 import 'ui/widgets/columns/conversation_column.dart';
 import 'ui/widgets/columns/tag_results_column.dart';
-import 'models/models.dart';
 import 'providers/data_provider.dart';
 import 'providers/mcp_provider.dart';
 import 'providers/selection_provider.dart';
-import 'providers/filtered_data_providers.dart';
-import 'services/data_service.dart';
 import 'services/debug_data_service.dart';
 
 class MyApp extends ConsumerStatefulWidget {
@@ -47,17 +42,17 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       if (widget.initialIsAssistantActive) {
         selectionNotifier.setAssistantActive(true);
       } else if (widget.initialSelectedProjectId != null) {
-        selectionNotifier.selectProject(widget.initialSelectedProjectId);
+        selectionNotifier.selectRootNode(widget.initialSelectedProjectId);
       }
 
       // Check for seed
       final seed = Uri.base.queryParameters['seed'];
       if (seed == 'complex_tree') {
-        final dataService = ref.read(dataServiceProvider);
-        final debugService = DebugDataService(dataService);
+        final nodeService = ref.read(nodeServiceProvider);
+        final debugService = DebugDataService(nodeService);
         debugService.seedComplexTree().then((_) {
-          if (mounted && dataService.projects.isNotEmpty) {
-            selectionNotifier.selectProject(dataService.projects.first.id);
+          if (mounted && nodeService.rootNodes.isNotEmpty) {
+            selectionNotifier.selectRootNode(nodeService.rootNodes.first.id);
           }
         });
       }
@@ -82,7 +77,6 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     ref.watch(mcpServerProvider); // Keep MCP alive
     final selectionState = ref.watch(selectionProvider);
-    final projects = ref.watch(filteredProjectsProvider);
 
     return MaterialApp(
       title: 'Design Specs App',
@@ -134,17 +128,16 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
                         context,
                         isMobile,
                         selectionState,
-                        projects,
                       );
                     }
                     return Scaffold(
                       body: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Column 0: Projects or Chat History
+                          // Column 0: Projects / root nodes
                           SizedBox(
                             width: 280,
-                            child: ProjectColumn(isMobile: isMobile),
+                            child: NodeColumn(columnIndex: 0),
                           ),
                           const VerticalDivider(width: 1, thickness: 1),
 
@@ -153,7 +146,6 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
                             child: _buildMiddleColumn(
                               context,
                               selectionState,
-                              projects,
                             ),
                           ),
                           const VerticalDivider(width: 1, thickness: 1),
@@ -163,7 +155,6 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
                             child: _buildRightColumn(
                               context,
                               selectionState,
-                              projects,
                             ),
                           ),
                         ],
@@ -182,7 +173,6 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   Widget _buildMiddleColumn(
     BuildContext context,
     SelectionState state,
-    List<Project> projects,
   ) {
     if (state.isAssistantActive) {
       return const ConversationColumn();
@@ -192,20 +182,12 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       return const TagResultsColumn();
     }
 
-    if (state.selectedProjectId != null) {
-      return TaskColumn(projectId: state.selectedProjectId!);
-    }
-
-    return Container(
-      color: Colors.white,
-      child: const Center(child: Text("Select a Project")),
-    );
+    return NodeColumn(columnIndex: 1);
   }
 
   Widget _buildRightColumn(
     BuildContext context,
     SelectionState state,
-    List<Project> projects,
   ) {
     if (state.isAssistantActive) {
       if (state.selectedConversationId == null) {
@@ -224,17 +206,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       return _buildTaggedItemContext(context, state);
     }
 
-    if (state.selectedTaskId != null && state.selectedProjectId != null) {
-      return SubtaskColumn(
-        projectId: state.selectedProjectId!,
-        taskId: state.selectedTaskId!,
-      );
-    }
-
-    return Container(
-      color: const Color(0xFFFAFAFA),
-      child: const Center(child: Text("Select a Task")),
-    );
+    return NodeColumn(columnIndex: 2);
   }
 
   Widget _buildTaggedItemContext(
@@ -242,42 +214,17 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     SelectionState state, {
     VoidCallback? onBack,
   }) {
-    if (state.selectedTaggedItem == null)
+    if (state.selectedTaggedItem == null) {
       return Container(color: const Color(0xFFFAFAFA));
-    final projects = ref.watch(filteredProjectsProvider);
-
-    if (state.selectedTaggedItem!.type == 'project') {
-      final pIdx = projects.indexWhere(
-        (p) => p.id == state.selectedTaggedItem!.id,
-      );
-      if (pIdx == -1) return const Center(child: Text("Project not found"));
-      return TaskColumn(projectId: projects[pIdx].id, onBack: onBack);
     }
-
-    if (state.selectedTaggedItem!.type == 'task') {
-      for (final p in projects) {
-        final tIdx = p.tasks.indexWhere(
-          (t) => t.id == state.selectedTaggedItem!.id,
-        );
-        if (tIdx != -1) {
-          return SubtaskColumn(
-            projectId: p.id,
-            taskId: p.tasks[tIdx].id,
-            onBack: onBack,
-          );
-        }
-      }
-      return const Center(child: Text("Task not found"));
-    }
-
-    return const Center(child: Text("No further details"));
+    // Tag context shows children of the tagged item
+    return NodeColumn(columnIndex: 2, onBack: onBack);
   }
 
   Widget _buildMobileLayout(
     BuildContext context,
     bool isMobile,
     SelectionState state,
-    List<Project> projects,
   ) {
     if (state.isAssistantActive) {
       if (state.focusedColumnIndex == 1 ||
@@ -320,18 +267,16 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
 
     Widget mobileBody;
     if (state.focusedColumnIndex == 0) {
-      mobileBody = ProjectColumn(isMobile: true);
+      mobileBody = NodeColumn(columnIndex: 0);
     } else if (state.focusedColumnIndex == 1) {
       if (state.selectedTag != null) {
         mobileBody = const TagResultsColumn();
       } else {
-        mobileBody = state.selectedProjectId != null
-            ? TaskColumn(
-                projectId: state.selectedProjectId!,
-                onBack: () =>
-                    ref.read(selectionProvider.notifier).setFocusedColumn(0),
-              )
-            : const Center(child: Text('Select a Project'));
+        mobileBody = NodeColumn(
+          columnIndex: 1,
+          onBack: () =>
+              ref.read(selectionProvider.notifier).setFocusedColumn(0),
+        );
       }
     } else {
       if (state.selectedTag != null) {
@@ -342,15 +287,11 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
               ref.read(selectionProvider.notifier).setFocusedColumn(1),
         );
       } else {
-        mobileBody =
-            (state.selectedProjectId != null && state.selectedTaskId != null)
-            ? SubtaskColumn(
-                projectId: state.selectedProjectId!,
-                taskId: state.selectedTaskId!,
-                onBack: () =>
-                    ref.read(selectionProvider.notifier).setFocusedColumn(1),
-              )
-            : const Center(child: Text('Select a Task'));
+        mobileBody = NodeColumn(
+          columnIndex: 2,
+          onBack: () =>
+              ref.read(selectionProvider.notifier).setFocusedColumn(1),
+        );
       }
     }
 

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_ai/firebase_ai.dart';
 import '../services/ai_agent.dart';
-import '../services/assistant_service.dart';
 import '../models/ai_models.dart';
 import 'knowledge_screen.dart';
 import '../providers/ai_provider.dart';
@@ -180,7 +178,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                 Switch(
                   value: assistant.isThinkingMode,
                   onChanged: (val) => assistant.toggleThinking(),
-                  activeColor: Colors.amber[700],
+                  activeThumbColor: Colors.amber[700],
                   activeTrackColor: Colors.amber[100],
                   inactiveThumbColor: Colors.blueGrey,
                   inactiveTrackColor: Colors.blueGrey.shade100,

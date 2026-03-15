@@ -1,18 +1,12 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/app.dart';
 import 'package:flutter_app/ui/widgets/editable_column.dart';
-import 'package:flutter_app/ui/actions/selection_actions.dart';
 import 'package:flutter_app/providers/selection_provider.dart';
-import 'package:flutter_app/data/repository/storage_repository.dart';
-import 'package:flutter_app/models/models.dart';
-import 'package:flutter_app/models/ai_models.dart';
+import 'package:flutter_app/models/node.dart';
 import 'package:flutter_app/providers/data_provider.dart';
-import 'package:flutter_app/ui/assistant_screen.dart';
-import 'package:flutter_app/services/assistant_service.dart';
 import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_app/providers/mcp_provider.dart';
 import 'package:flutter_app/providers/ai_provider.dart';
@@ -35,10 +29,9 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final fakeRepository = FakeStorageRepository(initialProjects: [
-
-        Project(id: 'p1', title: 'Inbox'),
-        Project(id: 'p2', title: 'Today'),
+    final fakeRepository = FakeStorageRepository(initialNodes: [
+        Node(id: 'p1', title: 'Inbox'),
+        Node(id: 'p2', title: 'Today'),
     ]);
     final mockAssistant = MockAssistantService();
     
@@ -59,10 +52,11 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. Projects Column
-    await tester.tap(find.text("Inbox"));
+    await tester.tap(find.text("Inbox").first);
     await tester.pumpAndSettle();
     
-    expect(find.text("Inbox"), findsOneWidget);
+    expect(find.text("Inbox"), findsAtLeastNWidgets(2));
+    await tester.pumpAndSettle();
     
     // Press Cmd+N to add new Project
     await tester.sendKeyDownEvent(LogicalKeyboardKey.meta);
@@ -74,7 +68,7 @@ void main() {
     }
     
     final projectTextFields = find.descendant(
-      of: find.byKey(const ValueKey('projects')),
+      of: find.byKey(const ValueKey('node_0_root')),
       matching: find.byType(TextField),
     );
     expect(projectTextFields, findsNWidgets(2));
@@ -85,23 +79,22 @@ void main() {
     
     await tester.enterText(lastProjectField, "New Project Test");
     await tester.pump();
-    expect(find.text("New Project Test"), findsOneWidget);
+    expect(find.text("New Project Test"), findsAtLeastNWidgets(1));
 
     // Exit Edit Mode
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
 
-    // 2. Tasks Column
+    // 2. Tasks Column (Now named after the parent 'Inbox')
     // Navigate Right to Tasks (Auto-creates task if empty)
     container.read(selectionProvider.notifier).changeColumn(1);
     for (int i=0; i<10; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
     
-    final tasksColumn = find.text('Tasks');
-    expect(tasksColumn, findsOneWidget);
+    expect(find.text("New Project Test"), findsAtLeastNWidgets(2));
     
-    final taskColumnFinder = find.ancestor(of: find.text('Tasks'), matching: find.byType(EditableColumn));
+    final taskColumnFinder = find.ancestor(of: find.text('New Project Test').last, matching: find.byType(EditableColumn));
     final taskTextFields = find.descendant(
       of: taskColumnFinder,
       matching: find.byType(TextField),
@@ -112,27 +105,27 @@ void main() {
     
     await tester.enterText(taskTextFields.first, "New Task Test");
     await tester.pump();
-    expect(find.text("New Task Test"), findsOneWidget);
+    expect(find.text("New Task Test"), findsAtLeastNWidgets(1));
     
     // Explicitly select the task to ensure Subtasks column will show
-    final dataService = container.read(dataServiceProvider);
-    
+    final nodeService = container.read(nodeServiceProvider);
+
     // Wait for data to sync
-    Task? newTask;
+    Node? newTask;
     for (int i=0; i<10; i++) {
       try {
-        final p = dataService.projects.firstWhere((p) => p.title == "New Project Test");
-        newTask = p.tasks.firstWhere((t) => t.title == "New Task Test");
-        if (newTask != null) break;
+        final p = nodeService.rootNodes.firstWhere((p) => p.title == "New Project Test");
+        newTask = p.children.firstWhere((t) => t.title == "New Task Test");
+        break;
       } catch (_) {}
       await tester.pump(const Duration(milliseconds: 100));
     }
-    
-    if (newTask == null) fail("Task 'New Task Test' not found in dataService");
-    
+
+    if (newTask == null) fail("Task 'New Task Test' not found in nodeService");
+
     container.read(selectionProvider.notifier).selectTask(newTask.id);
     await tester.pumpAndSettle();
-    
+
     // Exit Edit Mode for Task
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
@@ -143,21 +136,21 @@ void main() {
     await tester.pumpAndSettle();
 
     container.read(selectionProvider.notifier).changeColumn(1);
-    
-    // Wait for subtask to appear in dataService
+
+    // Wait for subtask to appear in nodeService
     bool subtaskCreated = false;
     for (int i=0; i<30; i++) {
       try {
-        final p = dataService.projects.firstWhere((p) => p.title == "New Project Test");
-        final t = p.tasks.firstWhere((t) => t.title == "New Task Test");
-        if (t.subtasks.isNotEmpty) {
+        final p = nodeService.rootNodes.firstWhere((p) => p.title == "New Project Test");
+        final t = p.children.firstWhere((t) => t.title == "New Task Test");
+        if (t.children.isNotEmpty) {
           subtaskCreated = true;
           break;
         }
       } catch (_) {}
       await tester.pump(const Duration(milliseconds: 100));
     }
-    
+
     if (!subtaskCreated) fail("Subtask not created after navigating right");
 
     // Wait for SelectionState to update editingItemId
@@ -166,10 +159,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    expect(find.text('Subtasks'), findsOneWidget);
+    expect(find.text('New Task Test'), findsAtLeastNWidgets(2));
     await tester.pumpAndSettle();
     
-    final subtaskColumnFinder = find.ancestor(of: find.text('Subtasks'), matching: find.byType(EditableColumn)); 
+    final subtaskColumnFinder = find.ancestor(of: find.text('New Task Test').last, matching: find.byType(EditableColumn)); 
     
     final subtaskTextFields = find.descendant(
       of: subtaskColumnFinder,

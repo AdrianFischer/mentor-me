@@ -1,4 +1,3 @@
-import '../../services/data_service.dart';
 import '../../models/models.dart';
 import '../ai_tool.dart';
 
@@ -40,13 +39,13 @@ class SetTaskGoalTool extends AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     final taskId = args['task_id'] as String;
     final type = args['type'] as String;
-    
+
     final targetVal = args['target'];
-    final double target = (targetVal is num) 
-        ? targetVal.toDouble() 
+    final double target = (targetVal is num)
+        ? targetVal.toDouble()
         : double.parse(targetVal.toString());
 
     final unit = args['unit'] as String?;
@@ -58,7 +57,7 @@ class SetTaskGoalTool extends AiTool {
       goal = TaskGoal.habit(targetFrequency: target);
     }
 
-    dataService.setTaskGoal(taskId, goal);
+    context.nodeService.setGoal(taskId, goal);
     return {'result': 'success', 'message': "Goal set successfully for task $taskId"};
   }
 }

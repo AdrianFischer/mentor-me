@@ -1,5 +1,4 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
 
 class DeleteItemTool implements AiTool {
   @override
@@ -26,15 +25,15 @@ class DeleteItemTool implements AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     print("[Tool] Executing delete_item with args: $args");
     final itemId = args['item_id'] ?? args['itemId'];
-    
+
     if (itemId == null) {
       return {'result': 'error', 'message': 'Missing item_id'};
     }
 
-    dataService.deleteItem(itemId as String);
+    context.nodeService.deleteNode(itemId as String);
     return {'result': 'success'};
   }
 }

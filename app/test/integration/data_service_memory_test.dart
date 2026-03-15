@@ -1,56 +1,103 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/services/data_service.dart';
-import 'package:flutter_app/data/repository/in_memory_repository.dart';
-import 'package:flutter_app/services/file_persistence_service.dart';
-import 'package:flutter_app/models/models.dart';
-import 'package:mocktail/mocktail.dart';
-
-class MockFilePersistence extends Mock implements FilePersistenceService {}
-class FakeProject extends Fake implements Project {}
+import 'package:flutter_app/services/node_service.dart';
+import 'package:flutter_app/models/node.dart';
+import 'package:flutter_app/data/repository/storage_repository.dart';
+import 'package:flutter_app/models/ai_models.dart';
 
 void main() {
-  group('DataService with InMemoryRepository', () {
-    late InMemoryRepository repository;
-    late MockFilePersistence filePersistence;
-    late DataService dataService;
+  group('NodeService with SimpleRepository', () {
+    late NodeService nodeService;
 
-    setUpAll(() {
-      registerFallbackValue(FakeProject());
+    test('addChild should create a root node', () async {
+      final repository = _SimpleRepository();
+      nodeService = NodeService(repository);
+      await nodeService.initData();
+
+      final id = await nodeService.addChild(null, 'Test Project');
+
+      expect(nodeService.rootNodes.length, 1);
+      expect(nodeService.rootNodes.first.id, id);
+      expect(nodeService.rootNodes.first.title, 'Test Project');
     });
 
-    setUp(() {
-      filePersistence = MockFilePersistence();
-      when(() => filePersistence.watchProjects()).thenAnswer((_) => Stream.empty());
-      when(() => filePersistence.loadAllProjects()).thenAnswer((_) async => []);
-      when(() => filePersistence.saveProject(any())).thenAnswer((_) async {});
+    test('addChild should create a child node under a root', () async {
+      final repository = _SimpleRepository();
+      nodeService = NodeService(repository);
+      await nodeService.initData();
 
-      repository = InMemoryRepository(filePersistence);
-      
-      dataService = DataService.withRepository(repository);
+      final projectId = await nodeService.addChild(null, 'Project 1');
+      await nodeService.addChild(projectId, 'Task 1');
+
+      final project = nodeService.rootNodes.first;
+      expect(project.children.length, 1);
+      expect(project.children.first.title, 'Task 1');
     });
 
-    test('addProject should update InMemoryRepository', () async {
-      final id = await dataService.addProject('Test Project');
-      
-      final projects = await repository.getAllProjects();
-      expect(projects.length, 1);
-      expect(projects.first.id, id);
-      expect(projects.first.title, 'Test Project');
-    });
+    test('addChild should persist the node', () async {
+      final repository = _SimpleRepository();
+      nodeService = NodeService(repository);
+      await nodeService.initData();
 
-    test('addTask should update InMemoryRepository', () async {
-      final projectId = await dataService.addProject('Project 1');
-      await dataService.addTask(projectId, 'Task 1');
-      
-      final projects = await repository.getAllProjects();
-      expect(projects.first.tasks.length, 1);
-      expect(projects.first.tasks.first.title, 'Task 1');
-    });
+      await nodeService.addChild(null, 'Persistent Project');
 
-    test('addProject should trigger FilePersistenceService.saveProject', () async {
-      await dataService.addProject('Persistent Project');
-      
-      verify(() => filePersistence.saveProject(any(that: isA<Project>().having((p) => p.title, 'title', 'Persistent Project')))).called(1);
+      final nodes = await repository.getAllNodes();
+      expect(nodes.length, 1);
+      expect(nodes.first.title, 'Persistent Project');
     });
   });
+}
+
+/// Minimal in-memory StorageRepository for testing.
+class _SimpleRepository implements StorageRepository {
+  final List<Node> _nodes = [];
+  final _controller = StreamController<void>.broadcast();
+
+  @override
+  Future<void> init() async {}
+
+  @override
+  Future<List<Node>> getAllNodes() async => _nodes;
+
+  @override
+  Future<void> saveNode(Node node) async {
+    final index = _nodes.indexWhere((n) => n.id == node.id);
+    if (index >= 0) {
+      _nodes[index] = node;
+    } else {
+      _nodes.add(node);
+    }
+  }
+
+  @override
+  Future<void> deleteNode(String nodeId) async {
+    _nodes.removeWhere((n) => n.id == nodeId);
+  }
+
+  @override
+  Future<void> saveConversation(Conversation c) async {}
+  @override
+  Future<List<Conversation>> getAllConversations() async => [];
+  @override
+  Future<void> deleteConversation(String id) async {}
+  @override
+  Future<void> saveChatMessage(ChatMessage m, String mode) async {}
+  @override
+  Future<List<ChatMessage>> getChatHistory(String mode, {String? conversationId}) async => [];
+  @override
+  Future<void> clearChatHistory(String mode, {String? conversationId}) async {}
+  @override
+  Future<void> saveKnowledge(Knowledge k) async {}
+  @override
+  Future<List<Knowledge>> getAllKnowledge() async => [];
+  @override
+  Future<void> deleteKnowledge(String id) async {}
+  @override
+  Future<void> saveMemory(Memory m) async {}
+  @override
+  Future<List<Memory>> getAllMemories() async => [];
+  @override
+  Future<void> deleteMemory(String id) async {}
+  @override
+  Stream<void> get onDataChanged => _controller.stream;
 }

@@ -27,6 +27,7 @@ class EditableColumn extends StatefulWidget {
   final VoidCallback? onToggleShowCompleted;
   final Function(int)? onAiStatusChanged;
   final VoidCallback? onColumnTap;
+  final bool showNotesInline;
 
   const EditableColumn({
     super.key,
@@ -53,6 +54,7 @@ class EditableColumn extends StatefulWidget {
     this.onToggleShowCompleted,
     this.onAiStatusChanged,
     this.onColumnTap,
+    this.showNotesInline = true,
   });
 
   @override
@@ -219,6 +221,7 @@ class _EditableColumnState extends State<EditableColumn> {
                       isSelected: isSelected,
                       isActiveColumn: widget.isActiveColumn,
                       isEditing: isEditing,
+                      showNotesInline: widget.showNotesInline,
                       onChanged: (val) => widget.onUpdate(index, val),
                       onNotesChanged: (val) =>
                           widget.onNotesUpdate?.call(index, val),

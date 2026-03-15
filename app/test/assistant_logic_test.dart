@@ -1,20 +1,24 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_app/ai_tools/tool_registry.dart';
+import 'package:flutter_app/services/node_service.dart';
 import 'package:flutter_app/services/data_service.dart';
 import 'package:flutter_app/models/ai_models.dart';
 
-// Create a Mock for the DataService
+// Create Mocks for the services
+class MockNodeService extends Mock implements NodeService {}
 class MockDataService extends Mock implements DataService {}
 
 void main() {
   group('AI Assistant Logic Tests', () {
+    late MockNodeService mockNodeService;
     late MockDataService mockDataService;
     late ToolRegistry registry;
 
     setUp(() {
+      mockNodeService = MockNodeService();
       mockDataService = MockDataService();
-      registry = ToolRegistry(mockDataService);
+      registry = ToolRegistry(mockNodeService, mockDataService);
     });
 
     test('ToolRegistry describes add_project correctly', () {
@@ -27,9 +31,9 @@ void main() {
       expect(description, "Add task 'New Task' to project");
     });
 
-    test('ToolRegistry executes add_project and calls DataService', () async {
+    test('ToolRegistry executes add_project and calls NodeService', () async {
       // Arrange
-      when(() => mockDataService.addProject(any())).thenAnswer((_) async => 'new_project_id');
+      when(() => mockNodeService.addChild(any(), any())).thenAnswer((_) async => 'new_project_id');
 
       // Act
       final result = await registry.executeTool('add_project', {'title': 'New App'});
@@ -37,12 +41,12 @@ void main() {
       // Assert
       expect(result['result'], 'success');
       expect(result['project_id'], 'new_project_id');
-      verify(() => mockDataService.addProject('New App')).called(1);
+      verify(() => mockNodeService.addChild(null, 'New App')).called(1);
     });
 
-    test('ToolRegistry executes add_task and calls DataService', () async {
+    test('ToolRegistry executes add_task and calls NodeService', () async {
       // Arrange
-      when(() => mockDataService.addTask(any(), any())).thenAnswer((_) async => 'new_task_id');
+      when(() => mockNodeService.addChild(any<String>(), any<String>())).thenAnswer((_) async => 'new_task_id');
 
       // Act
       final result = await registry.executeTool('add_task', {'project_id': 'p1', 'title': 'Fix Bug'});
@@ -50,23 +54,19 @@ void main() {
       // Assert
       expect(result['result'], 'success');
       expect(result['task_id'], 'new_task_id');
-      verify(() => mockDataService.addTask('p1', 'Fix Bug')).called(1);
+      verify(() => mockNodeService.addChild('p1', 'Fix Bug')).called(1);
     });
 
-    test('ToolRegistry executes delete_item and calls DataService', () async {
+    test('ToolRegistry executes delete_item and calls NodeService', () async {
       // Arrange
-      // deleteItem returns void, so strictly speaking we don't need a return value, 
-      // but DataService.deleteItem is void. Mocktail handles void automatically mostly, 
-      // or we just don't set a return.
-      // However, usually good to stub to ensure no errors.
-      // Since it returns void, we don't need `thenReturn`.
-      
+      when(() => mockNodeService.deleteNode(any())).thenReturn(null);
+
       // Act
       final result = await registry.executeTool('delete_item', {'item_id': 'item_1'});
 
       // Assert
       expect(result['result'], 'success');
-      verify(() => mockDataService.deleteItem('item_1')).called(1);
+      verify(() => mockNodeService.deleteNode('item_1')).called(1);
     });
 
     test('ProposedAction model creation', () {
@@ -91,7 +91,3 @@ void main() {
     });
   });
 }
-
-
-
-

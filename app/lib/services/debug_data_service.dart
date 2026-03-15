@@ -1,32 +1,28 @@
-import 'data_service.dart';
+import 'node_service.dart';
 
 class DebugDataService {
-  final DataService _dataService;
+  final NodeService _nodeService;
 
-  DebugDataService(this._dataService);
+  DebugDataService(this._nodeService);
 
   Future<void> seedComplexTree() async {
-    _dataService.clear();
+    _nodeService.clear();
 
     // Project Alpha
-    String p1 = await _dataService.addProject("Project Alpha");
-    String? t1 = await _dataService.addTask(p1, "Task Alpha 1");
+    String? p1 = await _nodeService.addChild(null, "Project Alpha");
+    String? t1 = await _nodeService.addChild(p1, "Task Alpha 1");
     if (t1 != null) {
-      await _dataService.addSubtask(t1, "Subtask 1.1");
-      await _dataService.addSubtask(t1, "Subtask 1.2");
+      await _nodeService.addChild(t1, "Subtask 1.1");
+      await _nodeService.addChild(t1, "Subtask 1.2");
     }
-    await _dataService.addTask(p1, "Task Alpha 2");
+    await _nodeService.addChild(p1, "Task Alpha 2");
 
     // Project Beta
-    String p2 = await _dataService.addProject("Project Beta");
-    await _dataService.addTask(p2, "Task Beta 1");
+    String? p2 = await _nodeService.addChild(null, "Project Beta");
+    await _nodeService.addChild(p2, "Task Beta 1");
 
     // Inbox
-    String inbox = await _dataService.addProject("Inbox");
-    await _dataService.addTask(inbox, "Check Emails");
+    String? inbox = await _nodeService.addChild(null, "Inbox");
+    await _nodeService.addChild(inbox, "Check Emails");
   }
 }
-
-
-
-

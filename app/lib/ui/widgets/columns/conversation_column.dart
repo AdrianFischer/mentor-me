@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../editable_column.dart';
 import '../editable_item_widget.dart';
 import '../../actions/selection_actions.dart';
 import '../../../providers/data_provider.dart';
 import '../../../providers/selection_provider.dart';
-import '../../../models/models.dart';
 
 class ConversationColumn extends ConsumerWidget {
   const ConversationColumn({super.key});

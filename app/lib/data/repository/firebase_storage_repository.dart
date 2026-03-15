@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import '../../models/models.dart';
+import '../../models/node.dart';
 import '../../models/ai_models.dart';
 import 'storage_repository.dart';
 
@@ -27,7 +27,7 @@ class FirebaseStorageRepository implements StorageRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
   final _controller = StreamController<void>.broadcast();
-  List<StreamSubscription> _subscriptions = [];
+  final List<StreamSubscription> _subscriptions = [];
 
   String? _currentUserId;
 
@@ -80,7 +80,9 @@ class FirebaseStorageRepository implements StorageRepository {
   }
 
   void _cancelListeners() {
-    for (var sub in _subscriptions) sub.cancel();
+    for (var sub in _subscriptions) {
+      sub.cancel();
+    }
     _subscriptions.clear();
   }
 
@@ -91,8 +93,7 @@ class FirebaseStorageRepository implements StorageRepository {
     // Listen to collections to trigger onDataChanged
     void notify() => _controller.add(null);
 
-    _subscriptions.add(_userDoc.collection('projects').snapshots().listen((_) => notify()));
-    _subscriptions.add(_userDoc.collection('tasks').snapshots().listen((_) => notify()));
+    _subscriptions.add(_userDoc.collection('nodes').snapshots().listen((_) => notify()));
     _subscriptions.add(_userDoc.collection('conversations').snapshots().listen((_) => notify()));
     _subscriptions.add(_userDoc.collection('chat_messages').snapshots().listen((_) => notify()));
     _subscriptions.add(_userDoc.collection('knowledge').snapshots().listen((_) => notify()));
@@ -103,125 +104,43 @@ class FirebaseStorageRepository implements StorageRepository {
   Timestamp _toTimestamp(DateTime dt) => Timestamp.fromDate(dt);
   DateTime _fromTimestamp(Timestamp ts) => ts.toDate();
 
-  // --- Projects & Tasks ---
+  // --- Nodes ---
 
   @override
-  Future<List<Project>> getAllProjects() async {
+  Future<List<Node>> getAllNodes() async {
     if (_currentUserId == null) {
-      debugPrint("WARN: getAllProjects called but user is null");
+      debugPrint("WARN: getAllNodes called but user is null");
       return [];
     }
     try {
-      // 1. Fetch all projects
-      final projectsSnapshot = await _withRetry(() => _userDoc.collection('projects').get());
-      final projectsData = projectsSnapshot.docs.map((doc) => doc.data()).toList();
+      final snapshot = await _withRetry(() => _userDoc.collection('nodes').get());
+      final nodes = snapshot.docs.map((doc) {
+        final json = _convertTimestamps(doc.data());
+        return Node.fromJson(json);
+      }).toList();
 
-      // 2. Fetch all tasks
-      final tasksSnapshot = await _withRetry(() => _userDoc.collection('tasks').get());
-      final tasksData = tasksSnapshot.docs.map((doc) => doc.data()).toList();
-
-      // 3. Map tasks by projectId
-      final tasksByProject = <String, List<Task>>{};
-      
-      for (var data in tasksData) {
-        // Convert Timestamps in subtasks/goals if needed.
-        // Task.fromJson expects standard JSON types. 
-        // Firestore returns Timestamp for DateTimes. Freezed might struggle if we don't convert.
-        final json = _convertTimestamps(data);
-        final task = Task.fromJson(json);
-        
-        final pid = task.projectId;
-        if (pid != null) {
-           tasksByProject.putIfAbsent(pid, () => []).add(task);
-        }
-      }
-
-      // 4. Assemble Projects
-      final projects = <Project>[];
-      for (var data in projectsData) {
-        final json = _convertTimestamps(data);
-        var project = Project.fromJson(json);
-        
-        // Attach tasks
-        final projectTasks = tasksByProject[project.id] ?? [];
-        // Sort tasks by order if needed, though usually UI handles it or we do it here.
-        // The Isar repo likely returned them sorted.
-        projectTasks.sort((a, b) => a.order.compareTo(b.order));
-        
-        project = project.copyWith(tasks: projectTasks);
-        projects.add(project);
-      }
-      
-      // Sort projects
-      projects.sort((a, b) => a.order.compareTo(b.order));
-
-      return projects;
+      nodes.sort((a, b) => a.order.compareTo(b.order));
+      return nodes;
     } catch (e, stack) {
-      debugPrint("Error fetching projects: $e\n$stack");
+      debugPrint("Error fetching nodes: $e\n$stack");
       return [];
     }
   }
 
   @override
-  Future<void> saveProject(Project project) async {
+  Future<void> saveNode(Node node) async {
     if (_currentUserId == null) {
-       debugPrint("ERROR: Cannot saveProject ${project.id} - User not logged in");
+       debugPrint("ERROR: Cannot saveNode ${node.id} - User not logged in");
        return;
     }
-    // We save the project metadata. Tasks are saved separately.
-    // Ensure we don't save the 'tasks' list into the project document to avoid duplication/bloat.
-    final json = project.toJson();
-    json.remove('tasks'); // Remove the embedded tasks
-    
-    await _withRetry(() => _userDoc.collection('projects').doc(project.id).set(json));
-    
-    // Also save all tasks? Isar does "cascade" save usually.
-    // For now, we assume tasks are saved via saveTask individually, 
-    // BUT if this is a new project with tasks, we might need to save them.
-    // Let's iterate and save them just in case, or assume the caller handles it.
-    // The previous Isar implementation likely saved the graph.
-    for (var task in project.tasks) {
-      await saveTask(task.copyWith(projectId: project.id));
-    }
+    final json = node.toJson();
+    await _withRetry(() => _userDoc.collection('nodes').doc(node.id).set(json));
   }
 
   @override
-  Future<void> deleteProject(String projectId) async {
+  Future<void> deleteNode(String nodeId) async {
     if (_currentUserId == null) return;
-    await _withRetry(() => _userDoc.collection('projects').doc(projectId).delete());
-    
-    // Delete associated tasks
-    final tasksSnapshot = await _withRetry(() => _userDoc.collection('tasks').where('projectId', isEqualTo: projectId).get());
-    for (var doc in tasksSnapshot.docs) {
-      await _withRetry(() => _userDoc.collection('tasks').doc(doc.id).delete());
-    }
-  }
-
-  @override
-  Future<void> saveTask(Task task) async {
-    if (_currentUserId == null) {
-       debugPrint("ERROR: Cannot saveTask ${task.id} - User not logged in");
-       return;
-    }
-    final json = task.toJson();
-    // Ensure nested timestamps (in subtasks, goals) are handled by Firestore automatically?
-    // Firestore accepts Map, String, Number, Boolean, Null, Array, Binary, GeoPoint, Timestamp.
-    // Freezed toJson produces String for DateTime (ISO8601).
-    // Firestore DOES NOT automatically convert ISO8601 Strings to Timestamps.
-    // It stores them as Strings. This is fine, but we need to ensure consistent parsing.
-    // However, if we want native Firestore Timestamps, we'd need to convert.
-    // DECISION: Store DateTimes as ISO8601 Strings (default Freezed behavior).
-    // It's easier than walking the JSON tree to convert to Timestamp.
-    // Wait, my _convertTimestamps helper above assumed Timestamps. 
-    // If I store as Strings, I don't need _convertTimestamps.
-    
-    await _withRetry(() => _userDoc.collection('tasks').doc(task.id).set(json));
-  }
-
-  @override
-  Future<void> deleteTask(String taskId) async {
-     if (_currentUserId == null) return;
-     await _withRetry(() => _userDoc.collection('tasks').doc(taskId).delete());
+    await _withRetry(() => _userDoc.collection('nodes').doc(nodeId).delete());
   }
 
   // --- Conversations & Chat ---

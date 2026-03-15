@@ -1,5 +1,4 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
 import '../../services/mcp_client_service.dart';
 
 class McpToolBridge implements AiTool {
@@ -25,7 +24,7 @@ class McpToolBridge implements AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     return await _clientService.executeTool(_name, args);
   }
 }

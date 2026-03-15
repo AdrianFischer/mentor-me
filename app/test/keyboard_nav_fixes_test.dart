@@ -1,12 +1,12 @@
 /// Tests verifying all 9 keyboard navigation stability fixes
 /// applied in the keyboard-navigation-stability session.
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/app.dart';
-import 'package:flutter_app/data/repository/storage_repository.dart';
-import 'package:flutter_app/models/models.dart';
+import 'package:flutter_app/models/node.dart';
 import 'package:flutter_app/providers/selection_provider.dart';
 import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_app/providers/mcp_provider.dart';
@@ -25,11 +25,11 @@ class MockMcpServerService extends Mock implements McpServerService {
 }
 
 /// Builds the full app with isolated in-memory state.
-Widget buildApp({List<Project>? projects}) {
+Widget buildApp({List<Node>? nodes}) {
   return ProviderScope(
     overrides: [
       storageRepositoryProvider.overrideWithValue(
-        FakeStorageRepository(initialProjects: projects),
+        FakeStorageRepository(initialNodes: nodes),
       ),
       mcpServerProvider.overrideWith((_) => MockMcpServerService()),
     ],
@@ -67,16 +67,9 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final project = Project(id: 'p1', title: 'Alpha');
-      await tester.pumpWidget(buildApp(projects: [project]));
+      final project = Node(id: 'p1', title: 'Alpha');
+      await tester.pumpWidget(buildApp(nodes: [project]));
       await tester.pumpAndSettle();
-
-      final container = tester
-          .element(find.byType(MyApp))
-          .findAncestorWidgetOfExactType<UncontrolledProviderScope>() ??
-          tester
-              .element(find.byType(ProviderScope))
-              .findAncestorWidgetOfExactType<ProviderScope>();
 
       // Select the project (arrow down from root focus)
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
@@ -205,12 +198,12 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final project = Project(
+      final project = Node(
         id: 'p1',
         title: 'TaggedProject',
         tags: ['urgent'],
       );
-      await tester.pumpWidget(buildApp(projects: [project]));
+      await tester.pumpWidget(buildApp(nodes: [project]));
       await tester.pumpAndSettle();
 
       // Select the 'urgent' tag to show TagResultsColumn
@@ -245,8 +238,8 @@ void main() {
 
       // After resume, the root focus should be restored.
       // We verify this indirectly by checking that arrow keys still work.
-      final project = Project(id: 'p1', title: 'Resume Test');
-      await tester.pumpWidget(buildApp(projects: [project]));
+      final project = Node(id: 'p1', title: 'Resume Test');
+      await tester.pumpWidget(buildApp(nodes: [project]));
       await tester.pumpAndSettle();
 
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);

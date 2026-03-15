@@ -1,5 +1,4 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
 
 class SaveMemoryTool implements AiTool {
   @override
@@ -26,9 +25,9 @@ class SaveMemoryTool implements AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     final fact = args['fact'] as String;
-    await dataService.saveMemory(fact);
+    await context.dataService.saveMemory(fact);
     return {'result': 'success', 'message': 'Memory saved.'};
   }
 }

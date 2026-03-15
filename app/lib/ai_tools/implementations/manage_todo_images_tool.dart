@@ -1,5 +1,4 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
 
 class ManageTodoImagesTool implements AiTool {
   @override
@@ -25,7 +24,7 @@ class ManageTodoImagesTool implements AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     final index = args['index'] as int?;
     final action = args['action'] as String?;
     final filePath = args['file_path'] as String?;
@@ -34,13 +33,13 @@ class ManageTodoImagesTool implements AiTool {
       return {'result': 'error', 'message': 'Missing index, action, or file_path'};
     }
 
-    final itemId = dataService.getIdFromSessionIndex(index);
+    final itemId = context.dataService.getIdFromSessionIndex(index);
     if (itemId == null) return {'result': 'error', 'message': 'Invalid index: $index'};
 
     if (action == 'add') {
-      await dataService.addLocalImagePath(itemId, filePath);
+      await context.nodeService.addLocalImagePath(itemId, filePath);
     } else if (action == 'remove') {
-      await dataService.removeLocalImagePath(itemId, filePath);
+      await context.nodeService.removeLocalImagePath(itemId, filePath);
     }
 
     return {'result': 'success', 'item_id': itemId};

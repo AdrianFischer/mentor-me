@@ -1,12 +1,9 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/app.dart';
-import 'package:flutter_app/data/repository/storage_repository.dart';
-import 'package:flutter_app/models/models.dart';
-import 'package:flutter_app/models/ai_models.dart';
+import 'package:flutter_app/models/node.dart';
 import 'package:flutter_app/providers/data_provider.dart';
 import 'package:flutter_app/providers/selection_provider.dart';
 import 'package:flutter_app/services/mcp_server.dart';
@@ -31,9 +28,9 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final fakeRepository = FakeStorageRepository(initialProjects: [
-        Project(id: 'p1', title: 'Inbox'),
-        Project(id: 'p2', title: 'Today'),
+    final fakeRepository = FakeStorageRepository(initialNodes: [
+        Node(id: 'p1', title: 'Inbox'),
+        Node(id: 'p2', title: 'Today'),
     ]);
     
     await tester.pumpWidget(ProviderScope(
@@ -52,13 +49,13 @@ void main() {
     await tester.pumpAndSettle();
 
     // 2. Select "Inbox" Project
-    container.read(selectionProvider.notifier).selectProject('p1');
+    container.read(selectionProvider.notifier).selectRootNode('p1');
     await tester.pumpAndSettle();
 
     // Create a task "Check Me"
-    container.read(dataServiceProvider).addTask('p1', '').then((id) {
+    container.read(nodeServiceProvider).addChild('p1', '').then((id) {
        if (id != null) {
-          container.read(selectionProvider.notifier).selectTask(id);
+          container.read(selectionProvider.notifier).selectNodeInColumn(1, id);
           container.read(selectionProvider.notifier).setEditingItem(id);
        }
     });
@@ -72,7 +69,7 @@ void main() {
     // Wait for TextField to appear
     Finder? titleField;
     for (int i=0; i<50; i++) {
-      final taskColumn = find.ancestor(of: find.text('Tasks'), matching: find.byType(EditableColumn));
+      final taskColumn = find.ancestor(of: find.text('Inbox').last, matching: find.byType(EditableColumn));
       titleField = find.descendant(
         of: taskColumn,
         matching: find.byType(TextField)
@@ -90,7 +87,7 @@ void main() {
     await tester.pumpAndSettle();
     
     // Explicitly select the task
-    await tester.tap(find.text("Check Me"));
+    await tester.tap(find.text("Check Me").first);
     await tester.pumpAndSettle();
 
     // Exit Edit Mode
@@ -133,11 +130,6 @@ void main() {
     final taskItemFinderBack = find.byWidgetPredicate(
       (widget) => widget is EditableItemWidget && widget.item.text == "Check Me"
     );
-    final gestureDetectorsBack = find.descendant(
-      of: taskItemFinderBack,
-      matching: find.byType(GestureDetector)
-    );
-    final checkboxFinderBack = gestureDetectorsBack.last;
     
     // Check if Icon(Icons.check) is descendant of this item
     expect(

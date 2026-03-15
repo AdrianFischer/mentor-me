@@ -1,5 +1,4 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
 
 class UpdateTodoByIndexTool implements AiTool {
   @override
@@ -29,21 +28,21 @@ class UpdateTodoByIndexTool implements AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     final index = args['index'] as int?;
     if (index == null) return {'result': 'error', 'message': 'Missing index'};
 
-    final itemId = dataService.getIdFromSessionIndex(index);
+    final itemId = context.dataService.getIdFromSessionIndex(index);
     if (itemId == null) return {'result': 'error', 'message': 'Invalid index: $index'};
 
     if (args.containsKey('new_title')) {
-      dataService.updateTitle(itemId, args['new_title'] as String);
+      context.nodeService.updateTitle(itemId, args['new_title'] as String);
     }
     if (args.containsKey('notes')) {
-      dataService.updateNotes(itemId, args['notes'] as String);
+      context.nodeService.updateNotes(itemId, args['notes'] as String);
     }
     if (args.containsKey('is_completed')) {
-      await dataService.setItemStatus(itemId, args['is_completed'] as bool);
+      await context.nodeService.setNodeStatus(itemId, args['is_completed'] as bool);
     }
 
     return {'result': 'success', 'item_id': itemId};

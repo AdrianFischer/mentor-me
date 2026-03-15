@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,12 +6,9 @@ import 'package:flutter_app/app.dart';
 import 'package:flutter_app/ui/widgets/editable_column.dart';
 import 'package:flutter_app/ui/widgets/editable_item_widget.dart';
 import 'package:flutter_app/ui/actions/selection_actions.dart';
-import 'package:flutter_app/data/repository/storage_repository.dart';
-import 'package:flutter_app/models/models.dart';
-import 'package:flutter_app/models/ai_models.dart';
+import 'package:flutter_app/models/node.dart';
 import 'package:flutter_app/providers/data_provider.dart';
-import 'package:flutter_app/ui/assistant_screen.dart'; // assistantServiceProvider
-import 'package:flutter_app/services/assistant_service.dart';
+// assistantServiceProvider
 import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_app/providers/mcp_provider.dart';
 import 'package:flutter_app/providers/ai_provider.dart';
@@ -35,8 +31,8 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final fakeRepository = FakeStorageRepository(initialProjects: [
-        Project(id: 'p1', title: 'Inbox'),
+    final fakeRepository = FakeStorageRepository(initialNodes: [
+        Node(id: 'p1', title: 'Inbox'),
     ]);
     final mockAssistant = MockAssistantService();
     
@@ -56,10 +52,10 @@ void main() {
     await tester.pumpAndSettle();
     
     // Navigate to Inbox
-    await tester.tap(find.text("Inbox"));
+    await tester.tap(find.text("Inbox").first);
     await tester.pumpAndSettle();
     
-    expect(find.text("Inbox"), findsOneWidget);
+    expect(find.text("Inbox"), findsAtLeastNWidgets(1));
     
     // Navigate Right to Tasks (Auto-creates task if empty)
     await tester.runAsync(() async {
@@ -72,19 +68,19 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     
-    expect(find.text("Tasks"), findsOneWidget);
+    expect(find.text("Inbox"), findsAtLeastNWidgets(2));
     
     // Item should already be created and in edit mode due to auto-create on nav
     // Find the TextField (title is first)
     final titleField = find.descendant(
-      of: find.ancestor(of: find.text('Tasks'), matching: find.byType(EditableColumn)),
+      of: find.ancestor(of: find.text('Inbox').last, matching: find.byType(EditableColumn)),
       matching: find.byType(TextField)
     ).first;
     
     await tester.enterText(titleField, "My New Task");
     await tester.pumpAndSettle();
     
-    expect(find.text("My New Task"), findsOneWidget);
+    expect(find.text("My New Task"), findsAtLeastNWidgets(1));
     
     // Toggle checkbox
     // Find the task item widget first

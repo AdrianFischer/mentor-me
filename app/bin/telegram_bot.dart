@@ -108,7 +108,6 @@ class _HttpTransport implements Transport {
   @override
   String? get sessionId => _sessionId;
   final HttpClient _client = HttpClient();
-  final StreamController<JsonRpcMessage> _messageController = StreamController<JsonRpcMessage>.broadcast();
 
   _HttpTransport(this._baseUrl);
 

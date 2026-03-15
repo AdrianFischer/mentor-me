@@ -8,7 +8,6 @@ import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_app/providers/mcp_provider.dart';
 import 'package:mocktail/mocktail.dart';
 import 'helpers/fake_storage_repository.dart';
-import 'package:flutter_app/data/repository/storage_repository.dart';
 
 class MockMcpServerService extends Mock implements McpServerService {
   @override
@@ -41,11 +40,11 @@ void main() {
     // 1. Create and Select Project
     String? pId;
     await tester.runAsync(() async {
-       pId = await container.read(dataServiceProvider).addProject("Test Project");
-       selectionNotifier.selectProject(pId);
+       pId = await container.read(nodeServiceProvider).addChild(null, "Test Project");
+       selectionNotifier.selectRootNode(pId);
     });
     await tester.pumpAndSettle();
-    expect(container.read(selectionProvider).selectedProjectId, pId);
+    expect(container.read(selectionProvider).selectedNodeIdAtColumn(0), pId);
 
     // 2. Navigate Right to create Task
     await tester.runAsync(() async {
@@ -61,7 +60,7 @@ void main() {
     
     // IMPORTANT: Give task a name so it isn't cleaned up!
     await tester.runAsync(() async {
-       container.read(dataServiceProvider).updateTitle(stateAfterTask.selectedTaskId!, "Task 1");
+       container.read(nodeServiceProvider).updateTitle(stateAfterTask.selectedTaskId!, "Task 1");
     });
     await tester.pumpAndSettle();
 
@@ -79,8 +78,8 @@ void main() {
     
     // 4. Verify UI reflects the state
     await tester.pumpAndSettle(); // One more for good measure
-    expect(find.text('Tasks'), findsOneWidget);
-    expect(find.text('Subtasks'), findsOneWidget);
+    expect(find.text('Test Project'), findsAtLeastNWidgets(2));
+    expect(find.text('Task 1'), findsAtLeastNWidgets(2));
   });
 
   testWidgets('Cleanup Empty Items on Navigation (Clean Version)', (WidgetTester tester) async {
@@ -95,22 +94,22 @@ void main() {
     await tester.pumpAndSettle();
 
     final container = ProviderScope.containerOf(tester.element(find.byType(MyApp)));
-    final dataService = container.read(dataServiceProvider);
+    final nodeService = container.read(nodeServiceProvider);
     final selectionNotifier = container.read(selectionProvider.notifier);
 
-    // 1. Create two empty projects
+    // 1. Create two empty nodes
     String? p1, p2;
     await tester.runAsync(() async {
-       p1 = await dataService.addProject("");
-       p2 = await dataService.addProject("");
-       selectionNotifier.selectProject(p2);
+       p1 = await nodeService.addChild(null, "");
+       p2 = await nodeService.addChild(null, "");
+       selectionNotifier.selectRootNode(p2);
     });
     await tester.pumpAndSettle();
-    expect(dataService.projects.length, 2);
+    expect(nodeService.rootNodes.length, 2);
 
     // 2. Move selection - should trigger cleanup of p2 (which is empty and not selected anymore)
     await tester.runAsync(() async {
-       selectionNotifier.selectProject(p1);
+       selectionNotifier.selectRootNode(p1);
        // The cleanup logic is often triggered by navigation intents or specific provider methods.
        // In our app, it's triggered during changeColumn or select methods if they call _cleanupEmptyItems.
     });

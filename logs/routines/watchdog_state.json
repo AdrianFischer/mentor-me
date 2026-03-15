@@ -1,6 +1,5 @@
 {
-  "paused": false,
-  "reason": "User went to sleep (Gute Nacht)",
-  "timestamp": "2026-03-10T16:26:21.613Z",
-  "resumed_at": "2026-03-12T07:55:18.731Z"
+  "paused": true,
+  "reason": "User is going to sleep",
+  "timestamp": "2026-03-12T10:03:18.082Z"
 }

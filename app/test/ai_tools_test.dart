@@ -1,18 +1,25 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:flutter_app/services/node_service.dart';
 import 'package:flutter_app/services/data_service.dart';
+import 'package:flutter_app/ai_tools/ai_tool.dart';
 import 'package:flutter_app/ai_tools/implementations/add_task_tool.dart';
 import 'package:flutter_app/ai_tools/implementations/add_project_tool.dart';
 import 'package:flutter_app/ai_tools/implementations/add_subtask_tool.dart';
 import 'package:flutter_app/ai_tools/implementations/set_item_status_tool.dart';
 
+class MockNodeService extends Mock implements NodeService {}
 class MockDataService extends Mock implements DataService {}
 
 void main() {
+  late MockNodeService mockNodeService;
   late MockDataService mockDataService;
+  late ToolContext toolContext;
 
   setUp(() {
+    mockNodeService = MockNodeService();
     mockDataService = MockDataService();
+    toolContext = ToolContext(mockNodeService, mockDataService);
   });
 
   group('AiTools Tests', () {
@@ -22,17 +29,16 @@ void main() {
       final title = 'New Task';
       final newTaskId = 't1';
 
-      when(() => mockDataService.addTask(projectId, title))
+      when(() => mockNodeService.addChild(projectId, title))
           .thenAnswer((_) async => newTaskId);
 
       final result = await tool.execute({
         'project_id': projectId,
         'title': title,
-      }, mockDataService);
+      }, toolContext);
 
       expect(result['result'], 'success');
-      // This expectation will fail if the bug exists (it will be a Future)
-      expect(result['task_id'], isA<String>()); 
+      expect(result['task_id'], isA<String>());
       expect(result['task_id'], newTaskId);
     });
 
@@ -41,12 +47,12 @@ void main() {
       final title = 'New Project';
       final newProjectId = 'p1';
 
-      when(() => mockDataService.addProject(title))
+      when(() => mockNodeService.addChild(null, title))
           .thenAnswer((_) async => newProjectId);
 
       final result = await tool.execute({
         'title': title,
-      }, mockDataService);
+      }, toolContext);
 
       expect(result['result'], 'success');
       expect(result['project_id'], isA<String>());
@@ -59,36 +65,34 @@ void main() {
       final title = 'New Subtask';
       final newSubtaskId = 's1';
 
-      when(() => mockDataService.addSubtask(taskId, title))
+      when(() => mockNodeService.addChild(taskId, title))
           .thenAnswer((_) async => newSubtaskId);
 
       final result = await tool.execute({
         'task_id': taskId,
         'title': title,
-      }, mockDataService);
+      }, toolContext);
 
       expect(result['result'], 'success');
       expect(result['subtask_id'], isA<String>());
       expect(result['subtask_id'], newSubtaskId);
     });
-    
+
     test('SetItemStatusTool awaits the operation', () async {
       final tool = SetItemStatusTool();
       final itemId = 'i1';
       final isCompleted = true;
-      
-      // We can't easily test "await" without a delay in mock, 
-      // but we can ensure it calls the service.
-      when(() => mockDataService.setItemStatus(itemId, isCompleted))
-          .thenAnswer((_) async => {}); // Return Future<void>
+
+      when(() => mockNodeService.setNodeStatus(itemId, isCompleted))
+          .thenAnswer((_) async => {});
 
       final result = await tool.execute({
         'item_id': itemId,
         'is_completed': isCompleted,
-      }, mockDataService);
-      
+      }, toolContext);
+
       expect(result['result'], 'success');
-      verify(() => mockDataService.setItemStatus(itemId, isCompleted)).called(1);
+      verify(() => mockNodeService.setNodeStatus(itemId, isCompleted)).called(1);
     });
   });
 }

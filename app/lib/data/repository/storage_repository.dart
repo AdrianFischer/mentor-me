@@ -1,17 +1,14 @@
-import '../../models/models.dart';
+import '../../models/node.dart';
 import '../../models/ai_models.dart';
 
 abstract class StorageRepository {
   Future<void> init();
-  
-  /// Loads all projects and their associated tasks.
-  Future<List<Project>> getAllProjects();
 
-  Future<void> saveProject(Project project);
-  Future<void> deleteProject(String projectId);
+  /// Loads all root-level nodes.
+  Future<List<Node>> getAllNodes();
 
-  Future<void> saveTask(Task task);
-  Future<void> deleteTask(String taskId);
+  Future<void> saveNode(Node node);
+  Future<void> deleteNode(String nodeId);
 
   /// Chat History & Conversations
   Future<void> saveConversation(Conversation conversation);
@@ -19,8 +16,6 @@ abstract class StorageRepository {
   Future<void> deleteConversation(String conversationId);
 
   Future<void> saveChatMessage(ChatMessage message, String mode);
-  /// If conversationId is provided, returns messages for that conversation.
-  /// If not, assumes legacy/global mode behavior.
   Future<List<ChatMessage>> getChatHistory(String mode, {String? conversationId});
   Future<void> clearChatHistory(String mode, {String? conversationId});
 

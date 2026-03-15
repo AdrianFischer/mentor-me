@@ -8,17 +8,16 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:uuid/uuid.dart';
-import 'data_service.dart';
+import 'node_service.dart';
 import '../ai_tools/tool_registry.dart';
-import '../ai_tools/ai_tool.dart';
 
 class McpServerService {
-  final DataService _dataService;
+  final NodeService _nodeService;
   final ToolRegistry _toolRegistry;
   HttpServer? _server;
   final Map<String, _SseTransport> _sessions = {};
 
-  McpServerService(this._dataService, this._toolRegistry);
+  McpServerService(this._nodeService, this._toolRegistry);
 
   Future<void> start({int port = 8081, int retries = 5, bool savePortToConfig = true}) async {
     if (kIsWeb) {
@@ -43,16 +42,13 @@ class McpServerService {
              print('Session $sessionId closed and removed.');
           };
 
-          // Create and connect the MCP Server
           final server = McpServer(
             Implementation(name: 'flutter_app_data', version: '1.0.0'),
           );
           _registerTools(server);
-          
-          // Connect server to transport
+
           server.connect(transport);
 
-          // Return SSE Stream
           return Response.ok(
             transport.stream,
             headers: {
@@ -60,7 +56,7 @@ class McpServerService {
               'Cache-Control': 'no-cache',
               'Connection': 'keep-alive',
             },
-            context: {'shelf.io.buffer_output': false}, 
+            context: {'shelf.io.buffer_output': false},
           );
         });
 
@@ -73,7 +69,7 @@ class McpServerService {
 
           final transport = _sessions[sessionId]!;
           final body = await request.readAsString();
-          
+
           try {
             final message = mcp.JsonRpcMessage.fromJson(jsonDecode(body));
             transport.handleMessage(message);
@@ -85,12 +81,11 @@ class McpServerService {
 
         final handler = Pipeline()
             .addMiddleware(logRequests())
-            .addHandler(router);
+            .addHandler(router.call);
 
         _server = await shelf_io.serve(handler, InternetAddress.anyIPv4, currentPort);
         print('MCP Server listening on http://localhost:$currentPort/mcp');
-        
-        // Save port for auto-discovery
+
         if (savePortToConfig) {
           try {
             final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
@@ -117,15 +112,6 @@ class McpServerService {
   }
 
   void _registerTools(McpServer server) {
-    // Register 'get_projects' specially if it's not in the registry or needs special handling?
-    // Actually, 'get_projects' is NOT in the ToolRegistry (Wait, check file list).
-    // I did not see 'get_projects_tool.dart' in the file list I read earlier.
-    // I saw 'get_project_tool.dart' (singular).
-    // Let's check if 'get_projects' is missing from registry.
-    // If so, I should add it or keep it hardcoded for now, but the plan says "Unify".
-    // I'll keep the manual one if it's not in registry, but otherwise use registry.
-
-    // Register tools from ToolRegistry
     for (final tool in _toolRegistry.tools) {
        server.registerTool(
          tool.name,
@@ -147,37 +133,17 @@ class McpServerService {
          }
        );
     }
-    
-    // Explicitly add 'get_projects' if not present (it seems it was manually added in previous version)
-    // The previous version had a complex 'get_projects' that serialized the whole tree.
-    // Use the existing logic for 'get_projects' if it's not in registry.
+
+    // Explicitly add 'get_projects' if not present in registry
     bool hasGetProjects = _toolRegistry.tools.any((t) => t.name == 'get_projects');
     if (!hasGetProjects) {
        server.registerTool(
         'get_projects',
         description: 'Get all projects and their tasks',
         callback: (args, extra) async {
-          final projects = _dataService.projects;
-          final jsonList = projects.map((p) {
-            final pJson = p.toJson();
-            pJson['order'] = p.order.isNaN ? 0.0 : p.order;
-            if (pJson['tasks'] is List) {
-                pJson['tasks'] = (pJson['tasks'] as List).map((t) {
-                  final tJson = (t as dynamic).toJson();
-                  tJson['order'] = t.order.isNaN ? 0.0 : t.order;
-                  if (tJson['subtasks'] is List) {
-                    tJson['subtasks'] = (tJson['subtasks'] as List).map((s) {
-                      final sJson = (s as dynamic).toJson();
-                      sJson['order'] = s.order.isNaN ? 0.0 : s.order;
-                      return sJson;
-                    }).toList();
-                  }
-                  return tJson; 
-                }).toList();
-            }
-            return pJson;
-          }).toList();
-          
+          final rootNodes = _nodeService.rootNodes;
+          final jsonList = rootNodes.map((n) => n.toJson()).toList();
+
           return CallToolResult(
             content: [TextContent(text: jsonEncode(jsonList))],
           );
@@ -195,7 +161,6 @@ class McpServerService {
         properties.forEach((key, value) {
            final desc = value['description'] as String?;
            final type = value['type'] as String?;
-           // Handle basic types
            if (type == 'string') {
               propsMap[key] = JsonSchema.string(description: desc);
            } else if (type == 'number' || type == 'integer') {
@@ -203,8 +168,7 @@ class McpServerService {
            } else if (type == 'boolean') {
               propsMap[key] = JsonSchema.boolean(description: desc);
            } else {
-              // Fallback for complex types or unknown
-              propsMap[key] = JsonSchema.string(description: desc); 
+              propsMap[key] = JsonSchema.string(description: desc);
            }
         });
      }
@@ -244,17 +208,14 @@ class _SseTransport implements Transport {
   void Function(JsonRpcMessage message)? onmessage;
 
   _SseTransport(this._endpointPath) : sessionId = const Uuid().v4() {
-    // Send endpoint event immediately
     final endpointUrl = '$_endpointPath?sessionId=$sessionId';
     _sendSseEvent('endpoint', endpointUrl);
 
-    // Start heartbeat
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
       if (_streamController.isClosed) {
         timer.cancel();
         return;
       }
-      // Send comment to keep connection alive
       _streamController.add(utf8.encode(': keep-alive\n\n'));
     });
   }
@@ -266,9 +227,7 @@ class _SseTransport implements Transport {
   }
 
   @override
-  Future<void> start() async {
-    // No-op for SSE
-  }
+  Future<void> start() async {}
 
   @override
   Future<void> send(JsonRpcMessage message, {dynamic relatedRequestId}) async {

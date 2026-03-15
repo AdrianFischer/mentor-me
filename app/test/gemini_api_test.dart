@@ -1,17 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/services/data_service.dart';
+import 'package:flutter_app/services/node_service.dart';
 import 'helpers/fake_storage_repository.dart';
 
 void main() {
-  group('DataService Initialization', () {
-    late DataService dataService;
+  group('NodeService Initialization', () {
+    late NodeService nodeService;
 
-    setUp(() {
-      dataService = DataService.withRepository(FakeStorageRepository());
+    setUp(() async {
+      final repository = FakeStorageRepository();
+      nodeService = NodeService(repository);
+      await nodeService.initData();
     });
 
-    test('DataService initializes with empty projects', () {
-      expect(dataService.projects, isEmpty);
+    test('NodeService initializes with empty root nodes', () {
+      expect(nodeService.rootNodes, isEmpty);
     });
   });
 }

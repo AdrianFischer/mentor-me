@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import '../../services/data_service.dart';
 import '../ai_tool.dart';
 
 class GetImageTool implements AiTool {
@@ -25,21 +24,21 @@ class GetImageTool implements AiTool {
   };
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     try {
       final String path = args['path'];
       final file = File(path);
-      
+
       if (!await file.exists()) {
         return {
           'result': 'error',
           'message': 'File not found at $path'
         };
       }
-      
+
       final bytes = await file.readAsBytes();
       final base64Data = base64Encode(bytes);
-      
+
       return {
         'result': 'success',
         'media': {

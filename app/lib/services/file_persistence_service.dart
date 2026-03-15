@@ -1,8 +1,8 @@
-import '../models/models.dart';
+import '../models/node.dart';
 
 abstract class FilePersistenceService {
-  Future<List<Project>> loadAllProjects();
-  Future<void> saveProject(Project project);
-  Future<void> deleteProject(String projectId);
-  Stream<List<Project>> watchProjects();
+  Future<List<Node>> loadAllNodes();
+  Future<void> saveNode(Node node);
+  Future<void> deleteNode(String nodeId);
+  Stream<List<Node>> watchNodes();
 }

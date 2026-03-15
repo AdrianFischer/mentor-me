@@ -1,5 +1,4 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
 
 class GetProjectTool extends AiTool {
   @override
@@ -26,20 +25,16 @@ class GetProjectTool extends AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     final projectId = args['project_id'] as String?;
     if (projectId == null) {
       return {'error': 'Missing project_id'};
     }
 
-    try {
-      final project = dataService.projects.firstWhere(
-        (p) => p.id == projectId,
-        orElse: () => throw Exception('Project not found'),
-      );
-      return project.toJson();
-    } catch (e) {
+    final node = context.nodeService.findNode(projectId);
+    if (node == null) {
       return {'error': 'Project not found: $projectId'};
     }
+    return node.toJson();
   }
 }

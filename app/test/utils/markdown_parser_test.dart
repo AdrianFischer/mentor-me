@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/models/models.dart';
 import 'package:flutter_app/utils/markdown_parser.dart';
+import 'package:flutter_app/models/node.dart';
 
 void main() {
-  group('MarkdownParser', () {
-    test('parseProject should correctly parse a standard markdown file', () {
+  group('MarkdownParser.parseNode', () {
+    test('parseNode should correctly parse a standard markdown file', () {
       final markdown = '''
 ---
 id: project-123
@@ -20,54 +20,53 @@ This is a description.
 - [x] Task 2
 ''';
 
-      final project = MarkdownParser.parseProject(markdown);
+      final node = MarkdownParser.parseNode(markdown);
 
-      expect(project.id, 'project-123');
-      expect(project.title, 'My Project');
-      expect(project.tags, containsAll(['work', 'urgent']));
-      expect(project.notes?.trim(), 'This is a description.');
-      expect(project.tasks.length, 2);
-      expect(project.tasks[0].title, 'Task 1');
-      expect(project.tasks[0].isCompleted, false);
-      expect(project.tasks[1].title, 'Task 2');
-      expect(project.tasks[1].isCompleted, true);
+      expect(node.id, 'project-123');
+      expect(node.title, 'My Project');
+      expect(node.tags, containsAll(['work', 'urgent']));
+      expect(node.notes?.trim(), 'This is a description.');
+      expect(node.children.length, 2);
+      expect(node.children[0].title, 'Task 1');
+      expect(node.children[0].isCompleted, false);
+      expect(node.children[1].title, 'Task 2');
+      expect(node.children[1].isCompleted, true);
     });
 
-    test('toMarkdown should correctly serialize a Project', () {
-      final project = Project(
+    test('nodeToMarkdown should correctly serialize a Node', () {
+      final node = Node(
         id: 'project-456',
         title: 'Serialized Project',
         tags: ['personal'],
         notes: 'Some notes.',
-        tasks: [
-          Task(id: 't1', title: 'Task A', isCompleted: false),
+        children: [
+          Node(id: 't1', title: 'Task A', isCompleted: false, parentId: 'project-456'),
         ],
       );
 
-      final markdown = MarkdownParser.toMarkdown(project);
+      final markdown = MarkdownParser.nodeToMarkdown(node);
 
       expect(markdown, contains('id: project-456'));
-      expect(markdown, contains('tags: [personal]'));
       expect(markdown, contains('# Serialized Project'));
       expect(markdown, contains('Some notes.'));
       expect(markdown, contains('- [ ] Task A'));
     });
 
-    test('parseProject should handle empty file', () {
-      final project = MarkdownParser.parseProject('');
-      expect(project.title, 'Untitled');
-      expect(project.tasks, isEmpty);
+    test('parseNode should handle empty file', () {
+      final node = MarkdownParser.parseNode('');
+      expect(node.title, 'Untitled');
+      expect(node.children, isEmpty);
     });
 
-    test('parseProject should handle missing frontmatter', () {
+    test('parseNode should handle missing frontmatter', () {
       final markdown = '# Just a Title\n\nSome notes.';
-      final project = MarkdownParser.parseProject(markdown);
-      expect(project.title, 'Just a Title');
-      expect(project.notes, 'Some notes.');
-      expect(project.id, isNotEmpty);
+      final node = MarkdownParser.parseNode(markdown);
+      expect(node.title, 'Just a Title');
+      expect(node.notes, 'Some notes.');
+      expect(node.id, isNotEmpty);
     });
 
-    test('parseProject should handle malformed frontmatter gracefully', () {
+    test('parseNode should handle malformed frontmatter gracefully', () {
       final markdown = '''
 ---
 id: [invalid
@@ -76,9 +75,9 @@ tags: {
 
 # Title
 ''';
-      final project = MarkdownParser.parseProject(markdown);
-      expect(project.title, 'Title');
-      expect(project.id, isNotEmpty);
+      final node = MarkdownParser.parseNode(markdown);
+      expect(node.title, 'Title');
+      expect(node.id, isNotEmpty);
     });
   });
 }

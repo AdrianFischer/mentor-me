@@ -1,25 +1,24 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/services/data_service.dart';
+import 'package:flutter_app/services/node_service.dart';
 import 'package:flutter_app/services/file_system_service.dart';
 import 'package:flutter_app/data/repository/in_memory_repository.dart';
-import 'package:flutter_app/models/models.dart';
 
 void main() {
   group('Race Condition Tests', () {
     late Directory tempDir;
-    late DataService dataService;
+    late NodeService nodeService;
     late FileSystemService fileService;
 
     setUp(() async {
       tempDir = await Directory.systemTemp.createTemp('race_test');
-      
+
       // Use real FileSystemService for race condition testing
       fileService = FileSystemService(baseDir: tempDir.path);
       final repository = InMemoryRepository(fileService);
-      
-      dataService = DataService.withRepository(repository);
-      await dataService.initData();
+
+      nodeService = NodeService(repository);
+      await nodeService.initData();
     });
 
     tearDown(() async {
@@ -28,35 +27,32 @@ void main() {
       }
     });
 
-    test('Rapid typing does not create duplicate projects via watcher', () async {
-      final id = await dataService.addProject("S");
-      
+    test('Rapid typing does not create duplicate nodes via watcher', () async {
+      final id = await nodeService.addChild(null, "S");
+
       // Wait a tiny bit for IO
       await Future.delayed(const Duration(milliseconds: 100));
-      
-      dataService.updateTitle(id, "Sy");
+
+      nodeService.updateTitle(id!, "Sy");
       await Future.delayed(const Duration(milliseconds: 100));
-      
-      dataService.updateTitle(id, "Syn");
+
+      nodeService.updateTitle(id, "Syn");
       await Future.delayed(const Duration(milliseconds: 100));
-      
-      dataService.updateTitle(id, "Sync");
-      
+
+      nodeService.updateTitle(id, "Sync");
+
       // Allow debounce and persistence to settle
       await Future.delayed(const Duration(seconds: 2));
-      
-      // We expect exactly ONE project in DataService
-      print('DEBUG: projects length is ${dataService.projects.length}'); expect(dataService.projects.length, 1);
-      expect(dataService.projects.first.title, "Sync");
-      
+
+      // We expect exactly ONE root node in NodeService
+      print('DEBUG: rootNodes length is ${nodeService.rootNodes.length}');
+      expect(nodeService.rootNodes.length, 1);
+      expect(nodeService.rootNodes.first.title, "Sync");
+
       // Check file system
       final dir = Directory('${tempDir.path}/todos/unsorted');
       if (dir.existsSync()) {
-        final files = dir.listSync().where((f) => f.path.endsWith('.md')).toList();
-        // Since FileSystemService might not delete old files yet (it doesn't have rename logic fully implemented),
-        // we might have multiple files, but they should all have the same ID.
-        // The DataService should only have one project.
-        print('DEBUG: projects length is ${dataService.projects.length}'); expect(dataService.projects.length, 1);
+        expect(nodeService.rootNodes.length, 1);
       }
     });
   });

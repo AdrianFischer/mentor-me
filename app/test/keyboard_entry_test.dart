@@ -3,8 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/app.dart';
-import 'package:flutter_app/data/repository/storage_repository.dart';
-import 'package:flutter_app/models/models.dart';
+import 'package:flutter_app/models/node.dart';
 import 'package:flutter_app/providers/selection_provider.dart';
 import 'package:flutter_app/services/mcp_server.dart';
 import 'package:flutter_app/providers/mcp_provider.dart';
@@ -28,10 +27,10 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     // Setup: Projects [A, B, C]
-    final fakeRepository = FakeStorageRepository(initialProjects: [
-        Project(id: 'p1', title: 'A'),
-        Project(id: 'p2', title: 'B'),
-        Project(id: 'p3', title: 'C'),
+    final fakeRepository = FakeStorageRepository(initialNodes: [
+        Node(id: 'p1', title: 'A'),
+        Node(id: 'p2', title: 'B'),
+        Node(id: 'p3', title: 'C'),
     ]);
     
     await tester.pumpWidget(ProviderScope(
@@ -76,7 +75,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify 'B' is removed (p2 is gone)
-    expect(fakeRepository.getProjects().any((p) => p.id == 'p2'), isFalse);
+    expect(fakeRepository.getNodes().any((p) => p.id == 'p2'), isFalse);
     
     // Verify 'A' (p1) is now selected (Focus moves up)
     expect(container.read(selectionProvider).selectedProjectId, 'p1');
@@ -89,9 +88,9 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     // Setup: Projects [A, B]
-    final fakeRepository = FakeStorageRepository(initialProjects: [
-        Project(id: 'p1', title: 'A'),
-        Project(id: 'p2', title: 'B'),
+    final fakeRepository = FakeStorageRepository(initialNodes: [
+        Node(id: 'p1', title: 'A'),
+        Node(id: 'p2', title: 'B'),
     ]);
     
     await tester.pumpWidget(ProviderScope(
@@ -125,7 +124,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify 'A' is removed
-    expect(fakeRepository.getProjects().any((p) => p.id == 'p1'), isFalse);
+    expect(fakeRepository.getNodes().any((p) => p.id == 'p1'), isFalse);
 
     // Verify Selection is CLEARED (Spec: "If the deleted entry was the first in the list, no item should be selected")
     expect(container.read(selectionProvider).selectedProjectId, isNull);
@@ -137,9 +136,9 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final fakeRepository = FakeStorageRepository(initialProjects: [
-        Project(id: 'p1', title: 'A'),
-        Project(id: 'p2', title: 'B'),
+    final fakeRepository = FakeStorageRepository(initialNodes: [
+        Node(id: 'p1', title: 'A'),
+        Node(id: 'p2', title: 'B'),
     ]);
     
     await tester.pumpWidget(ProviderScope(
@@ -158,7 +157,7 @@ void main() {
     await tester.pumpAndSettle();
     
     // Ensure focus is on the column/list by tapping it
-    await tester.tap(find.byKey(const ValueKey('projects')));
+    await tester.tap(find.byKey(const ValueKey('node_0_root')));
     await tester.pumpAndSettle();
 
     // Press Space
@@ -166,8 +165,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify: New entry created between A and B
-    final dataService = container.read(dataServiceProvider);
-    final projects = dataService.projects;
+    final nodeService = container.read(nodeServiceProvider);
+    final projects = nodeService.rootNodes;
     
     expect(projects.length, 3);
     expect(projects[0].title, 'A');
@@ -185,8 +184,8 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final fakeRepository = FakeStorageRepository(initialProjects: [
-        Project(id: 'p1', title: 'A'),
+    final fakeRepository = FakeStorageRepository(initialNodes: [
+        Node(id: 'p1', title: 'A'),
     ]);
     
     await tester.pumpWidget(ProviderScope(
@@ -205,7 +204,7 @@ void main() {
     await tester.pumpAndSettle();
     
     // Ensure focus is on the column/list by tapping it
-    await tester.tap(find.byKey(const ValueKey('projects')));
+    await tester.tap(find.byKey(const ValueKey('node_0_root')));
     await tester.pumpAndSettle();
 
     // Press Space
@@ -213,7 +212,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify: New entry appended at the end
-    final projects = container.read(dataServiceProvider).projects;
+    final projects = container.read(nodeServiceProvider).rootNodes;
     expect(projects.length, 2);
     expect(projects[0].title, 'A');
     expect(projects[1].title, ''); 
@@ -228,8 +227,8 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final fakeRepository = FakeStorageRepository(initialProjects: [
-        Project(id: 'p1', title: 'A'),
+    final fakeRepository = FakeStorageRepository(initialNodes: [
+        Node(id: 'p1', title: 'A'),
     ]);
     
     await tester.pumpWidget(ProviderScope(
@@ -254,9 +253,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify: No new entry created, just a space added to 'A'
-    expect(fakeRepository.getProjects().length, 1);
+    expect(fakeRepository.getNodes().length, 1);
     
-    final textField = find.byType(TextField).first;
     // Note: checking text might fail if sendKeyEvent doesn't drive text input in test env
     // expect(tester.widget<TextField>(textField).controller?.text, 'A ');
   });
@@ -267,9 +265,9 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final fakeRepository = FakeStorageRepository(initialProjects: [
-        Project(id: 'p1', title: 'A', tasks: [
-          Task(id: 't1', title: 'T1', projectId: 'p1')
+    final fakeRepository = FakeStorageRepository(initialNodes: [
+        Node(id: 'p1', title: 'A', children: [
+          Node(id: 't1', title: 'T1', parentId: 'p1')
         ]),
     ]);
     
@@ -289,7 +287,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Ensure focus is on the column/list
-    await tester.tap(find.byKey(const ValueKey('projects')));
+    await tester.tap(find.byKey(const ValueKey('node_0_root')));
     await tester.pumpAndSettle();
 
     // Press Right Arrow
@@ -308,8 +306,8 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final fakeRepository = FakeStorageRepository(initialProjects: [
-        Project(id: 'p1', title: 'A', tasks: []), // No tasks
+    final fakeRepository = FakeStorageRepository(initialNodes: [
+        Node(id: 'p1', title: 'A'), // No tasks
     ]);
     
     await tester.pumpWidget(ProviderScope(
@@ -328,7 +326,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Ensure focus is on the column/list
-    await tester.tap(find.byKey(const ValueKey('projects')));
+    await tester.tap(find.byKey(const ValueKey('node_0_root')));
     await tester.pumpAndSettle();
 
     // Press Right Arrow
@@ -336,12 +334,12 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify: New task created
-    final projects = container.read(dataServiceProvider).projects;
-    expect(projects[0].tasks.length, 1);
-    expect(projects[0].tasks[0].title, '');
-    
+    final projects = container.read(nodeServiceProvider).rootNodes;
+    expect(projects[0].children.length, 1);
+    expect(projects[0].children[0].title, '');
+
     // Verify: Selection moved to new task
-    final newTaskId = projects[0].tasks[0].id;
+    final newTaskId = projects[0].children[0].id;
     expect(container.read(selectionProvider).selectedProjectId, 'p1');
     expect(container.read(selectionProvider).selectedTaskId, newTaskId);
     expect(container.read(selectionProvider).focusedColumnIndex, 1);

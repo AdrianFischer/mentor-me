@@ -7,7 +7,10 @@ import 'package:flutter_app/providers/ai_provider.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_app/services/data_service.dart';
 
+import 'package:flutter_app/services/node_service.dart';
+
 class MockDataService extends Mock implements DataService {}
+class MockNodeService extends Mock implements NodeService {}
 class MockToolRegistry extends Mock implements ToolRegistry {}
 
 void main() {
@@ -16,9 +19,11 @@ void main() {
   group('McpClientService Integration', () {
     late ProviderContainer container;
     late MockDataService mockDataService;
+    late MockNodeService mockNodeService;
 
     setUp(() {
       mockDataService = MockDataService();
+      mockNodeService = MockNodeService();
       container = ProviderContainer(overrides: [
          // We can't easily mock the creation inside the provider without more refactoring,
          // but we can check if the provider returns a valid service.
@@ -40,7 +45,7 @@ void main() {
       // Re-setup with overrides
       container = ProviderContainer(overrides: [
         // Override data service to avoid DB errors
-        toolRegistryProvider.overrideWith((ref) => ToolRegistry(mockDataService)),
+        toolRegistryProvider.overrideWith((ref) => ToolRegistry(mockNodeService, mockDataService)),
       ]);
 
       final service = container.read(mcpClientServiceProvider);

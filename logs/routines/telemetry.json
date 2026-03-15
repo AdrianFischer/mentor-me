@@ -1,430 +1,5 @@
 [
   {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-09T08:19:30.808Z",
-    "total_tokens": 346517
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-09T08:23:52.893Z",
-    "total_tokens": 85659
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-09T08:49:37.298Z",
-    "total_tokens": 61898
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-09T08:51:10.472Z",
-    "total_tokens": 156180
-  },
-  {
-    "routine": "Weekly Memory Consolidator",
-    "timestamp": "2026-03-09T08:51:48.027Z",
-    "total_tokens": 165415
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-09T08:53:19.016Z",
-    "total_tokens": 86308
-  },
-  {
-    "routine": "Daily Code Quality Audit",
-    "timestamp": "2026-03-09T08:55:00.582Z",
-    "total_tokens": 136346
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-09T08:57:37.370Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-09T09:07:33.926Z",
-    "total_tokens": 4623987
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-09T09:14:50.027Z",
-    "total_tokens": 2869580
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-09T09:50:13.886Z",
-    "total_tokens": 59574
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-09T09:50:20.241Z",
-    "total_tokens": 334039
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-09T09:58:58.006Z",
-    "total_tokens": 896636
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-09T10:49:41.598Z",
-    "total_tokens": 33928
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-09T10:51:10.475Z",
-    "total_tokens": 121311
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-09T10:52:47.644Z",
-    "total_tokens": 168710
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-09T11:49:52.906Z",
-    "total_tokens": 119976
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-09T11:57:14.945Z",
-    "total_tokens": 1054876
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-09T12:07:43.470Z",
-    "total_tokens": 895608
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-09T12:10:38.535Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-09T13:02:53.167Z",
-    "total_tokens": 50780
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-09T13:49:57.423Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-09T14:21:36.117Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-09T14:37:41.677Z",
-    "total_tokens": 34129
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-09T14:48:31.243Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-09T14:48:43.772Z",
-    "total_tokens": 227565
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-09T14:52:36.383Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-09T14:53:08.308Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-09T15:06:30.309Z",
-    "total_tokens": 35292
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-09T15:06:40.703Z",
-    "total_tokens": 47387
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-09T15:07:21.307Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-09T15:23:58.713Z",
-    "total_tokens": 133572
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-09T16:06:31.006Z",
-    "total_tokens": 131706
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-09T16:06:40.983Z",
-    "total_tokens": 48177
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-09T16:10:35.678Z",
-    "total_tokens": 411420
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-09T16:26:29.837Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-09T17:06:09.467Z",
-    "total_tokens": 47172
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-09T17:06:16.430Z",
-    "total_tokens": 54700
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-09T17:06:50.122Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-09T17:23:37.448Z",
-    "total_tokens": 62393
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-09T17:23:41.313Z",
-    "total_tokens": 54312
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-10T11:00:39.819Z",
-    "total_tokens": 40968
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-10T11:00:48.730Z",
-    "total_tokens": 96434
-  },
-  {
-    "routine": "Daily Code Quality Audit",
-    "timestamp": "2026-03-10T11:01:28.500Z",
-    "total_tokens": 128465
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-10T11:03:00.759Z",
-    "total_tokens": 68540
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-10T11:05:14.520Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-10T11:05:14.526Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-10T11:33:16.527Z",
-    "total_tokens": 123712
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-10T12:00:37.694Z",
-    "total_tokens": 82475
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-10T12:00:43.483Z",
-    "total_tokens": 59397
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-10T12:03:01.276Z",
-    "total_tokens": 69575
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-10T12:03:02.536Z",
-    "total_tokens": 167353
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-10T12:03:57.224Z",
-    "total_tokens": 1110248
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-10T12:56:08.491Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-10T13:08:10.248Z",
-    "total_tokens": 121250
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-10T13:08:16.766Z",
-    "total_tokens": 79053
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-10T13:12:35.053Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-10T13:12:35.055Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-10T13:14:36.038Z",
-    "total_tokens": 166513
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-10T14:08:36.593Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-10T14:09:02.898Z",
-    "total_tokens": 78494
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-10T14:09:15.737Z",
-    "total_tokens": 126555
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-10T14:11:34.998Z",
-    "total_tokens": 158812
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-10T14:13:36.581Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-10T14:23:17.698Z",
-    "total_tokens": 69995
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-10T14:55:18.227Z",
-    "total_tokens": 94745
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-10T15:08:57.312Z",
-    "total_tokens": 64719
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-10T15:10:03.250Z",
-    "total_tokens": 167762
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-10T15:10:49.799Z",
-    "total_tokens": 433571
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-10T15:11:08.333Z",
-    "total_tokens": 99319
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-10T15:46:32.873Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-10T16:14:55.422Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-10T16:15:19.192Z",
-    "total_tokens": 63139
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-10T16:15:29.842Z",
-    "total_tokens": 99396
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-10T16:26:07.281Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-10T16:26:07.284Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "System Health Check",
-    "timestamp": "2026-03-12T07:55:46.666Z",
-    "total_tokens": 152680
-  },
-  {
-    "routine": "Hourly Security Guard",
-    "timestamp": "2026-03-12T07:55:57.779Z",
-    "total_tokens": 83222
-  },
-  {
-    "routine": "Daily Code Quality Audit",
-    "timestamp": "2026-03-12T07:56:41.376Z",
-    "total_tokens": 196814
-  },
-  {
-    "routine": "Hourly PR Status Check",
-    "timestamp": "2026-03-12T07:57:13.604Z",
-    "total_tokens": 123738
-  },
-  {
-    "routine": "Monitor PR Test Results",
-    "timestamp": "2026-03-12T07:58:41.875Z",
-    "total_tokens": 133706
-  },
-  {
-    "routine": "Flutter MCP Auto-Worker",
-    "timestamp": "2026-03-12T08:00:18.857Z",
-    "total_tokens": 0
-  },
-  {
-    "routine": "Find Local German Radio Stations",
-    "timestamp": "2026-03-12T08:11:12.240Z",
-    "total_tokens": 225741
-  },
-  {
-    "routine": "Parser Test",
-    "timestamp": "2026-03-12T08:16:30.817Z",
-    "total_tokens": 22260
-  },
-  {
-    "routine": "Find Local German Radio Stations",
-    "timestamp": "2026-03-12T08:17:12.921Z",
-    "total_tokens": 384014
-  },
-  {
     "routine": "Find Local German Radio Stations",
     "timestamp": "2026-03-12T08:21:02.596Z",
     "total_tokens": 162851
@@ -499,5 +74,515 @@
     "timestamp": "2026-03-12T09:14:08.058Z",
     "total_tokens": 231963,
     "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Find_Local_German_Radio_Stations_2026-03-12T09-12-22-004Z.log"
+  },
+  {
+    "routine": "Find Local German Radio Stations",
+    "timestamp": "2026-03-12T09:19:41.465Z",
+    "total_tokens": 303017,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Find_Local_German_Radio_Stations_2026-03-12T09-17-22-848Z.log"
+  },
+  {
+    "routine": "Monitor PR Test Results",
+    "timestamp": "2026-03-12T09:26:25.631Z",
+    "total_tokens": 121535,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Monitor_PR_Test_Results_2026-03-12T09-25-19-482Z.log"
+  },
+  {
+    "routine": "Find Local German Radio Stations",
+    "timestamp": "2026-03-12T09:27:23.249Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Find_Local_German_Radio_Stations_2026-03-12T09-22-23-221Z.log"
+  },
+  {
+    "routine": "Find Local German Radio Stations",
+    "timestamp": "2026-03-12T09:30:07.357Z",
+    "total_tokens": 472009,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Find_Local_German_Radio_Stations_2026-03-12T09-27-23-597Z.log"
+  },
+  {
+    "routine": "Find Local German Radio Stations",
+    "timestamp": "2026-03-12T09:37:23.923Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Find_Local_German_Radio_Stations_2026-03-12T09-32-23-874Z.log"
+  },
+  {
+    "routine": "Find Local German Radio Stations",
+    "timestamp": "2026-03-12T09:40:06.694Z",
+    "total_tokens": 508964,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Find_Local_German_Radio_Stations_2026-03-12T09-37-24-357Z.log"
+  },
+  {
+    "routine": "Find Local German Radio Stations",
+    "timestamp": "2026-03-12T09:43:47.378Z",
+    "total_tokens": 194717,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Find_Local_German_Radio_Stations_2026-03-12T09-42-24-627Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:47:34.927Z",
+    "total_tokens": 881548,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-44-52-777Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:49:09.682Z",
+    "total_tokens": 1517629,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-45-22-807Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:49:12.419Z",
+    "total_tokens": 606085,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-47-07-912Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:49:17.730Z",
+    "total_tokens": 539661,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-47-22-928Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:49:45.854Z",
+    "total_tokens": 1642358,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-45-37-819Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:49:59.910Z",
+    "total_tokens": 967656,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-47-37-946Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:50:02.203Z",
+    "total_tokens": 345127,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-48-38-009Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:50:07.828Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-45-07-790Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:50:29.782Z",
+    "total_tokens": 638601,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-48-07-983Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:50:52.889Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-45-52-836Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:51:07.875Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-46-07-852Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:51:22.892Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-46-22-866Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:51:35.238Z",
+    "total_tokens": 1461043,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-47-52-962Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:51:37.917Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-46-37-883Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:51:52.927Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-46-52-899Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:52:43.049Z",
+    "total_tokens": 261602,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-51-38-223Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:53:23.023Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-48-22-995Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:53:53.055Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-48-53-032Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:54:08.090Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-49-08-050Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:54:23.091Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-49-23-064Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:54:38.116Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-49-38-077Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:54:40.992Z",
+    "total_tokens": 1439773,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-49-53-122Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:55:08.165Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-50-08-133Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:55:23.179Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-50-23-150Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:55:38.188Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-50-38-166Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:55:53.224Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-50-53-178Z.log"
+  },
+  {
+    "routine": "System Health Check",
+    "timestamp": "2026-03-12T09:55:56.887Z",
+    "total_tokens": 106800,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/System_Health_Check_2026-03-12T09-55-19-443Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:56:08.218Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-51-08-191Z.log"
+  },
+  {
+    "routine": "Hourly Security Guard",
+    "timestamp": "2026-03-12T09:56:19.309Z",
+    "total_tokens": 169808,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Hourly_Security_Guard_2026-03-12T09-55-19-441Z.log"
+  },
+  {
+    "routine": "Hourly PR Status Check",
+    "timestamp": "2026-03-12T09:57:55.155Z",
+    "total_tokens": 69289,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Hourly_PR_Status_Check_2026-03-12T09-55-19-436Z.log"
+  },
+  {
+    "routine": "Monitor PR Test Results",
+    "timestamp": "2026-03-12T09:58:21.376Z",
+    "total_tokens": 100175,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Monitor_PR_Test_Results_2026-03-12T09-55-20-437Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:59:12.165Z",
+    "total_tokens": 1736141,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-52-53-294Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T09:59:30.336Z",
+    "total_tokens": 2078439,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-53-23-320Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:01:23.229Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-51-23-206Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:01:53.271Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-51-53-237Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:02:08.290Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-52-08-254Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:02:10.853Z",
+    "total_tokens": 2955984,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-54-53-410Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:02:23.314Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-52-23-267Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:02:38.316Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-52-38-280Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:03:08.340Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-53-08-309Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:03:26.792Z",
+    "total_tokens": 2448196,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-56-53-618Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:03:38.377Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-53-38-336Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:03:53.375Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-53-53-351Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:03:56.108Z",
+    "total_tokens": 214409,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-02-53-974Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:04:08.408Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-54-08-367Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:04:23.414Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-54-23-380Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:04:38.437Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-54-38-396Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:04:44.563Z",
+    "total_tokens": 462088,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-03-08-987Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:04:48.918Z",
+    "total_tokens": 2485299,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-55-53-572Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:05:08.452Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-55-08-425Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:05:23.476Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-55-23-444Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:05:38.578Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-55-38-555Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:06:08.621Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-56-08-588Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:06:23.631Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-56-23-602Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:06:38.632Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-56-38-603Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:06:46.273Z",
+    "total_tokens": 3085128,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-59-08-741Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:07:08.658Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-57-08-626Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:07:23.667Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-57-23-641Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:07:38.695Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-57-38-656Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:07:42.814Z",
+    "total_tokens": 4319323,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-57-53-666Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:07:59.268Z",
+    "total_tokens": 2473438,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-00-38-838Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:08:08.717Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-58-08-681Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:08:23.727Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-58-23-694Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:08:38.741Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-58-38-711Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:08:48.448Z",
+    "total_tokens": 3077806,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-01-53-912Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:08:53.759Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-58-53-725Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:09:23.778Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-59-23-755Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:09:38.794Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-59-38-771Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:09:53.833Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T09-59-53-788Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:10:08.832Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-00-08-801Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:10:23.846Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-00-23-817Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:10:53.899Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-00-53-859Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:11:08.905Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-01-08-876Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:11:23.913Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-01-23-888Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:11:38.917Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-01-38-901Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:12:08.953Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-02-08-927Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:12:23.965Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-02-23-942Z.log"
+  },
+  {
+    "routine": "Flutter MCP Auto-Worker",
+    "timestamp": "2026-03-12T10:12:38.984Z",
+    "total_tokens": 0,
+    "log_file": "/Users/adi/dev/AssistedIntelligence/logs/routines/Flutter_MCP_Auto-Worker_2026-03-12T10-02-38-960Z.log"
   }
 ]

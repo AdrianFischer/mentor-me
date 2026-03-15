@@ -1,5 +1,5 @@
 import '../ai_tool.dart';
-import '../../services/data_service.dart';
+import '../../models/node.dart';
 
 class ListTodosByStatusTool implements AiTool {
   @override
@@ -27,7 +27,7 @@ class ListTodosByStatusTool implements AiTool {
   }
 
   @override
-  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, DataService dataService) async {
+  Future<Map<String, dynamic>> execute(Map<String, dynamic> args, ToolContext context) async {
     final status = args['status'] as String?;
     if (status == null) {
       return {'result': 'error', 'message': 'Missing status'};
@@ -35,38 +35,28 @@ class ListTodosByStatusTool implements AiTool {
 
     final isCompletedTarget = status == 'completed';
     final results = <Map<String, dynamic>>[];
-    dataService.clearSessionIndex();
+    context.dataService.clearSessionIndex();
 
-    for (final project in dataService.projects) {
-      for (final task in project.tasks) {
-        if (task.isCompleted == isCompletedTarget) {
-          final index = dataService.addToSessionIndex(task.id);
+    void collectNodes(Node node, String? projectTitle) {
+      for (final child in node.children) {
+        if (child.isCompleted == isCompletedTarget) {
+          final index = context.dataService.addToSessionIndex(child.id);
           results.add({
             'index': index,
-            'id': task.id,
-            'title': task.title,
-            'type': 'task',
-            'project': project.title,
-            'notes': task.notes,
-            'images': task.localImagePaths,
+            'id': child.id,
+            'title': child.title,
+            'type': child.children.isEmpty ? 'leaf' : 'node',
+            'project': projectTitle ?? node.title,
+            'notes': child.notes,
+            'images': child.localImagePaths,
           });
         }
-        for (final subtask in task.subtasks) {
-          if (subtask.isCompleted == isCompletedTarget) {
-            final index = dataService.addToSessionIndex(subtask.id);
-            results.add({
-              'index': index,
-              'id': subtask.id,
-              'title': subtask.title,
-              'type': 'subtask',
-              'parent_task': task.title,
-              'project': project.title,
-              'notes': subtask.notes,
-              'images': subtask.localImagePaths,
-            });
-          }
-        }
+        collectNodes(child, projectTitle ?? node.title);
       }
+    }
+
+    for (final root in context.nodeService.rootNodes) {
+      collectNodes(root, root.title);
     }
 
     return {'result': 'success', 'items': results};
