@@ -1,0 +1,45 @@
+{
+  "id": "a0e402c6-b340-4cc3-a123-aac951799322",
+  "projectId": "mentor-me",
+  "status": "archived",
+  "activity": "exited",
+  "branch": null,
+  "issueId": null,
+  "workspacePath": null,
+  "createdAt": "2026-03-12T10:09:23.691990+00:00",
+  "lastActivityAt": "2026-03-12T10:09:51.694583+00:00",
+  "summary": "Archived",
+  "agent": "claude-code",
+  "model": null,
+  "reasoningEffort": null,
+  "prompt": "You are executing a Conductor board task.\n\nTask: Track: UI Stability & Direct-to-Markdown Polish\nTask id: f076c249-2d25-44d9-8425-a2e66098dd40\nProject: mentor-me\n\nTask brief (.conductor/tasks/f076c249-2d25-44d9-8425-a2e66098dd40.md)\n---\n---\ntaskRef: f076c249-2d25-44d9-8425-a2e66098dd40\ntaskId: f076c249-2d25-44d9-8425-a2e66098dd40\nprojectId: mentor-me\nupdatedAt: 2026-03-12T10:09:23.691729+00:00\n---\n\n# f076c249-2d25-44d9-8425-a2e66098dd40 Track: UI Stability & Direct-to-Markdown Polish\n\n## Objective\n- Describe the intended outcome here.\n\n## Board Notes\n- Add task-specific guidance, constraints, and edge cases.\n\n## Attachments\n- Add linked files, screenshots, and references.\n\n## Dependencies\n- \n\n## Acceptance Criteria\n- \n\n## Subtasks\n- Create child pages in `f076c249-2d25-44d9-8425-a2e66098dd40/` when this task needs executable subtasks.\n\n## Run History\n- No runs yet.\n---\n\nAttached context:\nFile: .conductor/tasks/f076c249-2d25-44d9-8425-a2e66098dd40.md\n```text\n---\ntaskRef: f076c249-2d25-44d9-8425-a2e66098dd40\ntaskId: f076c249-2d25-44d9-8425-a2e66098dd40\nprojectId: mentor-me\nupdatedAt: 2026-03-12T10:09:23.691729+00:00\n---\n\n# f076c249-2d25-44d9-8425-a2e66098dd40 Track: UI Stability & Direct-to-Markdown Polish\n\n## Objective\n- Describe the intended outcome here.\n\n## Board Notes\n- Add task-specific guidance, constraints, and edge cases.\n\n## Attachments\n- Add linked files, screenshots, and references.\n\n## Dependencies\n- \n\n## Acceptance Criteria\n- \n\n## Subtasks\n- Create child pages in `f076c249-2d25-44d9-8425-a2e66098dd40/` when this task needs executable subtasks.\n\n## Run History\n- No runs yet.\n```\n\nUse the board brief and context as the source of truth. Keep implementation updates aligned with this task rather than treating it like a generic PR ticket.\n",
+  "pid": null,
+  "metadata": {
+    "queueError": "Failed to execute tmux",
+    "launchStartedAt": "2026-03-12T10:09:23.692688+00:00",
+    "archivedAt": "2026-03-12T10:09:51.694583+00:00",
+    "launchAttempts": "1",
+    "finishedAt": "2026-03-12T10:09:51.694584+00:00",
+    "queuedAt": "2026-03-12T10:09:23.691990+00:00",
+    "agent": "claude-code",
+    "summary": "Archived",
+    "spawnRequest": "{\"projectId\":\"mentor-me\",\"prompt\":\"You are executing a Conductor board task.\\n\\nTask: Track: UI Stability & Direct-to-Markdown Polish\\nTask id: f076c249-2d25-44d9-8425-a2e66098dd40\\nProject: mentor-me\\n\\nTask brief (.conductor/tasks/f076c249-2d25-44d9-8425-a2e66098dd40.md)\\n---\\n---\\ntaskRef: f076c249-2d25-44d9-8425-a2e66098dd40\\ntaskId: f076c249-2d25-44d9-8425-a2e66098dd40\\nprojectId: mentor-me\\nupdatedAt: 2026-03-12T10:09:23.691729+00:00\\n---\\n\\n# f076c249-2d25-44d9-8425-a2e66098dd40 Track: UI Stability & Direct-to-Markdown Polish\\n\\n## Objective\\n- Describe the intended outcome here.\\n\\n## Board Notes\\n- Add task-specific guidance, constraints, and edge cases.\\n\\n## Attachments\\n- Add linked files, screenshots, and references.\\n\\n## Dependencies\\n- \\n\\n## Acceptance Criteria\\n- \\n\\n## Subtasks\\n- Create child pages in `f076c249-2d25-44d9-8425-a2e66098dd40/` when this task needs executable subtasks.\\n\\n## Run History\\n- No runs yet.\\n---\\n\\nAttached context:\\nFile: .conductor/tasks/f076c249-2d25-44d9-8425-a2e66098dd40.md\\n```text\\n---\\ntaskRef: f076c249-2d25-44d9-8425-a2e66098dd40\\ntaskId: f076c249-2d25-44d9-8425-a2e66098dd40\\nprojectId: mentor-me\\nupdatedAt: 2026-03-12T10:09:23.691729+00:00\\n---\\n\\n# f076c249-2d25-44d9-8425-a2e66098dd40 Track: UI Stability & Direct-to-Markdown Polish\\n\\n## Objective\\n- Describe the intended outcome here.\\n\\n## Board Notes\\n- Add task-specific guidance, constraints, and edge cases.\\n\\n## Attachments\\n- Add linked files, screenshots, and references.\\n\\n## Dependencies\\n- \\n\\n## Acceptance Criteria\\n- \\n\\n## Subtasks\\n- Create child pages in `f076c249-2d25-44d9-8425-a2e66098dd40/` when this task needs executable subtasks.\\n\\n## Run History\\n- No runs yet.\\n```\\n\\nUse the board brief and context as the source of truth. Keep implementation updates aligned with this task rather than treating it like a generic PR ticket.\\n\",\"issueId\":null,\"agent\":\"claude-code\",\"useWorktree\":true,\"permissionMode\":null,\"model\":null,\"reasoningEffort\":null,\"branch\":null,\"baseBranch\":null,\"taskId\":\"f076c249-2d25-44d9-8425-a2e66098dd40\",\"taskRef\":null,\"attemptId\":\"a-87994728618846c4b10e65172a4dfc99\",\"parentTaskId\":null,\"retryOfSessionId\":null,\"profile\":null,\"briefPath\":\".conductor/tasks/f076c249-2d25-44d9-8425-a2e66098dd40.md\",\"attachments\":[\".conductor/tasks/f076c249-2d25-44d9-8425-a2e66098dd40.md\"],\"source\":\"board_dispatch\"}",
+    "queueSource": "board_dispatch",
+    "launchState": "failed"
+  },
+  "pr": null,
+  "conversation": [
+    {
+      "id": "f45d7d73-af72-4fa7-be78-286fa65f1c7c",
+      "kind": "user_message",
+      "source": "board_dispatch",
+      "text": "You are executing a Conductor board task.\n\nTask: Track: UI Stability & Direct-to-Markdown Polish\nTask id: f076c249-2d25-44d9-8425-a2e66098dd40\nProject: mentor-me\n\nTask brief (.conductor/tasks/f076c249-2d25-44d9-8425-a2e66098dd40.md)\n---\n---\ntaskRef: f076c249-2d25-44d9-8425-a2e66098dd40\ntaskId: f076c249-2d25-44d9-8425-a2e66098dd40\nprojectId: mentor-me\nupdatedAt: 2026-03-12T10:09:23.691729+00:00\n---\n\n# f076c249-2d25-44d9-8425-a2e66098dd40 Track: UI Stability & Direct-to-Markdown Polish\n\n## Objective\n- Describe the intended outcome here.\n\n## Board Notes\n- Add task-specific guidance, constraints, and edge cases.\n\n## Attachments\n- Add linked files, screenshots, and references.\n\n## Dependencies\n- \n\n## Acceptance Criteria\n- \n\n## Subtasks\n- Create child pages in `f076c249-2d25-44d9-8425-a2e66098dd40/` when this task needs executable subtasks.\n\n## Run History\n- No runs yet.\n---\n\nAttached context:\nFile: .conductor/tasks/f076c249-2d25-44d9-8425-a2e66098dd40.md\n```text\n---\ntaskRef: f076c249-2d25-44d9-8425-a2e66098dd40\ntaskId: f076c249-2d25-44d9-8425-a2e66098dd40\nprojectId: mentor-me\nupdatedAt: 2026-03-12T10:09:23.691729+00:00\n---\n\n# f076c249-2d25-44d9-8425-a2e66098dd40 Track: UI Stability & Direct-to-Markdown Polish\n\n## Objective\n- Describe the intended outcome here.\n\n## Board Notes\n- Add task-specific guidance, constraints, and edge cases.\n\n## Attachments\n- Add linked files, screenshots, and references.\n\n## Dependencies\n- \n\n## Acceptance Criteria\n- \n\n## Subtasks\n- Create child pages in `f076c249-2d25-44d9-8425-a2e66098dd40/` when this task needs executable subtasks.\n\n## Run History\n- No runs yet.\n```\n\nUse the board brief and context as the source of truth. Keep implementation updates aligned with this task rather than treating it like a generic PR ticket.\n",
+      "createdAt": "2026-03-12T10:09:23.692+00:00",
+      "attachments": [
+        ".conductor/tasks/f076c249-2d25-44d9-8425-a2e66098dd40.md"
+      ],
+      "metadata": {}
+    }
+  ],
+  "output": ""
+}

@@ -1,0 +1,45 @@
+{
+  "id": "267f5303-15a8-433e-a0da-09e61ee84530",
+  "projectId": "mentor-me",
+  "status": "archived",
+  "activity": "exited",
+  "branch": null,
+  "issueId": null,
+  "workspacePath": null,
+  "createdAt": "2026-03-12T10:09:23.188009+00:00",
+  "lastActivityAt": "2026-03-12T10:09:51.694820+00:00",
+  "summary": "Archived",
+  "agent": "claude-code",
+  "model": null,
+  "reasoningEffort": null,
+  "prompt": "You are executing a Conductor board task.\n\nTask: Track: Enhanced Keyboard Entry Management\nTask id: a4847ea5-425e-4fb2-a6de-d38d898fe52a\nProject: mentor-me\n\nTask brief (.conductor/tasks/a4847ea5-425e-4fb2-a6de-d38d898fe52a.md)\n---\n---\ntaskRef: a4847ea5-425e-4fb2-a6de-d38d898fe52a\ntaskId: a4847ea5-425e-4fb2-a6de-d38d898fe52a\nprojectId: mentor-me\nupdatedAt: 2026-03-12T10:09:23.187796+00:00\n---\n\n# a4847ea5-425e-4fb2-a6de-d38d898fe52a Track: Enhanced Keyboard Entry Management\n\n## Objective\n- Describe the intended outcome here.\n\n## Board Notes\n- Add task-specific guidance, constraints, and edge cases.\n\n## Attachments\n- Add linked files, screenshots, and references.\n\n## Dependencies\n- \n\n## Acceptance Criteria\n- \n\n## Subtasks\n- Create child pages in `a4847ea5-425e-4fb2-a6de-d38d898fe52a/` when this task needs executable subtasks.\n\n## Run History\n- No runs yet.\n---\n\nAttached context:\nFile: .conductor/tasks/a4847ea5-425e-4fb2-a6de-d38d898fe52a.md\n```text\n---\ntaskRef: a4847ea5-425e-4fb2-a6de-d38d898fe52a\ntaskId: a4847ea5-425e-4fb2-a6de-d38d898fe52a\nprojectId: mentor-me\nupdatedAt: 2026-03-12T10:09:23.187796+00:00\n---\n\n# a4847ea5-425e-4fb2-a6de-d38d898fe52a Track: Enhanced Keyboard Entry Management\n\n## Objective\n- Describe the intended outcome here.\n\n## Board Notes\n- Add task-specific guidance, constraints, and edge cases.\n\n## Attachments\n- Add linked files, screenshots, and references.\n\n## Dependencies\n- \n\n## Acceptance Criteria\n- \n\n## Subtasks\n- Create child pages in `a4847ea5-425e-4fb2-a6de-d38d898fe52a/` when this task needs executable subtasks.\n\n## Run History\n- No runs yet.\n```\n\nUse the board brief and context as the source of truth. Keep implementation updates aligned with this task rather than treating it like a generic PR ticket.\n",
+  "pid": null,
+  "metadata": {
+    "archivedAt": "2026-03-12T10:09:51.694820+00:00",
+    "summary": "Archived",
+    "queueSource": "board_dispatch",
+    "launchState": "failed",
+    "spawnRequest": "{\"projectId\":\"mentor-me\",\"prompt\":\"You are executing a Conductor board task.\\n\\nTask: Track: Enhanced Keyboard Entry Management\\nTask id: a4847ea5-425e-4fb2-a6de-d38d898fe52a\\nProject: mentor-me\\n\\nTask brief (.conductor/tasks/a4847ea5-425e-4fb2-a6de-d38d898fe52a.md)\\n---\\n---\\ntaskRef: a4847ea5-425e-4fb2-a6de-d38d898fe52a\\ntaskId: a4847ea5-425e-4fb2-a6de-d38d898fe52a\\nprojectId: mentor-me\\nupdatedAt: 2026-03-12T10:09:23.187796+00:00\\n---\\n\\n# a4847ea5-425e-4fb2-a6de-d38d898fe52a Track: Enhanced Keyboard Entry Management\\n\\n## Objective\\n- Describe the intended outcome here.\\n\\n## Board Notes\\n- Add task-specific guidance, constraints, and edge cases.\\n\\n## Attachments\\n- Add linked files, screenshots, and references.\\n\\n## Dependencies\\n- \\n\\n## Acceptance Criteria\\n- \\n\\n## Subtasks\\n- Create child pages in `a4847ea5-425e-4fb2-a6de-d38d898fe52a/` when this task needs executable subtasks.\\n\\n## Run History\\n- No runs yet.\\n---\\n\\nAttached context:\\nFile: .conductor/tasks/a4847ea5-425e-4fb2-a6de-d38d898fe52a.md\\n```text\\n---\\ntaskRef: a4847ea5-425e-4fb2-a6de-d38d898fe52a\\ntaskId: a4847ea5-425e-4fb2-a6de-d38d898fe52a\\nprojectId: mentor-me\\nupdatedAt: 2026-03-12T10:09:23.187796+00:00\\n---\\n\\n# a4847ea5-425e-4fb2-a6de-d38d898fe52a Track: Enhanced Keyboard Entry Management\\n\\n## Objective\\n- Describe the intended outcome here.\\n\\n## Board Notes\\n- Add task-specific guidance, constraints, and edge cases.\\n\\n## Attachments\\n- Add linked files, screenshots, and references.\\n\\n## Dependencies\\n- \\n\\n## Acceptance Criteria\\n- \\n\\n## Subtasks\\n- Create child pages in `a4847ea5-425e-4fb2-a6de-d38d898fe52a/` when this task needs executable subtasks.\\n\\n## Run History\\n- No runs yet.\\n```\\n\\nUse the board brief and context as the source of truth. Keep implementation updates aligned with this task rather than treating it like a generic PR ticket.\\n\",\"issueId\":null,\"agent\":\"claude-code\",\"useWorktree\":true,\"permissionMode\":null,\"model\":null,\"reasoningEffort\":null,\"branch\":null,\"baseBranch\":null,\"taskId\":\"a4847ea5-425e-4fb2-a6de-d38d898fe52a\",\"taskRef\":null,\"attemptId\":\"a-29640b40ca184ebb9fb9845c32d74d39\",\"parentTaskId\":null,\"retryOfSessionId\":null,\"profile\":null,\"briefPath\":\".conductor/tasks/a4847ea5-425e-4fb2-a6de-d38d898fe52a.md\",\"attachments\":[\".conductor/tasks/a4847ea5-425e-4fb2-a6de-d38d898fe52a.md\"],\"source\":\"board_dispatch\"}",
+    "finishedAt": "2026-03-12T10:09:51.694820+00:00",
+    "launchAttempts": "1",
+    "agent": "claude-code",
+    "queuedAt": "2026-03-12T10:09:23.188009+00:00",
+    "launchStartedAt": "2026-03-12T10:09:23.379568+00:00",
+    "queueError": "Failed to execute tmux"
+  },
+  "pr": null,
+  "conversation": [
+    {
+      "id": "a7985b4e-ece5-466f-90c3-5ebe8fc5c6dd",
+      "kind": "user_message",
+      "source": "board_dispatch",
+      "text": "You are executing a Conductor board task.\n\nTask: Track: Enhanced Keyboard Entry Management\nTask id: a4847ea5-425e-4fb2-a6de-d38d898fe52a\nProject: mentor-me\n\nTask brief (.conductor/tasks/a4847ea5-425e-4fb2-a6de-d38d898fe52a.md)\n---\n---\ntaskRef: a4847ea5-425e-4fb2-a6de-d38d898fe52a\ntaskId: a4847ea5-425e-4fb2-a6de-d38d898fe52a\nprojectId: mentor-me\nupdatedAt: 2026-03-12T10:09:23.187796+00:00\n---\n\n# a4847ea5-425e-4fb2-a6de-d38d898fe52a Track: Enhanced Keyboard Entry Management\n\n## Objective\n- Describe the intended outcome here.\n\n## Board Notes\n- Add task-specific guidance, constraints, and edge cases.\n\n## Attachments\n- Add linked files, screenshots, and references.\n\n## Dependencies\n- \n\n## Acceptance Criteria\n- \n\n## Subtasks\n- Create child pages in `a4847ea5-425e-4fb2-a6de-d38d898fe52a/` when this task needs executable subtasks.\n\n## Run History\n- No runs yet.\n---\n\nAttached context:\nFile: .conductor/tasks/a4847ea5-425e-4fb2-a6de-d38d898fe52a.md\n```text\n---\ntaskRef: a4847ea5-425e-4fb2-a6de-d38d898fe52a\ntaskId: a4847ea5-425e-4fb2-a6de-d38d898fe52a\nprojectId: mentor-me\nupdatedAt: 2026-03-12T10:09:23.187796+00:00\n---\n\n# a4847ea5-425e-4fb2-a6de-d38d898fe52a Track: Enhanced Keyboard Entry Management\n\n## Objective\n- Describe the intended outcome here.\n\n## Board Notes\n- Add task-specific guidance, constraints, and edge cases.\n\n## Attachments\n- Add linked files, screenshots, and references.\n\n## Dependencies\n- \n\n## Acceptance Criteria\n- \n\n## Subtasks\n- Create child pages in `a4847ea5-425e-4fb2-a6de-d38d898fe52a/` when this task needs executable subtasks.\n\n## Run History\n- No runs yet.\n```\n\nUse the board brief and context as the source of truth. Keep implementation updates aligned with this task rather than treating it like a generic PR ticket.\n",
+      "createdAt": "2026-03-12T10:09:23.188016+00:00",
+      "attachments": [
+        ".conductor/tasks/a4847ea5-425e-4fb2-a6de-d38d898fe52a.md"
+      ],
+      "metadata": {}
+    }
+  ],
+  "output": ""
+}
