@@ -8,10 +8,15 @@ import { logger } from './logger.js';
 import { DashboardService } from './dashboard.js';
 import { ConductorManager } from './conductor_client.js';
 import { createBrainWorker } from './workers/brain_worker.js';
+import { DataService } from './data/data_service.js';
+import { ConversationStore } from './data/conversation_store.js';
+import { KnowledgeStore } from './data/knowledge_store.js';
+import { MemoryStore } from './data/memory_store.js';
+import { createApiRouter } from './api/router.js';
 
 async function main() {
   logger.info('🚀 Starting Assisted Intelligence Agent...');
-  
+
   // Initial wait to ensure Flutter app starts its server
   await new Promise(resolve => setTimeout(resolve, 5000));
 
@@ -20,7 +25,16 @@ async function main() {
     const config = loadConfig();
     logger.info(`Loaded ${config.authorizedUserIds.length} authorized Telegram users.`);
 
-    // 2. Initialize Core Services
+    // 2. Initialize Backend Data Layer
+    const dataService = new DataService(config.dataDir);
+    await dataService.init();
+    logger.info(`📂 Loaded ${dataService.projects.length} projects from ${config.dataDir}`);
+
+    const conversationStore = new ConversationStore(config.dataDir);
+    const knowledgeStore = new KnowledgeStore(config.dataDir);
+    const memoryStore = new MemoryStore(config.dataDir);
+
+    // 3. Initialize Core Services
     const mcp = new McpService(config);
     const gemini = new GeminiService(config);
     
@@ -36,8 +50,9 @@ async function main() {
     const bot = new BotService(config, brain);
     await bot.start();
 
-    // 6. Start System Dashboard Service (Available even if MCP is down)
-    const dashboard = new DashboardService(8082, gemini);
+    // 6. Start System Dashboard + REST API
+    const apiRouter = createApiRouter(dataService, conversationStore, knowledgeStore, memoryStore);
+    const dashboard = new DashboardService(8082, gemini, apiRouter);
     await dashboard.start();
 
     // 7. Connect to MCP (Flutter App) with retries
@@ -75,9 +90,9 @@ const watchdog = new Watchdog({
 });
 watchdog.start();
 brain.routinesManager.setWatchdog(watchdog);
+dashboard.setWatchdog(watchdog);
 
 logger.info('✨ Agent is now live and talking to your bot');
-
     // Handle Shutdown
     process.once('SIGINT', () => {
       logger.info('Shutting down...');
@@ -101,4 +116,3 @@ logger.info('✨ Agent is now live and talking to your bot');
 }
 
 main();
-dashboard.setWatchdog(watchdog);

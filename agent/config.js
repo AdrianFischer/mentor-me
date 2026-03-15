@@ -1,14 +1,16 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import os from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Loads configuration from .env and system files.
  * @throws {Error} if critical config is missing.
  */
 export function loadConfig() {
-  const envPath = path.resolve('../app/.env');
+  const envPath = process.env.ENV_PATH || path.resolve(__dirname, '../app/.env');
   if (!fs.existsSync(envPath)) {
     throw new Error(`Environment file missing at ${envPath}`);
   }
@@ -34,11 +36,19 @@ export function loadConfig() {
     mcpPort = parseInt(portData, 10);
   }
 
+  // Configurable paths (for Docker volume mounts)
+  const dataDir = process.env.DATA_DIR || path.resolve(__dirname, '../data');
+  const logsDir = process.env.LOGS_DIR || path.resolve(__dirname, '../logs');
+  const mcpHost = process.env.MCP_HOST || '127.0.0.1';
+
   return {
     telegramToken,
     geminiApiKey,
     authorizedUserIds,
     mcpPort,
-    baseUrl: `http://127.0.0.1:${mcpPort}/mcp`
+    mcpHost,
+    baseUrl: `http://${mcpHost}:${mcpPort}/mcp`,
+    dataDir,
+    logsDir,
   };
 }

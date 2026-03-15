@@ -1,0 +1,8 @@
+test/
+scripts/
+agent/
+Dockerfile
+.dockerignore
+README.md
+*.sh
+public/
