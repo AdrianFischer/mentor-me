@@ -32,3 +32,7 @@ version: 1
 - [x] Find small radio stations that could be interested in their own small radio app to stream the media to their listeners and to online <!-- id: e5915633-b4c6-40b8-83b4-25110cf5f377 -->
   Context: The user already has a small radio streaming app and wants to find potential customers to rent/license the project to.
 
+- [ ] App entwickeln, um Klavierspielen zu lernen (interaktiv & dynamisch auf gespielte Töne reagierend) <!-- id: 0e991815-92ed-4ebe-bd02-db86a0f2c427 -->
+
+- [ ] App entwickeln, um Gitarrespielen zu lernen (interaktiv & dynamisch auf gespielte Töne reagierend) <!-- id: 40694b63-4a4e-47c6-ba57-29fe77df0238 -->
+

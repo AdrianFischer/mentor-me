@@ -53,3 +53,5 @@ version: 1
   - [x] Gruppe 61 (Familie Adi - 2): Karin Schelenz <!-- id: b4c80bbf-046c-47c9-a019-382ae90be34d -->
     Passwort: Semmel
 
+- [x] Gästeliste um Adressfelder erweitern (für langfristige Pflege der Gruppen-Adressen) <!-- id: 20172e9d-ced5-4394-96c8-0c70f1ef9b61 -->
+

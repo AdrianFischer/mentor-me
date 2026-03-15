@@ -1,7 +1,7 @@
 {
   "task": "Check the flutter mcp for any open work items and work on them on your own. Then let me know in here when you finished, commit your changes, and provide the commit description and ID.",
-  "name": "Flutter MCP Auto-Worker",
-  "execute_every_seconds": 3600,
   "context": "Autonomously picks up open work items from the Flutter MCP, implements them, commits the code, and reports the commit hash and description.",
-  "last_executed_at": 1773305719117
+  "timeout": 300,
+  "name": "Flutter MCP Auto-Worker",
+  "execute_every_seconds": 120
 }

@@ -1,8 +1,8 @@
 {
-  "enable_websearch": true,
-  "timeout": 900,
   "task": "Search the web for small, local German radio stations. Specifically look for stations that currently have a poor, outdated website or lack a dedicated mobile app. Read the existing 'german_radio_stations.md' file in the Shared folder to see which stations are already listed. Find 3-5 new qualifying stations, and append their Name, Location, Website, and a brief note on why their digital presence needs improvement to the 'german_radio_stations.md' file. Ensure no duplicates are added.",
   "context": "The goal is to find leads for selling a custom radio streaming app. We only want stations with poor digital presence so we can pitch them our solution.",
-  "execute_every_seconds": 3600,
-  "name": "Find Local German Radio Stations"
+  "enable_websearch": true,
+  "timeout": 300,
+  "name": "Find Local German Radio Stations",
+  "execute_every_seconds": 3600
 }

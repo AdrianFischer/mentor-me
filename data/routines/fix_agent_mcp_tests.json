@@ -1,0 +1,7 @@
+{
+  "timeout": 300,
+  "execute_every_seconds": 3600,
+  "enable_websearch": true,
+  "name": "Fix Agent MCP Tests Connection Refused",
+  "task": "The Node.js Agent Tests are failing in `test/mcp.test.js` (AC 27) with an `ECONNREFUSED 127.0.0.1:8081` error. The test expects to connect to an MCP Server over SSE on port 8081, but no mock server is running. Investigate the test setup in `test/mcp.test.js` and fix the missing mock server or network setup so the connection succeeds. Ensure the fix is applied and tests pass."
+}
