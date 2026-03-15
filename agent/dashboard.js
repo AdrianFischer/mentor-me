@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export class DashboardService {
-  constructor(port = 8082, gemini = null) {
+  constructor(port = 8082, gemini = null, apiRouter = null) {
     this.port = port;
     this.gemini = gemini;
     this.app = express();
@@ -20,7 +20,21 @@ export class DashboardService {
     this.githubTools = new GithubTools();
     this._dashboardCache = null;
     this._dashboardCacheTime = 0;
-    
+
+    // Mount REST API router if provided
+    if (apiRouter) {
+      // CORS for cross-origin requests (Flutter web, etc)
+      this.app.use('/api/v1', (req, res, next) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        if (req.method === 'OPTIONS') return res.sendStatus(204);
+        next();
+      });
+      this.app.use('/api/v1', apiRouter);
+      logger.info('📡 REST API mounted at /api/v1');
+    }
+
     this._setupRoutes();
   }
 
@@ -384,8 +398,8 @@ export class DashboardService {
 
   start() {
     return new Promise((resolve) => {
-      this.server = this.app.listen(this.port, () => {
-        logger.info(`📊 Local PR Dashboard running at http://localhost:${this.port}`);
+      this.server = this.app.listen(this.port, '0.0.0.0', () => {
+        logger.info(`📊 Local PR Dashboard running at http://0.0.0.0:${this.port}`);
         resolve();
       });
     });

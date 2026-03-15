@@ -30,7 +30,6 @@ export class AgentBrain {
       const isMultimodal = Array.isArray(prompt);
       logger.info(`Processing ${isMultimodal ? 'Multimodal' : 'Text'}: ${isMultimodal ? '[Media Data]' : `"${prompt}"`}`);
 
-      onStatus('Discovering tools...');
       const allTools = await this._gatherTools();
 
       onStatus('Thinking...');
@@ -152,7 +151,7 @@ IMPORTANT:
     const localToolNames = this.routinesManager.getTools().map(t => t.name);
     const ghToolNames = this.githubTools.getTools().map(t => t.name);
     const sharedToolNames = this.sharedFolderManager.getTools().map(t => t.name);
-    
+
     if (localToolNames.includes(call.name)) {
       return this.routinesManager.executeTool(call);
     } else if (ghToolNames.includes(call.name)) {
