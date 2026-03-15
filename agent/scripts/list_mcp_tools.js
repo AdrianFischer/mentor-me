@@ -1,5 +1,5 @@
-import { loadConfig } from './config.js';
-import { McpService } from './mcp.js';
+import { loadConfig } from '../config.js';
+import { McpService } from '../mcp.js';
 
 async function main() {
   try {

@@ -54,6 +54,22 @@ coverage/
 __pycache__/
 *.pyc
 
+# Binary artifacts
+*.bmp
+*.tmp
+screenshot_temp.*
+screenlog.*
+
+# Test artifacts
+**/tmp_logs_runner/
+**/test_artifacts/
+
+# Conductor runtime
+.conductor/conductor.db
+
+# Agent runtime data
+agent/data/chat_history.json
+
 # Temp
 tmp/
 temp/

@@ -1,4 +1,4 @@
-import { McpService } from './mcp.js';
+import { McpService } from '../mcp.js';
 import { readFileSync } from 'fs';
 
 async function run() {

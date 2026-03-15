@@ -1,9 +1,9 @@
-import { AgentBrain } from './agent.js';
-import { Watchdog } from './watchdog.js';
-import { loadConfig } from './config.js';
-import { McpService } from './mcp.js';
-import { GeminiService } from './gemini.js';
-import { logger } from './logger.js';
+import { AgentBrain } from '../agent.js';
+import { Watchdog } from '../watchdog.js';
+import { loadConfig } from '../config.js';
+import { McpService } from '../mcp.js';
+import { GeminiService } from '../gemini.js';
+import { logger } from '../logger.js';
 import fs from 'fs';
 import path from 'path';
 

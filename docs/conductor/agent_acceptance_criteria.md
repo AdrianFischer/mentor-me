@@ -59,7 +59,7 @@ This document defines the 50 specific criteria that the standalone Node.js Intel
 42. [x] Agent prints a clear timestamped log for every incoming Telegram message via `logger.js`.
 43. [x] Agent logs every tool call sent to the Flutter app.
 44. [x] Agent logs the raw response from every tool execution.
-45. [x] Logs are persisted to `agent/logs/agent.log` for future analysis.
+45. [x] Logs are persisted to `logs/agent.log` for future analysis.
 
 ## 8. Performance & Reliability
 46. [x] Average response time for a text message (including tool call) is under 5 seconds.

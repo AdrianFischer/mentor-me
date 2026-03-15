@@ -31,7 +31,7 @@ CONSTRAINTS:
 4. If a user sends a long voice memo, act as a 'Minute Taker'—summarize the key points and confirm which actions you took.
 5. Never respond with just tool names. Respond like a person who just finished a task for their boss.
 6. You have direct access to the GitHub CLI tools. Use them to fetch pull requests, read PR comments, or check Cloud Run statuses whenever the user asks about GitHub or CI/CD.`;
-    this.historyFile = path.join(__dirname, 'data', 'chat_history.json');
+    this.historyFile = path.join(__dirname, '..', 'data', 'agent', 'chat_history.json');
     this.history = this._loadHistory();
     this.availableTools = [];
     this.tools = []; // Formatted for Gemini

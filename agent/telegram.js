@@ -2,6 +2,10 @@ import { Telegraf, Markup } from 'telegraf';
 import { logger } from './logger.js';
 import { exec } from 'child_process';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export class BotService {
   constructor(config, brain) {
@@ -136,11 +140,11 @@ export class BotService {
       logger.info('Dispatching Conductor Workflow: improve');
       await ctx.reply('🛠️ <b>Continuous Improvement:</b> Dispatching background agent to analyze recent issues and propose architectural or codebase fixes...', { parse_mode: 'HTML' });
       
-      const chatHistoryPath = path.resolve(__dirname, 'data', 'chat_history.json');
-      const prompt = `Please review recent system logs in logs/routines/, test failures, and our recent chat history located at ${chatHistoryPath}. Identify one area of improvement or a recent bug the user mentioned, formulate a plan to fix it, and execute the fix autonomously. Finally, update GEMINI.md with your findings.`;
+      const chatHistoryPath = path.resolve('data', 'agent', 'chat_history.json');
+      const prompt = `Please review recent system logs in logs/routines/, test failures, and our recent chat history located at ${chatHistoryPath}. Identify one area of improvement or a recent bug the user mentioned, formulate a plan to fix it, and execute the fix autonomously. Finally, update docs/GEMINI.md with your findings.`;
 
       const cmd = `npx -y conductor-oss@latest spawn mentor-me "${prompt}"`;
-      const workspacePath = path.resolve('..');
+      const workspacePath = path.resolve('.');
       
       exec(cmd, { cwd: workspacePath }, (error, stdout, stderr) => {
         if (error) {
@@ -202,25 +206,26 @@ export class BotService {
     if (ctx.message.voice) {
       return this.handleVoice(ctx);
     }
-    
+
     const text = ctx.message.text;
     if (!text) return;
 
+    const statusUpdater = this._createStatusUpdater(ctx);
     try {
       logger.info(`Incoming from Telegram: "${text}"`);
-      
-      const statusUpdater = this._createStatusUpdater(ctx);
-      const response = await this.withTyping(ctx, () => 
-        this.brain.process(text, async (status) => {
+
+      const response = await this.withTyping(ctx, async () => {
+        return await this.brain.process(text, async (status) => {
           await statusUpdater.update(status);
-        })
-      );
-      
-      const messageId = await statusUpdater.clear();
-      await this.safeReply(ctx, response, messageId);
+        });
+      });
+
+      await statusUpdater.clear();
+      await this.safeReply(ctx, response);
     } catch (error) {
       logger.error('Telegram Error', error);
-      await ctx.reply('❌ Sorry, something went wrong while thinking.');
+      await statusUpdater.clear();
+      await ctx.reply(`❌ Sorry, something went wrong while thinking: ${error.message}`);
     }
   }
 

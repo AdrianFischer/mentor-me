@@ -1,4 +1,4 @@
-import { RoutineRunner } from './routine_runner.js';
+import { RoutineRunner } from '../routine_runner.js';
 import path from 'path';
 
 async function test() {

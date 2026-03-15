@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { loadConfig } from './config.js';
+import { loadConfig } from '../config.js';
 
 async function listModels() {
   try {
