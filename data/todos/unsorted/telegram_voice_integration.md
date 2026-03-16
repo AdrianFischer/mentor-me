@@ -1,16 +1,10 @@
 ---
-
 id: 9dbd3a36-d46f-4018-b845-89f4fefc9bf3
-
 is_completed: true
-
 version: 1
-
 ---
 
-
 # Telegram Voice Integration
-
 
 - [x] Catch the Voice Message (Extract file_id) <!-- id: 22add269-1f7c-43f1-ae47-5f758388e4a9 -->
 

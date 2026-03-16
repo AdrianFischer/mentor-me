@@ -1,16 +1,10 @@
 ---
-
 id: 1ef0c2a9-aa40-4547-be2e-25ed4dee9125
-
 is_completed: true
-
 version: 1
-
 ---
 
-
 # Noyes
-
 
 - [x] Check Request Cancellation PR <!-- id: d6b798ed-c3bd-4e05-a9e3-eb53f745eed6 -->
 

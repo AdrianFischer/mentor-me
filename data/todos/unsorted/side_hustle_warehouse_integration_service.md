@@ -1,11 +1,7 @@
 ---
-
 id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
-
 version: 1
-
 ---
-
 
 # Side Hustle - Warehouse Integration Service
 
@@ -31,6 +27,11 @@ AI-gestützter Integrations-Service für Warehouse-Kunden. Productized Service: 
 
 ## Phase 1: Self-Discovery & Idea (DONE)
 
+## Phase 2: Validation — Kundengespräche
+## Phase 3: Erster bezahlter Pilot
+## Phase 4: Skalierung durch Automatisierung
+## Ongoing
+
 - [x] Write down your personal skills inventory <!-- id: sh-0101 -->
   Python, FastAPI, ROS 2, Flutter, AI agent workflows, systems thinking, process design. Senior Software & Robotics Engineer, bald Teamlead.
 
@@ -48,8 +49,6 @@ AI-gestützter Integrations-Service für Warehouse-Kunden. Productized Service: 
 
 - [x] Deep Research: Technische Machbarkeit & Architektur <!-- id: sh-0106 -->
   Ergebnis: data/shared/side_hustle_tech_research.md — 10 häufigste Integrationsszenarien, SAP-Deep-Dive, AI-Mapping State of the Art, MVP-Architektur, Flywheel-Strategie.
-
-## Phase 2: Validation — Kundengespräche
 
 - [ ] Schriftliche Nebentätigkeits-Freigabe beim Arbeitgeber einholen <!-- id: sh-0200 -->
   Arbeitsvertrag auf Nebentätigkeitsklausel und IP-Klauseln prüfen. Schriftliche Genehmigung einholen — auch wenn Chef mündlich okay sagt. Strikte Trennung: keine Arbeitgeber-Assets, keine Arbeitszeit, keine Kundendaten.
@@ -74,8 +73,6 @@ AI-gestützter Integrations-Service für Warehouse-Kunden. Productized Service: 
 - [ ] Go/No-Go Entscheidung treffen <!-- id: sh-0205 -->
   Kriterien: Zahlen mindestens 2 von 3 Kunden 5.000€+ für eine Integration? Wenn ja → Phase 3. Wenn nein → neue Idee.
 
-## Phase 3: Erster bezahlter Pilot
-
 - [ ] Offer-Paket finalisieren (Productized Service) <!-- id: sh-0300 -->
   Drei Stufen:
   **Blueprint Sprint** (Fixpreis ~2-3k€): Prozesslandkarte, Datenobjekt-Katalog, Source-of-Truth pro Feld, Integrations-Backlog, 1 Happy-Path Demo-Flow.
@@ -97,8 +94,6 @@ AI-gestützter Integrations-Service für Warehouse-Kunden. Productized Service: 
 - [ ] Zweiten und dritten Kunden abschließen <!-- id: sh-0305 -->
   Mit dem Pilot-Ergebnis als Referenz. Preis anpassen basierend auf echtem Aufwand. Referral: "Kennst du einen ähnlichen Betrieb? 1h Process-Audit gratis."
 
-## Phase 4: Skalierung durch Automatisierung
-
 - [ ] Wiederkehrende Integrations-Patterns identifizieren <!-- id: sh-0401 -->
   Top-10 Szenarien aus Recherche als Checkliste: Artikel-Stammdaten, Inbound Orders, GR-Bestätigung, Outbound Release, Pick/Pack/Ship, Inventory Feed, Inventur, Returns, EDI, Lagerstruktur. Welche kommen bei deinen Kunden vor?
 
@@ -113,8 +108,6 @@ AI-gestützter Integrations-Service für Warehouse-Kunden. Productized Service: 
 
 - [ ] Entscheidung: Nur eigene Firma oder auch andere Warehouse-Anbieter? <!-- id: sh-0405 -->
   Wenn Tooling generisch genug wird: andere Warehouse-Firmen haben das gleiche Problem. Prismatic-Modell: "Embedded Integration" für Automationsanbieter.
-
-## Ongoing
 
 - [ ] Weekly Review: Was ist diese Woche passiert? Nächster Schritt? <!-- id: sh-0501 -->
 

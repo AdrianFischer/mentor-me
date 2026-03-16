@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "role": "user",
+    "parts": [
+      {
+        "text": "[Processed Voice Memo]"
+      },
+      {
+        "text": "[Processed Image]"
+      },
+      {
+        "text": "Describe these."
+      }
+    ]
+  }
+]

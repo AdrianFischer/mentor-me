@@ -1,14 +1,9 @@
 ---
-
 id: e8c61822-93fe-42cd-980b-70946a1a68fb
-
 version: 1
-
 ---
 
-
 # Chris
-
 
 - [x] Come up with side business <!-- id: 9ff86f4c-202f-49cf-b1b5-493d325f6dd3 -->
   Brainstormed and documented all 10 side business ideas covering AI, Micro-SaaS, B2B tooling, and Flutter UI kits. Ideas range from voice-to-text apps to DevContainer productization and automated PR log analysis.

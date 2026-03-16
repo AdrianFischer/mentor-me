@@ -1,14 +1,9 @@
 ---
-
 id: 38de8f8d-13c4-4d76-81a0-3bf520614596
-
 version: 1
-
 ---
 
-
 # Nathalie ❤️
-
 
 - [x] kiss 😘 <!-- id: cd3ec790-a35b-465c-8ea0-ffbd84257ea1 -->
 

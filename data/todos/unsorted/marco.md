@@ -1,16 +1,10 @@
 ---
-
 id: 5a369555-a215-4fc4-94f6-d0f18367f5e5
-
 is_completed: true
-
 version: 1
-
 ---
 
-
 # Marco
-
 
 - [x] Aktuelle Projektfortschritte und Meilensteine <!-- id: 901ba5a0-1ef0-4f21-97f9-0f24d6e35e1a -->
 

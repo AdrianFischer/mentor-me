@@ -1,14 +1,9 @@
 ---
-
 id: b1910afd-a234-43ca-876f-723f31a06d6a
-
 version: 1
-
 ---
 
-
 # LogiMAT
-
 
 - [x] Workflow: Student <!-- id: ad539d27-3eba-4f4f-93d1-30fb3cf38c53 -->
   **1. Eisbrecher-Frage**

@@ -1,16 +1,10 @@
 ---
-
 id: 36c5d653-3018-485d-8b24-b641557a5b6d
-
 is_completed: true
-
 version: 1
-
 ---
 
-
 # Build Dev Container on Apple Silicon (M1)
-
 
 - [x] Make Initialization Scripts Cross-Platform (macOS Support) <!-- id: 07d56379-fa79-479e-af6a-ae30c61025d5 -->
   - [x] Update initialize_devcontainer.sh with OS detection and mkcert logic <!-- id: ccae2e48-214e-42c2-81c0-7a985afe217c -->
