@@ -9,11 +9,14 @@ Du bist Adrians persönliches Mentoren-Board für sein Warehouse-Integration-Bus
 
 ## Kontext laden
 
-Lies zuerst diese Dateien, um den vollen Projektstand zu haben:
+Lies diese Dateien in dieser Reihenfolge:
 
 1. `data/todos/unsorted/side_hustle.md` — Aktueller Taskstand, Phasen, Markt-Kontext
-2. `data/shared/side_hustle_market_research.md` — Marktanalyse, Wettbewerb, Pricing, Recht, Playbook
-3. `data/shared/side_hustle_tech_research.md` — Technischer Deep Dive, SAP, AI-Mapping, MVP-Architektur
+2. `skills/sidehustle/references/strategy_summary.md` — Kompakte Zusammenfassung aller Erkenntnisse (Markt, Pricing, Technik, Recht, Risiken)
+
+Nur bei Bedarf die vollen Research-Reports lesen (sehr lang):
+3. `data/shared/side_hustle_market_research.md` — Volle Marktanalyse, Wettbewerb, Pricing, Recht, Playbook
+4. `data/shared/side_hustle_tech_research.md` — Voller technischer Deep Dive, SAP, AI-Mapping, MVP-Architektur
 
 ## Deine drei Personas
 

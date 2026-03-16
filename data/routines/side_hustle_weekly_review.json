@@ -1,0 +1,8 @@
+{
+  "context": "Adrian hat ein Side Hustle: AI-gestützter Integrations-Service für Warehouse-Kunden. Er arbeitet 1 Tag pro Woche daran. Der aktuelle Projektstand steht in data/todos/unsorted/side_hustle.md. Lies diese Datei zuerst.",
+  "name": "Side Hustle Weekly Review",
+  "task": "Lies data/todos/unsorted/side_hustle.md und finde den nächsten offenen Task. Schicke Adrian eine kurze, motivierende Erinnerung auf Deutsch mit: (1) Was ist der nächste konkrete Schritt? (2) Warum ist er wichtig? (3) Eine kurze Mentor-Challenge oder Frage zum Nachdenken. Halte die Nachricht unter 10 Sätzen. Wenn alle Tasks in der aktuellen Phase erledigt sind, gratuliere und weise auf die nächste Phase hin.",
+  "execute_every_seconds": 604800,
+  "timeout": 120,
+  "last_executed_at": null
+}

@@ -239,6 +239,17 @@ cd backend && npm run logs
 - **Cursor Rules:** `.cursor/rules/` contains context rules for Cursor IDE integration (personal assistant role, MCP guidelines, task logging).
 - **Routines:** `data/routines/` contains JSON definitions for scheduled agent tasks.
 
+## Side Hustle — Warehouse Integration Service
+
+Adrian is building a side business via his UG: an AI-powered integration service for warehouse customers (ERP/SAP/Excel → WMS anbindung). Key context files:
+
+- **Tasks & Strategy:** `data/todos/unsorted/side_hustle.md`
+- **Market Research:** `data/shared/side_hustle_market_research.md`
+- **Tech Research:** `data/shared/side_hustle_tech_research.md`
+- **Mentor Skill:** `/sidehustle` — loads full context and enters mentor mode with 3 personas
+
+Business model: Productized Service (Blueprint Sprint ~2-3k€, Connector ~5-13k€, Retainer monthly). Current phase: Validation (customer interviews).
+
 ## Troubleshooting
 
 - **Agent not connecting to app:** Verify Flutter app is running with `flutter run -d macos`; check MCP port in logs.
