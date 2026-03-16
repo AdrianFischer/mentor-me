@@ -39,7 +39,7 @@ async function main() {
     const gemini = new GeminiService(config);
     
     // 3. Initialize Brain
-    const brain = new AgentBrain({ mcp, gemini });
+    const brain = new AgentBrain({ mcp, gemini, dataService });
 
     // 4. Initialize Conductor
     const conductor = new ConductorManager();

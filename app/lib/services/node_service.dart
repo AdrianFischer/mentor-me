@@ -42,9 +42,13 @@ class NodeService extends ChangeNotifier {
   }
 
   Future<void> _reloadNodes() async {
-    final nodes = await _repository.getAllNodes();
-    _rootNodes = List.from(nodes)..sort((a, b) => a.order.compareTo(b.order));
-    notifyListeners();
+    try {
+      final nodes = await _repository.getAllNodes();
+      _rootNodes = List.from(nodes)..sort((a, b) => a.order.compareTo(b.order));
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Offline or error loading nodes: $e");
+    }
   }
 
   // ─── Read Operations ───

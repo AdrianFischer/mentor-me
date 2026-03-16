@@ -1,21 +1,11 @@
 import '../services/node_service.dart';
 import '../services/data_service.dart';
 import 'ai_tool.dart';
-import 'implementations/add_project_tool.dart';
-import 'implementations/add_task_tool.dart';
-import 'implementations/add_subtask_tool.dart';
-import 'implementations/set_item_status_tool.dart';
-import 'implementations/delete_item_tool.dart';
 import 'implementations/save_memory_tool.dart';
 import 'implementations/set_task_goal_tool.dart';
 import 'implementations/record_goal_progress_tool.dart';
-import 'implementations/get_project_tool.dart';
-import 'implementations/get_task_tool.dart';
-import 'implementations/update_item_name_tool.dart';
 import 'implementations/update_notes_tool.dart';
 import 'implementations/set_ai_status_tool.dart';
-import 'implementations/list_todos_by_status_tool.dart';
-import 'implementations/update_todo_by_index_tool.dart';
 import 'implementations/manage_todo_images_tool.dart';
 import 'implementations/upload_image_tool.dart';
 import 'implementations/get_image_tool.dart';
@@ -26,21 +16,11 @@ class ToolRegistry {
 
   ToolRegistry(NodeService nodeService, DataService dataService)
       : _context = ToolContext(nodeService, dataService) {
-    _register(AddProjectTool());
-    _register(AddTaskTool());
-    _register(AddSubtaskTool());
-    _register(SetItemStatusTool());
-    _register(DeleteItemTool());
     _register(SaveMemoryTool());
     _register(SetTaskGoalTool());
     _register(RecordGoalProgressTool());
-    _register(GetProjectTool());
-    _register(GetTaskTool());
-    _register(UpdateItemNameTool());
     _register(UpdateNotesTool());
     _register(SetAiStatusTool());
-    _register(ListTodosByStatusTool());
-    _register(UpdateTodoByIndexTool());
     _register(ManageTodoImagesTool());
     _register(UploadImageTool());
     _register(GetImageTool());

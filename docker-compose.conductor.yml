@@ -4,12 +4,16 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: conductor-db
+    networks:
+      default:
+        aliases:
+          - postgresdb
     environment:
-      POSTGRES_DB: conductor
+      POSTGRES_DB: postgres
       POSTGRES_USER: conductor
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: conductor
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U conductor -d conductor"]
+      test: ["CMD-SHELL", "pg_isready -U conductor -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,16 +26,6 @@ services:
       - "5000:5000" # UI
     environment:
       - CONFIG_PROP=config-postgres.properties
-      - JAVA_OPTS=-Dconductor.db.type=postgres 
-                  -Dspring.datasource.url=jdbc:postgresql://postgres:5432/conductor 
-                  -Dspring.datasource.username=conductor 
-                  -Dspring.datasource.password=password 
-                  -Dconductor.queue.type=postgres 
-                  -Dconductor.indexing.enabled=true 
-                  -Dconductor.indexing.type=postgres 
-                  -Dconductor.elasticsearch.version=0
-                  -Dconductor.app.workflowExecutionLockEnabled=true
-                  -Dconductor.workflow-execution-lock.type=postgres
     depends_on:
       postgres:
         condition: service_healthy

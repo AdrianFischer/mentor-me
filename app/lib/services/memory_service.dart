@@ -26,9 +26,13 @@ class MemoryService extends ChangeNotifier {
   }
 
   Future<void> _reloadMemories() async {
-    final list = await _repository.getAllMemories();
-    _memories = List.from(list);
-    notifyListeners();
+    try {
+      final list = await _repository.getAllMemories();
+      _memories = List.from(list);
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Offline or error loading memories: $e");
+    }
   }
 
   Future<void> saveMemory(String fact) async {

@@ -32,8 +32,15 @@ export function loadConfig() {
   const portFilePath = path.join(homeDir, '.assisted_intelligence', 'mcp_port');
 
   if (fs.existsSync(portFilePath)) {
-    const portData = fs.readFileSync(portFilePath, 'utf-8').trim();
-    mcpPort = parseInt(portData, 10);
+    try {
+      const portData = fs.readFileSync(portFilePath, 'utf-8').trim();
+      const parsedPort = parseInt(portData, 10);
+      if (!isNaN(parsedPort)) {
+        mcpPort = parsedPort;
+      }
+    } catch (e) {
+      // Ignore read errors and use default port
+    }
   }
 
   // Configurable paths (for Docker volume mounts)

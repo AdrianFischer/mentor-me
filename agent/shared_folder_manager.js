@@ -124,6 +124,14 @@ export class SharedFolderManager {
   }
 
   _runSharedCommand(args) {
+    // Security check: strictly reject execution traversing outside of Shared directory
+    if (args.command.includes('../') || args.command.includes('..\\') || args.command.trim().startsWith('/')) {
+      return { 
+        result: 'error', 
+        message: 'Security error: Command attempts to traverse outside of the shared directory.' 
+      };
+    }
+
     // This is essentially a restricted shell execution.
     // We execute with the Shared folder as the current working directory.
     try {

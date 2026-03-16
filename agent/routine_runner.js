@@ -165,12 +165,13 @@ priority = 200
 
         if (this.geminiPath.includes('gemini') && output.trim()) {
           const lastSessionIdMatch = output.lastIndexOf('{\n  "session_id"');
-          const startIndex = lastSessionIdMatch !== -1 ? lastSessionIdMatch : output.lastIndexOf('{');
+          // If no session_id is found, find the first '{' and the last '}'
+          // (assuming the JSON output is the main content)
+          const startIndex = lastSessionIdMatch !== -1 ? lastSessionIdMatch : output.indexOf('{');
           const endIndex = output.lastIndexOf('}');
-          
+
           if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-            const cleanJsonStr = output.substring(startIndex, endIndex + 1);
-            try {
+            const cleanJsonStr = output.substring(startIndex, endIndex + 1);            try {
               const parsed = JSON.parse(cleanJsonStr);
               
               if (parsed.response) {

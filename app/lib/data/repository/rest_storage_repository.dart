@@ -14,8 +14,8 @@ class RestStorageRepository implements StorageRepository {
   Timer? _sseReconnectTimer;
   bool _disposed = false;
 
-  RestStorageRepository({required this.baseUrl})
-      : _client = http.Client();
+  RestStorageRepository({required this.baseUrl, http.Client? client})
+      : _client = client ?? http.Client();
 
   @override
   Stream<void> get onDataChanged => _dataChangeController.stream;

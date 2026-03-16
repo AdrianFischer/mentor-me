@@ -4,15 +4,18 @@ import { logger } from './logger.js';
 import { RoutinesManager } from './routines_manager.js';
 import { GithubTools } from './github_tools.js';
 import { SharedFolderManager } from './shared_folder_manager.js';
+import { TaskTools } from './task_tools.js';
 
 export class AgentBrain {
   constructor(services = {}) {
     this.mcp = services.mcp;
     this.gemini = services.gemini;
     this.bot = services.bot;
+    this.dataService = services.dataService; // Needed for TaskTools
     this.routinesManager = new RoutinesManager();
     this.githubTools = new GithubTools();
     this.sharedFolderManager = new SharedFolderManager();
+    this.taskTools = services.taskTools || new TaskTools(this.dataService);
   }
 
   setModel(type) {
@@ -46,6 +49,29 @@ export class AgentBrain {
           const result = await this._executeTool(call);
           
           executedTools.push(call.name);
+
+          // Verification-First Mutation Workflow
+          if (result && result.result === 'success') {
+            const mutators = {
+              'add_project': { name: 'list_todos_by_status', args: { status: 'active' } },
+              'add_task': { name: 'list_todos_by_status', args: { status: 'active' } },
+              'add_subtask': { name: 'list_todos_by_status', args: { status: 'active' } },
+              'update_todo_by_index': { name: 'list_todos_by_status', args: { status: 'active' } },
+              'update_item_name': { name: 'list_todos_by_status', args: { status: 'active' } },
+              'set_item_status': { name: 'list_todos_by_status', args: { status: 'active' } },
+              'delete_item': { name: 'list_todos_by_status', args: { status: 'active' } },
+              'update_routine': { name: 'verify_routine_active', args: { routine_name: call.args ? call.args.filename : '' } },
+              'create_task': { name: 'verify_task_exists', args: { title: call.args ? call.args.title : '' } }
+            };
+
+            if (mutators[call.name]) {
+              onStatus(`Verifying ${call.name}...`);
+              logger.info(`Verification step for mutation: ${call.name}`);
+              const verifyCall = mutators[call.name];
+              const verifyResult = await this._executeTool(verifyCall);
+              result._verification_check = verifyResult;
+            }
+          }
 
           // Standardized media protocol: if tool returns a 'media' object
           if (result && result.media && result.media.base64 && result.result === 'success') {
@@ -122,10 +148,16 @@ IMPORTANT:
   }
 
   async _gatherTools() {
-    const mcpTools = await this.mcp.discoverTools();
+    let mcpTools = [];
+    try {
+      mcpTools = await this.mcp.discoverTools();
+    } catch (error) {
+      logger.warn('Failed to discover MCP tools, proceeding without them. Is the Flutter App running?', error.message);
+    }
     const localTools = this.routinesManager.getTools();
     const ghTools = this.githubTools.getTools();
     const sharedTools = this.sharedFolderManager.getTools();
+    const taskTools = this.taskTools.getTools();
 
     const verifyTaskTool = {
       name: 'verify_task_exists',
@@ -140,7 +172,22 @@ IMPORTANT:
       }
     };
 
-    return [...mcpTools, ...localTools, ...ghTools, ...sharedTools, verifyTaskTool];
+    const allTools = [...mcpTools, ...localTools, ...ghTools, ...sharedTools, ...taskTools, verifyTaskTool];
+    
+    // Deduplicate by name, priority to native tools (last ones in the array)
+    const uniqueTools = [];
+    const seenNames = new Set();
+    
+    // We iterate backwards to give priority to native tools which are at the end of the array
+    for (let i = allTools.length - 1; i >= 0; i--) {
+      const tool = allTools[i];
+      if (!seenNames.has(tool.name)) {
+        uniqueTools.unshift(tool);
+        seenNames.add(tool.name);
+      }
+    }
+
+    return uniqueTools;
   }
 
   async _executeTool(call) {
@@ -151,6 +198,7 @@ IMPORTANT:
     const localToolNames = this.routinesManager.getTools().map(t => t.name);
     const ghToolNames = this.githubTools.getTools().map(t => t.name);
     const sharedToolNames = this.sharedFolderManager.getTools().map(t => t.name);
+    const taskToolNames = this.taskTools.getTools().map(t => t.name);
 
     if (localToolNames.includes(call.name)) {
       return this.routinesManager.executeTool(call);
@@ -158,6 +206,8 @@ IMPORTANT:
       return this.githubTools.executeTool(call);
     } else if (sharedToolNames.includes(call.name)) {
       return this.sharedFolderManager.executeTool(call);
+    } else if (taskToolNames.includes(call.name)) {
+      return this.taskTools.executeTool(call);
     } else {
       return await this.mcp.callTool(call.name, call.args);
     }
@@ -165,7 +215,7 @@ IMPORTANT:
 
   async _verifyTaskExists(args) {
     try {
-      const response = await this.mcp.callTool('mcp_flutterApp_list_todos_by_status', { status: 'active' });
+      const response = await this.taskTools.executeTool({ name: 'list_todos_by_status', args: { status: 'active' } });
       
       let items = [];
       if (response && response.items) {

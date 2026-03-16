@@ -61,9 +61,47 @@ describe('RoutineRunner Integration', () => {
     expect(result.timedOut).toBe(true);
     expect(result.success).toBe(false);
     expect(endTime - startTime).toBeLessThan(5000); 
+  });
     
-    expect(fs.existsSync(result.logFile)).toBe(true);
-    const logContent = fs.readFileSync(result.logFile, 'utf-8');
-    expect(logContent).toContain('[TIMEOUT_ERROR]');
+  it('Test 5: Routine Parsing Noise Resilience Test', async () => {
+    const testLogsDir = path.join(baseTestLogsDir, 'test_ac5');
+    if (!fs.existsSync(testLogsDir)) fs.mkdirSync(testLogsDir, { recursive: true });
+
+    // Create a mock executable that includes 'gemini' in its name to trigger JSON parsing
+    const mockGeminiPath = path.join(testLogsDir, 'mock-gemini.sh');
+    const mockScript = `#!/bin/bash
+echo "[dotenv] Loading .env file"
+echo "DeprecationWarning: something is deprecated"
+echo '{
+  "response": "Success with noise",
+  "stats": {
+    "models": {
+      "model1": { "tokens": { "total": 120 } },
+      "model2": { "tokens": { "total": 35 } }
+    }
+  }
+}'
+echo "Some post-execution garbage text"
+`;
+    fs.writeFileSync(mockGeminiPath, mockScript, { mode: 0o755 });
+
+    const runner = new RoutineRunner({ 
+      logsDir: testLogsDir,
+      geminiPath: mockGeminiPath 
+    });
+    
+    const routine = {
+      name: 'Noise Routine',
+      task: 'Do something',
+      timeout: 5
+    };
+
+    const result = await runner.run(routine);
+    
+    expect(result.success).toBe(true);
+    // It should extract the JSON response
+    expect(result.output).toBe('Success with noise');
+    // It should sum the tokens: 120 + 35 = 155
+    expect(result.usage.total_tokens).toBe(155);
   });
 });

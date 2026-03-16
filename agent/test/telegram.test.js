@@ -26,6 +26,40 @@ describe('3. Telegram Integration', () => {
     vi.useRealTimers();
   });
 
+  describe('Test 2: Telegram Typing Heartbeat Test', () => {
+    it('sends typing heartbeat every ~4 seconds during long tasks', async () => {
+      vi.useFakeTimers();
+      const bot = new BotService({ telegramToken: 'test_token' }, {});
+      const ctx = { sendChatAction: vi.fn().mockResolvedValue(true) };
+      
+      let resolveTask;
+      const longTask = new Promise((resolve) => { resolveTask = resolve; });
+      
+      const typingPromise = bot.withTyping(ctx, () => longTask);
+      
+      // Initial typing
+      expect(ctx.sendChatAction).toHaveBeenCalledTimes(1);
+      
+      // Advance 4 seconds
+      await vi.advanceTimersByTimeAsync(4000);
+      expect(ctx.sendChatAction).toHaveBeenCalledTimes(2);
+      
+      // Advance another 4 seconds
+      await vi.advanceTimersByTimeAsync(4000);
+      expect(ctx.sendChatAction).toHaveBeenCalledTimes(3);
+      
+      // Finish task
+      resolveTask('done');
+      await typingPromise;
+      
+      // Advance more time to ensure interval is cleared
+      await vi.advanceTimersByTimeAsync(4000);
+      expect(ctx.sendChatAction).toHaveBeenCalledTimes(3); // Should not increase
+      
+      vi.useRealTimers();
+    });
+  });
+
   it('AC 15: Processes voice memos via Gemini', async () => {
     vi.useFakeTimers();
     const mockBrain = { process: vi.fn().mockResolvedValue('I added the task.') };
@@ -77,21 +111,46 @@ describe('3. Telegram Integration', () => {
     expect(true).toBe(true);
   });
 
-  it('should block unauthorized users when whitelist is present', async () => {
-    const config = { telegramToken: 'test', authorizedUserIds: [123] };
-    const bot = new BotService(config);
-    expect(bot.isAuthorized(999)).toBe(false);
-  });
+  describe('Test 4: Telegram Gatekeeper Whitelisting Test', () => {
+    it('Blocks unauthenticated users silently', async () => {
+      const config = { telegramToken: 'test', authorizedUserIds: [123] };
+      const bot = new BotService(config);
+      expect(bot.isAuthorized(999)).toBe(false);
+      
+      // Let's also test the middleware behavior
+      const ctx = { from: { id: 999 }, message: { text: '/start' }, reply: vi.fn() };
+      const next = vi.fn();
+      
+      // Mock telegraf.use
+      let middleware;
+      bot.telegraf = {
+        use: (fn) => { middleware = fn; },
+        start: vi.fn(), help: vi.fn(), command: vi.fn(), action: vi.fn(), on: vi.fn()
+      };
+      bot.setupHandlers(); // Re-run to capture middleware
 
-  it('should allow authorized users when whitelist is present', async () => {
-    const config = { telegramToken: 'test', authorizedUserIds: [123] };
-    const bot = new BotService(config);
-    expect(bot.isAuthorized(123)).toBe(true);
-  });
+      await middleware(ctx, next);
+      expect(next).not.toHaveBeenCalled();
+      expect(ctx.reply).toHaveBeenCalledWith(expect.stringContaining('Access Denied'), expect.any(Object));
+      
+      // Silent for non-start messages
+      const ctxSilent = { from: { id: 999 }, message: { text: 'Hello' }, reply: vi.fn() };
+      await middleware(ctxSilent, next);
+      expect(ctxSilent.reply).not.toHaveBeenCalled();
+    });
 
-  it('should allow all users when whitelist is empty', async () => {
-    const config = { telegramToken: 'test', authorizedUserIds: [] };
-    const bot = new BotService(config);
-    expect(bot.isAuthorized(999)).toBe(true);
+    it('Allows all users in Discovery Mode (empty whitelist)', async () => {
+      const config = { telegramToken: 'test', authorizedUserIds: [] };
+      const bot = new BotService(config);
+      expect(bot.isAuthorized(999)).toBe(true);
+    });
+
+    it('Correctly authorizes requests from users listed in AUTHORIZED_USER_IDS', async () => {
+      const config = { telegramToken: 'test', authorizedUserIds: [123, 456] };
+      const bot = new BotService(config);
+      expect(bot.isAuthorized(123)).toBe(true);
+      expect(bot.isAuthorized(456)).toBe(true);
+      expect(bot.isAuthorized(789)).toBe(false);
+    });
   });
 });

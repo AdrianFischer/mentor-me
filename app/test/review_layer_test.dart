@@ -84,10 +84,8 @@ void main() {
           .thenAnswer((_) async {});
       when(() => mockDataService.getAllKnowledge()).thenAnswer((_) async => []);
 
-      // Stub tool execution (add_project via NodeService)
-      when(() => mockNodeService.addChild(null, any())).thenAnswer((_) async => 'proj_id');
-      when(() => mockNodeService.rootNodes).thenReturn([]);
-      when(() => mockNodeService.addChild(any(), any())).thenAnswer((_) async => 'new_id');
+      // Stub tool execution (update_notes via NodeService)
+      when(() => mockNodeService.updateNotes(any(), any())).thenReturn(null);
 
       when(() => mockDataService.createConversation(any())).thenReturn('conv_id');
 
@@ -101,7 +99,7 @@ void main() {
 
     test('Modification request adds to pendingActions instead of executing', () async {
       // Mock response with function call
-      final functionCall = FunctionCall('add_project', {'title': 'Review Me'});
+      final functionCall = FunctionCall('update_notes', {'item_id': 'item-1', 'notes': 'New notes'});
       
       var callCount = 0;
       when(() => mockChatSession.sendMessage(any())).thenAnswer((_) async {
@@ -116,22 +114,22 @@ void main() {
       expect(service.pendingActions, isEmpty);
       expect(service.executedActions, isEmpty);
 
-      // Send a request that triggers "add_project"
-      await service.sendMessage("create a new project 'Review Me'");
+      // Send a request that triggers "update_notes"
+      await service.sendMessage("update notes for item-1 to 'New notes'");
 
       // Verify pending action
       expect(service.pendingActions.length, 1);
-      expect(service.pendingActions.first.toolName, 'add_project');
-      expect(service.pendingActions.first.toolArgs['title'], 'Review Me');
+      expect(service.pendingActions.first.toolName, 'update_notes');
+      expect(service.pendingActions.first.toolArgs['item_id'], 'item-1');
       
       // Verify NOT executed
       expect(service.executedActions, isEmpty);
-      verifyNever(() => mockNodeService.addChild(null, any()));
+      verifyNever(() => mockNodeService.updateNotes(any(), any()));
     });
 
     test('Accepting action executes and keeps in pendingActions', () async {
       // 1. Propose
-      final functionCall = FunctionCall('add_project', {'title': 'Review Me'});
+      final functionCall = FunctionCall('update_notes', {'item_id': 'item-1', 'notes': 'New notes'});
       
       var callCount = 0;
       when(() => mockChatSession.sendMessage(any())).thenAnswer((_) async {
@@ -143,7 +141,7 @@ void main() {
           }
       });
           
-      await service.sendMessage("create a new project 'Review Me'");
+      await service.sendMessage("update notes for item-1 to 'New notes'");
       final action = service.pendingActions.first;
 
       // 2. Accept
@@ -156,12 +154,12 @@ void main() {
       expect(service.executedActions.first, action);
       
       // Verify DataService called
-      verify(() => mockNodeService.addChild(null, 'Review Me')).called(1);
+      verify(() => mockNodeService.updateNotes('item-1', 'New notes')).called(1);
     });
 
     test('Declining action removes it without executing', () async {
       // 1. Propose
-      final functionCall = FunctionCall('add_project', {'title': 'Bad Idea'});
+      final functionCall = FunctionCall('update_notes', {'item_id': 'item-1', 'notes': 'Bad Idea'});
       
       var callCount = 0;
       when(() => mockChatSession.sendMessage(any())).thenAnswer((_) async {
@@ -173,7 +171,7 @@ void main() {
           }
       });
           
-      await service.sendMessage("create a new project 'Bad Idea'");
+      await service.sendMessage("update notes for item-1 to 'Bad Idea'");
       final action = service.pendingActions.first;
 
       // 2. Decline
@@ -182,7 +180,7 @@ void main() {
       // 3. Verify removed and NOT executed
       expect(service.pendingActions, isEmpty);
       expect(service.executedActions, isEmpty);
-      verifyNever(() => mockNodeService.addChild(null, any()));
+      verifyNever(() => mockNodeService.updateNotes(any(), any()));
     });
   });
 }

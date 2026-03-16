@@ -3,7 +3,7 @@ import { logger } from './logger.js';
 
 export class ConductorManager {
   constructor(config = {}) {
-    this.serverUrl = config.serverUrl || 'http://localhost:4748/api';
+    this.serverUrl = config.serverUrl || process.env.CONDUCTOR_SERVER_URL || 'http://host.docker.internal:4748/api';
     this.clientPromise = orkesConductorClient({
       serverUrl: this.serverUrl,
       // Local Agentic Conductor usually doesn't need keyId/keySecret by default

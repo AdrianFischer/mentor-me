@@ -200,4 +200,56 @@ Notes.
       expect(node.children[1].isCompleted, true);
     });
   });
+
+  group('Markdown Node Parser Edge Cases', () {
+    test('handles malformed frontmatter gracefully', () {
+      final md = '''---
+id: [invalid yaml
+tags: unclosed string"
+---
+
+# Malformed Test
+
+- [ ] Task 1 <!-- id: t1 -->
+''';
+      final node = MarkdownParser.parseNode(md);
+      expect(node.id, isNotEmpty);
+      expect(node.title, 'Malformed Test');
+      expect(node.children.length, 1);
+      expect(node.children[0].id, 't1');
+    });
+
+    test('handles missing delimiters gracefully', () {
+      final md = '''# No Delimiters Test
+
+Just some notes without frontmatter.
+
+- [ ] Task 1 <!-- id: t1 -->
+''';
+      final node = MarkdownParser.parseNode(md);
+      expect(node.id, isNotEmpty);
+      expect(node.title, 'No Delimiters Test');
+      expect(node.notes, 'Just some notes without frontmatter.');
+      expect(node.children.length, 1);
+      expect(node.children[0].id, 't1');
+    });
+
+    test('handles deeply nested unclosed lists or jumped indentation', () {
+      final md = '''---
+id: edge-nested
+---
+
+# Nested Edge Cases
+
+- [ ] Level 1 <!-- id: l1 -->
+        - [ ] Jumped Level <!-- id: jl -->
+  - [ ] Normal Level 2 <!-- id: nl2 -->
+''';
+      final node = MarkdownParser.parseNode(md);
+      expect(node.title, 'Nested Edge Cases');
+      expect(node.children.length, 1);
+      expect(node.children[0].id, 'l1');
+      expect(node.children[0].children.isNotEmpty, true);
+    });
+  });
 }

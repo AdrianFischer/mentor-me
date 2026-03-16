@@ -7,6 +7,14 @@ import '../../models/ai_models.dart';
 import 'storage_repository.dart';
 
 class FirebaseStorageRepository implements StorageRepository {
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  FirebaseStorageRepository({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _auth = auth ?? FirebaseAuth.instance;
 
   Future<T> _withRetry<T>(Future<T> Function() action, {int maxAttempts = 3}) async {
     int attempt = 0;
@@ -23,11 +31,8 @@ class FirebaseStorageRepository implements StorageRepository {
       }
     }
   }
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  
-  final _controller = StreamController<void>.broadcast();
-  final List<StreamSubscription> _subscriptions = [];
+
+  final _controller = StreamController<void>.broadcast();  final List<StreamSubscription> _subscriptions = [];
 
   String? _currentUserId;
 

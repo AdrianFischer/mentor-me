@@ -26,9 +26,13 @@ class ConversationService extends ChangeNotifier {
   }
 
   Future<void> _reloadConversations() async {
-    final list = await _repository.getAllConversations();
-    _conversations = List.from(list);
-    notifyListeners();
+    try {
+      final list = await _repository.getAllConversations();
+      _conversations = List.from(list);
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Offline or error loading conversations: $e");
+    }
   }
 
   String createConversation(String title) {
